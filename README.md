@@ -39,51 +39,11 @@ Sound Arcade follows **domain-driven development** with three layers:
 ## 📝 Development Guidelines
 
 **Code Organization:**
-```
-SoundArcade/  → Audio, Input, UI systems
-Domain/       → Game logic, Rules, Services  
-Models/       → Entities, ValueObjects, Enums
-```
-
-**Key Rules:**
-- Domain and Models must NOT reference Raylib (ensures reusability)
-- Use dependency injection (makes code testable)
-- Document audio cues (specify what sounds mean)
-- Test Domain/Models with xUnit or NUnit
-
-**Example Domain Service:**
-```csharp
-public class GameService
-{
-    private readonly IGameRuleValidator _validator;
-    
-    public GameService(IGameRuleValidator validator) => _validator = validator;
-    
-    public bool IsValidMove(Player player, Move move) 
-        => _validator.Validate(player, move);
-}
-```
+Models          →  nothing
+Domain          →  Models only
+Abstractions    →  nothing (primitive types only)
+Application     →  Domain + Models + Abstractions
+Raylib          →  Abstractions only  ← no longer needs Models
+Desktop         →  Everything (wires it all together)
 
 
-
-## 🤝 Contributing
-
-1. Define data in **Models**
-2. Implement logic in **Domain** (no Raylib)
-3. Integrate in **SoundArcade** (Raylib integration)
-4. Write unit tests for Domain & Models
-5. Document audio cues and accessibility
-
-## 🌟 Philosophy
-
-**The best accessible games are simply good games that don't require a screen.**
-
-Accessibility isn't a feature—it's the foundation. Every design prioritizes audio clarity, keyboard intuitiveness, and meaningful gameplay.
-
-## 📜 License
-
-[Your License Here]
-
-## 📧 Contact
-
-For questions, please open an issue on the project repository.
