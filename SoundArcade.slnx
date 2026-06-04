@@ -1,3 +1,12 @@
 <Solution>
-  <Project Path="App/App.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="Abstraction/Abstraction.csproj" Id="ba00d4f0-d3a8-4c71-ae17-45b785ba4fa2" />
+  <Project Path="Application/Application.csproj" Id="3f093d54-9081-4c93-b900-999c97ebe83d" />
+  <Project Path="Desktop/Desktop.csproj" />
+  <Project Path="Domain.RiverRun/Domain.RiverRun.csproj" Id="813930c5-273d-45a6-b087-590abf481dbf" />
+  <Project Path="Domain/Domain.csproj" Id="4f7195a0-1169-423b-8b64-d3fbdfb73422" />
+  <Project Path="Infrastructure/Infrastructure.csproj" />
 </Solution>

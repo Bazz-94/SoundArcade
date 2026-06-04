@@ -1,0 +1,5 @@
+﻿[*.cs]
+
+[Infrastructure/*]
+# CA1416: Validate platform compatibility
+dotnet_diagnostic.CA1416.severity = none
