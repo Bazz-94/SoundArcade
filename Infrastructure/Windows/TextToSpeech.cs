@@ -7,12 +7,6 @@
   {
     private readonly SpeechSynthesizer synth = new();
 
-    public void init()
-    {
-      PromptBuilder builder = new();
-      Prompt prompt = new("Hello, World!");
-    }
-
     public void Speak(string text)
         => synth.Speak(text);
 
