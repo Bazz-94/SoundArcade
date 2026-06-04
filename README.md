@@ -24,7 +24,6 @@ dotnet run --project SoundArcade/SoundArcade.csproj
 
 Sound Arcade follows **domain-driven development** with three layers:
 
-
 - **Audio-First**: All essential information conveyed through sound  
 - **Keyboard-Only**: Arrow keys, WASD, Space, Enter, Escape, number keys  
 - **Accessible**: WCAG 2.1 Level AA compliance, customizable audio  
