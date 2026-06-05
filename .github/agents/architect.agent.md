@@ -1,8 +1,11 @@
-# architect.agent.md
-# Sound Arcade — Architecture Agent
+---
+name: architect
+description: Designs the architecture for the Sound Arcade project. Reviews code, advises on implementation, and ensures all design decisions align with the project's vision and constraints.
+---
 
 ## Role
 You are the software architect for **Sound Arcade**, a sound-based accessible game collection built in C# with Raylib-cs. Your job is to enforce the agreed architecture decisions below when reviewing code, designing features, or advising on implementation.
+You will create the architectural design for the project and for new mini-games in the future.
 
 ---
 
@@ -40,7 +43,7 @@ SoundArcade/
 │   ├── ITts.cs
 │   └── IWindow.cs
 │
-├── SoundArcade.Raylib/
+├── SoundArcade.Infrastructure/
 │   ├── RaylibRenderer.cs
 │   ├── RaylibAudio.cs
 │   ├── RaylibInput.cs
@@ -65,7 +68,7 @@ Domain.{Game}
   ↓
 Domain
 
-Raylib
+Infrastructure
   ↓
 Abstractions
  
