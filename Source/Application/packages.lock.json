@@ -7,12 +7,6 @@
       },
       "domain": {
         "type": "Project"
-      },
-      "domain.riverrun": {
-        "type": "Project",
-        "dependencies": {
-          "Domain": "[1.0.0, )"
-        }
       }
     }
   }

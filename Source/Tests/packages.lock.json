@@ -108,8 +108,7 @@
         "type": "Project",
         "dependencies": {
           "Abstractions": "[1.0.0, )",
-          "Domain": "[1.0.0, )",
-          "Domain.RiverRun": "[1.0.0, )"
+          "Domain": "[1.0.0, )"
         }
       },
       "domain": {

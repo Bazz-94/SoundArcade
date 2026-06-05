@@ -190,12 +190,3 @@ Each mini-game has its own spec file. Game-specific design decisions, mechanics,
 ## Decisions Deferred
 - Android platform target: architecture is ready (PAL in place), implementation TBD
 - Android host technology: MAUI, MonoGame, SDL2, or other — not yet decided
-
-## C# Standards
-- Do not use var — always explicit types for clarity.
-- Write unit tests for all domain logic. Application and infrastructure code may be untested or have integration tests only.
-- Descriptions must be provided for all public methods and classes.
-- Rather defined constants or enums for values to provide context to what the values mean (e.g. If the starting position is 1, define a constant `StartingPosition = 1`) & never hardcode string values.
-- Don't use redundant words in class, method, or property names (eg. `RiverRunGameLoop` is redundant, just `GameLoop` since the context is already clear).
-- Use this. to refer to instance members for clarity.
-- Always use block bodies for methods.
