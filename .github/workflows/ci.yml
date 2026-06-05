@@ -5,12 +5,12 @@ on:
     branches: [ "main" ]
     paths:
       - 'Source/**'
-      - 'Directory.Build.*'
+      - '.github/workflows/*'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'Source/**'
-      - 'Directory.Build.*'
+      - '.github/workflows/*'
 
 jobs:
   build:
