@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'Source/**'
+      - 'Directory.Build.*'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'Source/**'
+      - 'Directory.Build.*'
 
 jobs:
   build:
