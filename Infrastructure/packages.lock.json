@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net8.0": {
+      "Raylib-cs": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "m+fStTZjOGtkx05RNflERtKbmEUrIZ5/PFV5QXnlA02kAEwxxOC+XhNeCSZJhaGHu9d8m0eTMmefRhHueS3hkg=="
+      },
+      "System.Speech": {
+        "type": "Direct",
+        "requested": "[10.0.8, )",
+        "resolved": "10.0.8",
+        "contentHash": "uxrdoUKw+S1eBo0foyv3pQ13NKV4LhsgaD5FV1zya1JHoi+QveWXt6I5nrLhA4GeheRr+cjLfDy0hx7UXUyHnw=="
+      },
+      "abstractions": {
+        "type": "Project"
+      }
+    }
+  }
+}
