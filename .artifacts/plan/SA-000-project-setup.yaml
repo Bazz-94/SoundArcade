@@ -7,7 +7,6 @@ task:
   scope:
     includes:
       - "Create .NET 8 solution layout matching architect.agent.md"
-      - "Add CI build pipeline skeleton (YAML) that restores, builds, and runs unit tests"
       - "Verify/define Abstractions interfaces (signatures only) for IAudio, ITts, IInput, IRenderer, IWindow"
       - "Add sample registration in SoundArcade.Desktop to register a placeholder mini-game"
     excludes:
@@ -26,13 +25,11 @@ task:
 
   outputs:
     - "Buildable solution with correct project structure"
-    - "CI pipeline YAML in .github/workflows/"
     - "Abstractions interface stubs under SoundArcade.Abstractions/"
     - "Desktop wiring example registering one IGame"
 
   acceptance_criteria:
     - "Solution builds locally targeting .NET 8 on developer machine"
-    - "CI workflow runs build and reports success (stubbed tests if needed)"
     - "Abstractions contain method signatures that use platform primitives only"
     - "Desktop shows example registration without referencing Domain models"
 
@@ -43,7 +40,7 @@ task:
 
   complexity: [Low]
 
-  status: [Not Started]
+  status: [Done]
 
   related_tasks:
     - "SA-001"

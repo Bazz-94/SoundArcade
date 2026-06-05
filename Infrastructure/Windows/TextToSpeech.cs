@@ -1,9 +1,9 @@
-﻿namespace SoundArcade.Infrastructure.Windows
+namespace SoundArcade.Infrastructure.Windows
 {
   using System.Speech.Synthesis;
-  using SoundArcade.Abstraction;
+  using SoundArcade.Abstractions;
 
-  public class TextToSpeech : ITextToSpeech
+  public class TextToSpeech : ITts
   {
     private readonly SpeechSynthesizer synth = new();
 

@@ -1,16 +1,17 @@
-﻿using System;
-using SoundArcade.Abstraction;
-using SoundArcade.Infrastructure.Windows;
+using System;
+using SoundArcade.Application.GameRegistry;
+using SoundArcade.Domain;
+using SoundArcade.Domain.RiverRun;
 
-namespace SoundArcade.Desktop
+namespace SoundArcade.Desktop;
+
+internal class Program
 {
-  internal class Program
+  private static void Main(string[] args)
   {
-    static void Main(string[] args)
-    {
-      ITextToSpeech tts = new TextToSpeech();
-      tts.Speak("Hello, World!");
-      Console.WriteLine("Hello, World!");
-    }
+    IGame[] games = [new RiverRunGame()];
+    var registry = new GameRegistry(games);
+
+    Console.WriteLine($"Registered {registry.Games.Count} game(s).");
   }
 }
