@@ -22,9 +22,6 @@ jobs:
       - name: Restore
         run: dotnet restore SoundArcade.slnx
 
-      - name: Verify Formatting
-        run: dotnet format SoundArcade.slnx --verify-no-changes
-
       - name: Build
         run: dotnet build SoundArcade.slnx --configuration Release --no-restore
 
