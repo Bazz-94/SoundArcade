@@ -28,10 +28,10 @@ jobs:
             nuget-${{ runner.os }}-
 
       - name: Restore
-        run: dotnet restore SoundArcade.slnx
+        run: dotnet restore /Source/SoundArcade.slnx
 
       - name: Build
-        run: dotnet build SoundArcade.slnx --configuration Release --no-restore
+        run: dotnet build /Source/SoundArcade.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test SoundArcade.slnx --configuration Release --no-build
+        run: dotnet test /Source/SoundArcade.slnx --configuration Release --no-build
