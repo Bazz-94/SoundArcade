@@ -9,7 +9,7 @@ namespace SoundArcade.Domain.RiverRun.Services;
 /// <summary>
 /// Represents one RiverRun gameplay session and enforces run state, scoring, and collision rules.
 /// </summary>
-public sealed class RiverRunSession
+public sealed class Session
 {
   private readonly RunSettings settings;
   private readonly ObstacleSpawner spawner;
@@ -18,16 +18,20 @@ public sealed class RiverRunSession
   private int NextScoreAnnouncement { get; set; }
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="RiverRunSession"/> class.
+  /// Initializes a new instance of the <see cref="Session"/> class.
   /// </summary>
   /// <param name="settings">Gameplay tuning settings.</param>
   /// <param name="random">Optional random source used by spawning services.</param>
-  public RiverRunSession(RunSettings settings, Random? random = null)
+  public Session(RunSettings settings, Random? random = null)
   {
     this.settings = settings;
     this.spawner = new ObstacleSpawner(this.settings, random);
 
-    this.Player = new Player(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f));
+    this.Player = new Player(
+      new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f),
+      this.settings.StartingPlayerSpeed,
+      this.settings.PlayerSpeedIncreasePerZUnit,
+      this.settings.MaxPlayerSpeedIncrease);
     this.Lives = this.settings.StartingLives;
     this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
     this.State = RunState.GameOver;
@@ -74,14 +78,13 @@ public sealed class RiverRunSession
     this.ElapsedSeconds = 0.0f;
     this.ScoreRemainder = 0.0f;
     this.Score = 0;
-    this.Player = new Player(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f));
+    this.Player = new Player(
+      new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f),
+      this.settings.StartingPlayerSpeed,
+      this.settings.PlayerSpeedIncreasePerZUnit,
+      this.settings.MaxPlayerSpeedIncrease);
     this.Lives = this.settings.StartingLives;
     this.State = RunState.Playing;
-    if (this.settings.ScoreAnnouncementStep <= 0)
-    {
-      throw new InvalidOperationException("ScoreAnnouncementStep must be positive to start a run.");
-    }
-
     this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
 
     return
@@ -182,7 +185,7 @@ public sealed class RiverRunSession
       this.obstacles.Add(spawnedObstacle);
     }
 
-    this.Player.Advance(deltaTimeSeconds, this.settings.StartingPlayerSpeed);
+    this.Player.Advance(deltaTimeSeconds);
 
     for (int i = 0; i < this.obstacles.Count; i++)
     {

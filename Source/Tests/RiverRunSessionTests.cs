@@ -26,7 +26,7 @@ public sealed class RiverRunSessionTests
       ScoringPerSecond: 50.0f,
       ScoreAnnouncementStep: HighAnnouncementStep);
 
-    RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+    Session session = new Session(settings, new System.Random(RandomSeed));
     session.Start();
 
     session.Update(OneSecond);
@@ -35,12 +35,39 @@ public sealed class RiverRunSessionTests
   }
 
   /// <summary>
+  /// Verifies player speed increases as distance is traveled and respects the cap.
+  /// </summary>
+  [Fact]
+  public void Update_increases_player_speed_with_distance_and_caps_it()
+  {
+    RunSettings settings = new(
+      StartingPlayerSpeed: 2.0f,
+      PlayerSpeedIncreasePerZUnit: 1.0f,
+      MaxPlayerSpeedIncrease: 1.0f,
+      ScoreAnnouncementStep: HighAnnouncementStep);
+
+    Session session = new Session(settings, new System.Random(RandomSeed));
+    session.Start();
+
+    float startingSpeed = session.Player.Speed;
+
+    session.Update(OneSecond);
+
+    Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
+    Assert.True(session.Player.Speed > startingSpeed);
+
+    session.Update(OneSecond);
+
+    Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
+  }
+
+  /// <summary>
   /// Verifies pause command toggles between playing and paused states.
   /// </summary>
   [Fact]
   public void TogglePause_transitions_between_playing_and_paused()
   {
-    RiverRunSession session = new RiverRunSession(new RunSettings(), new System.Random(RandomSeed));
+    Session session = new Session(new RunSettings(), new System.Random(RandomSeed));
     session.Start();
 
     IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
@@ -66,7 +93,7 @@ public sealed class RiverRunSessionTests
       ScoringPerSecond: 0.0f,
       ScoreAnnouncementStep: HighAnnouncementStep);
 
-    RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+    Session session = new Session(settings, new System.Random(RandomSeed));
     session.Start();
 
     session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);

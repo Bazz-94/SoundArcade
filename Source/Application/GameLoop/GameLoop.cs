@@ -13,7 +13,7 @@ public sealed class GameLoop
   private readonly IInput input;
   private readonly ITts tts;
   private readonly IAudio audio;
-  private readonly RiverRunSession session;
+  private readonly Session session;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="GameLoop"/> class.
@@ -22,7 +22,7 @@ public sealed class GameLoop
   /// <param name="tts">Text-to-speech abstraction for spoken feedback.</param>
   /// <param name="audio">Audio abstraction for non-speech cues.</param>
   /// <param name="session">Domain session that contains gameplay state and rules.</param>
-  public GameLoop(IInput input, ITts tts, IAudio audio, RiverRunSession session)
+  public GameLoop(IInput input, ITts tts, IAudio audio, Session session)
   {
     this.input = input;
     this.tts = tts;
@@ -33,7 +33,7 @@ public sealed class GameLoop
   /// <summary>
   /// Gets the active RiverRun session.
   /// </summary>
-  public RiverRunSession Session => this.session;
+  public Session Session => this.session;
 
   /// <summary>
   /// Starts a new run and emits initial events.

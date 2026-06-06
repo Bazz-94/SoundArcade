@@ -10,6 +10,8 @@ public sealed record RunSettings
   public float MinimumSpawnIntervalSeconds { get; private set; }
   public float SpawnIntervalDecayPerSecond { get; private set; }
   public float StartingPlayerSpeed { get; private set; }
+  public float PlayerSpeedIncreasePerZUnit { get; private set; }
+  public float MaxPlayerSpeedIncrease { get; private set; }
   public float SpawnDistanceMin { get; private set; }
   public float SpawnDistanceMax { get; private set; }
   public float SpawnZ { get; private set; }
@@ -24,6 +26,8 @@ public sealed record RunSettings
   /// <param name="MinimumSpawnIntervalSeconds">Lower bound for spawn interval.</param>
   /// <param name="SpawnIntervalDecayPerSecond">Per-second reduction of spawn interval.</param>
   /// <param name="StartingPlayerSpeed">Speed at which the player starts moving.</param>
+  /// <param name="PlayerSpeedIncreasePerZUnit">Speed gain applied per unit traveled on Z.</param>
+  /// <param name="MaxPlayerSpeedIncrease">Maximum additional speed above the initial speed.</param>
   /// <param name="SpawnDistanceMin">Minimum distance between spawns.</param>
   /// <param name="SpawnDistanceMax">Maximum distance between spawns.</param>
   /// <param name="SpawnZ">Initial spawn Z position.</param>
@@ -37,6 +41,8 @@ public sealed record RunSettings
     float MinimumSpawnIntervalSeconds = 0.55f,
     float SpawnIntervalDecayPerSecond = 0.05f,
     float StartingPlayerSpeed = 1.0f,
+    float PlayerSpeedIncreasePerZUnit = 0.05f,
+    float MaxPlayerSpeedIncrease = 3.0f,
     float SpawnDistanceMin = 4.0f,
     float SpawnDistanceMax = 8.0f,
     float SpawnZ = 22.0f,
@@ -50,6 +56,8 @@ public sealed record RunSettings
     this.MinimumSpawnIntervalSeconds = MinimumSpawnIntervalSeconds;
     this.SpawnIntervalDecayPerSecond = SpawnIntervalDecayPerSecond;
     this.StartingPlayerSpeed = StartingPlayerSpeed;
+    this.PlayerSpeedIncreasePerZUnit = PlayerSpeedIncreasePerZUnit;
+    this.MaxPlayerSpeedIncrease = MaxPlayerSpeedIncrease;
     this.SpawnDistanceMin = SpawnDistanceMin;
     this.SpawnDistanceMax = SpawnDistanceMax;
     this.SpawnZ = SpawnZ;

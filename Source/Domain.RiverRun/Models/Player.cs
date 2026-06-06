@@ -10,13 +10,32 @@ namespace SoundArcade.Domain.RiverRun.Models;
 public sealed class Player : GameObject
 {
   /// <summary>
+  /// Gets the current forward movement speed in world units per second.
+  /// </summary>
+  public float Speed { get; private set; }
+
+  private readonly float speedIncreasePerZUnit;
+  private readonly float maxSpeed;
+
+  /// <summary>
   /// Initializes a new instance of <see cref="Player"/>.
   /// </summary>
   /// <param name="position">Initial player world position.</param>
+  /// <param name="speed">Initial forward movement speed.</param>
+  /// <param name="speedIncreasePerZUnit">Speed gain applied per world unit traveled on Z.</param>
+  /// <param name="maxSpeedIncrease">Maximum additional speed allowed above the initial speed.</param>
   /// <param name="collidable">Whether the player collides with obstacles. Defaults to true.</param>
-  public Player(Vector3 position, bool collidable = true)
+  public Player(
+    Vector3 position,
+    float speed,
+    float speedIncreasePerZUnit,
+    float maxSpeedIncrease,
+    bool collidable = true)
     : base(position, collidable)
   {
+    this.Speed = speed;
+    this.speedIncreasePerZUnit = speedIncreasePerZUnit;
+    this.maxSpeed = speed + maxSpeedIncrease;
   }
 
   /// <summary>
@@ -52,13 +71,15 @@ public sealed class Player : GameObject
   }
 
   /// <summary>
-  /// Advances the player's Z position by speed * deltaTimeSeconds.
+  /// Advances the player's Z position and increases speed based on distance traveled.
   /// </summary>
   /// <param name="deltaTimeSeconds">Frame delta in seconds.</param>
-  /// <param name="speed">Forward speed in world units per second.</param>
-  public void Advance(float deltaTimeSeconds, float speed)
+  public void Advance(float deltaTimeSeconds)
   {
-    this.Position = new Vector3(this.Position.X, this.Position.Y, this.Position.Z + (speed * deltaTimeSeconds));
+    float distanceTravelled = this.Speed * deltaTimeSeconds;
+    this.Position = new Vector3(this.Position.X, this.Position.Y, this.Position.Z + distanceTravelled);
+
+    this.Speed = MathF.Min(this.maxSpeed, this.Speed + (distanceTravelled * this.speedIncreasePerZUnit));
   }
 
   /// <summary>
