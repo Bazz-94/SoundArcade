@@ -6,9 +6,6 @@ namespace SoundArcade.Domain.RiverRun.Models;
 public sealed record RunSettings
 {
   public int StartingLives { get; private set; }
-  public float StartingSpawnIntervalSeconds { get; private set; }
-  public float MinimumSpawnIntervalSeconds { get; private set; }
-  public float SpawnIntervalDecayPerSecond { get; private set; }
   public float StartingPlayerSpeed { get; private set; }
   public float PlayerSpeedIncreasePerZUnit { get; private set; }
   public float MaxPlayerSpeedIncrease { get; private set; }
@@ -22,9 +19,6 @@ public sealed record RunSettings
 
 
   /// <param name="StartingLives">Lives available when a run starts.</param>
-  /// <param name="StartingSpawnIntervalSeconds">Initial time between obstacle spawns.</param>
-  /// <param name="MinimumSpawnIntervalSeconds">Lower bound for spawn interval.</param>
-  /// <param name="SpawnIntervalDecayPerSecond">Per-second reduction of spawn interval.</param>
   /// <param name="StartingPlayerSpeed">Speed at which the player starts moving.</param>
   /// <param name="PlayerSpeedIncreasePerZUnit">Speed gain applied per unit traveled on Z.</param>
   /// <param name="MaxPlayerSpeedIncrease">Maximum additional speed above the initial speed.</param>
@@ -37,9 +31,6 @@ public sealed record RunSettings
   /// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
   public RunSettings(
     int StartingLives = 3,
-    float StartingSpawnIntervalSeconds = 1.8f,
-    float MinimumSpawnIntervalSeconds = 0.55f,
-    float SpawnIntervalDecayPerSecond = 0.05f,
     float StartingPlayerSpeed = 1.0f,
     float PlayerSpeedIncreasePerZUnit = 0.05f,
     float MaxPlayerSpeedIncrease = 3.0f,
@@ -52,9 +43,6 @@ public sealed record RunSettings
     int ScoreAnnouncementStep = 100)
   {
     this.StartingLives = StartingLives;
-    this.StartingSpawnIntervalSeconds = StartingSpawnIntervalSeconds;
-    this.MinimumSpawnIntervalSeconds = MinimumSpawnIntervalSeconds;
-    this.SpawnIntervalDecayPerSecond = SpawnIntervalDecayPerSecond;
     this.StartingPlayerSpeed = StartingPlayerSpeed;
     this.PlayerSpeedIncreasePerZUnit = PlayerSpeedIncreasePerZUnit;
     this.MaxPlayerSpeedIncrease = MaxPlayerSpeedIncrease;

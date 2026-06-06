@@ -178,7 +178,7 @@ public sealed class Session
       }
     }
 
-    IReadOnlyList<RunObstacle> spawned = this.spawner.Update(deltaTimeSeconds, this.ElapsedSeconds);
+    IReadOnlyList<RunObstacle> spawned = this.spawner.Update(this.Player.Position.Z);
 
     foreach (RunObstacle spawnedObstacle in spawned)
     {

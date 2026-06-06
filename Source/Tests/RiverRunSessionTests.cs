@@ -62,6 +62,29 @@ public sealed class RiverRunSessionTests
   }
 
   /// <summary>
+  /// Verifies obstacle spawning follows player Z progress rather than elapsed time.
+  /// </summary>
+  [Fact]
+  public void Update_spawns_obstacles_as_player_advances_in_z()
+  {
+    RunSettings settings = new(
+      StartingPlayerSpeed: 1.0f,
+      PlayerSpeedIncreasePerZUnit: 0.0f,
+      MaxPlayerSpeedIncrease: 0.0f,
+      SpawnZ: 1.0f,
+      SpawnDistanceMin: 1.0f,
+      SpawnDistanceMax: 1.0f,
+      ScoreAnnouncementStep: HighAnnouncementStep);
+
+    Session session = new Session(settings, new System.Random(RandomSeed));
+    session.Start();
+
+    session.Update(OneSecond);
+
+    Assert.Single(session.Obstacles);
+  }
+
+  /// <summary>
   /// Verifies pause command toggles between playing and paused states.
   /// </summary>
   [Fact]

@@ -6,48 +6,37 @@ using SoundArcade.Domain.RiverRun.Models;
 namespace SoundArcade.Domain.RiverRun.Services;
 
 /// <summary>
-/// Spawns RiverRun obstacles using a time-based difficulty curve.
+/// Spawns RiverRun obstacles based on player forward progress.
 /// </summary>
 public sealed class ObstacleSpawner
 {
   private readonly RunSettings settings;
   private readonly Random random;
-  private float ElapsedSinceSpawn { get; set; }
   private float NextSpawnZ { get; set; }
 
   /// <summary>
   /// Initializes a new instance of the <see cref="ObstacleSpawner"/> class.
   /// </summary>
-  /// <param name="settings">Tuning values for spawn cadence and obstacle speed.</param>
+  /// <param name="settings">Tuning values for spawn distance and obstacle spacing.</param>
   /// <param name="random">Optional random source used for lane selection.</param>
   public ObstacleSpawner(RunSettings settings, Random? random = null)
   {
     this.settings = settings;
     this.random = random ?? new Random();
-    this.ElapsedSinceSpawn = 0.0f;
     this.NextSpawnZ = this.settings.SpawnZ;
   }
 
   /// <summary>
-  /// Advances spawn timers and returns all obstacles due for spawn this frame.
+  /// Advances the spawn track based on player Z and returns obstacles due for spawn this frame.
   /// </summary>
-  /// <param name="deltaTimeSeconds">Frame delta in seconds.</param>
-  /// <param name="runElapsedSeconds">Total elapsed run time in seconds.</param>
+  /// <param name="playerZ">Current player Z position.</param>
   /// <returns>All obstacles due for spawn this frame.</returns>
-  public IReadOnlyList<RunObstacle> Update(float deltaTimeSeconds, float runElapsedSeconds)
+  public IReadOnlyList<RunObstacle> Update(float playerZ)
   {
-    this.ElapsedSinceSpawn += deltaTimeSeconds;
-
-    float interval = MathF.Max(
-      this.settings.MinimumSpawnIntervalSeconds,
-      this.settings.StartingSpawnIntervalSeconds - (this.settings.SpawnIntervalDecayPerSecond * runElapsedSeconds));
-
     List<RunObstacle> spawned = new List<RunObstacle>();
 
-    while (this.ElapsedSinceSpawn >= interval)
+    while (this.NextSpawnZ - playerZ <= this.settings.SpawnZ)
     {
-      this.ElapsedSinceSpawn -= interval;
-
       // Choose lane X from the three lane constants.
       float laneX;
       int laneIndex = this.random.Next(0, 3); // 0,1,2
@@ -80,7 +69,6 @@ public sealed class ObstacleSpawner
   /// </summary>
   public void Reset()
   {
-    this.ElapsedSinceSpawn = 0.0f;
     this.NextSpawnZ = this.settings.SpawnZ;
   }
 }
