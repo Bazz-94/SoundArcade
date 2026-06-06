@@ -3,43 +3,55 @@ namespace SoundArcade.Domain.RiverRun.Models;
 /// <summary>
 /// Configurable settings for RiverRun gameplay pacing, scoring, and collisions.
 /// </summary>
-/// <param name="StartingLives">Lives available when a run starts.</param>
-/// <param name="StartingSpawnIntervalSeconds">Initial time between obstacle spawns.</param>
-/// <param name="MinimumSpawnIntervalSeconds">Lower bound for spawn interval.</param>
-/// <param name="SpawnIntervalDecayPerSecond">Per-second reduction of spawn interval.</param>
-/// <param name="StartingObstacleSpeed">Initial obstacle speed.</param>
-/// <param name="ObstacleSpeedGainPerSecond">Per-second increase in obstacle speed.</param>
-/// <param name="SpawnZ">Initial spawn Z position.</param>
-/// <param name="CollisionZWindow">Absolute Z-distance from player used for collision checks.</param>
-/// <param name="ScoringPerSecond">Base score gain per second while playing.</param>
-/// <param name="DodgeBonus">Bonus score gained when an obstacle is successfully dodged.</param>
-/// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
-public sealed record RunSettings(
-  int StartingLives,
-  float StartingSpawnIntervalSeconds,
-  float MinimumSpawnIntervalSeconds,
-  float SpawnIntervalDecayPerSecond,
-  float StartingObstacleSpeed,
-  float ObstacleSpeedGainPerSecond,
-  float SpawnZ,
-  float CollisionZWindow,
-  float ScoringPerSecond,
-  int DodgeBonus,
-  int ScoreAnnouncementStep)
+public sealed record RunSettings
 {
-  /// <summary>
-  /// Gets default gameplay settings for RiverRun.
-  /// </summary>
-  public static RunSettings Default { get; } = new RunSettings(
-    StartingLives: 3,
-    StartingSpawnIntervalSeconds: 1.8f,
-    MinimumSpawnIntervalSeconds: 0.55f,
-    SpawnIntervalDecayPerSecond: 0.05f,
-    StartingObstacleSpeed: 6.0f,
-    ObstacleSpeedGainPerSecond: 0.4f,
-    SpawnZ: 22.0f,
-    CollisionZWindow: 0.7f,
-    ScoringPerSecond: 18.0f,
-    DodgeBonus: 10,
-    ScoreAnnouncementStep: 100);
+  public int StartingLives { get; private set; }
+  public float StartingPlayerSpeed { get; private set; }
+  public float PlayerSpeedIncreasePerZUnit { get; private set; }
+  public float MaxPlayerSpeedIncrease { get; private set; }
+  public float SpawnDistanceMin { get; private set; }
+  public float SpawnDistanceMax { get; private set; }
+  public float SpawnZ { get; private set; }
+  public float CollisionRadius { get; private set; }
+  public float ScoringPerSecond { get; private set; }
+  public int DodgeBonus { get; private set; }
+  public int ScoreAnnouncementStep { get; private set; }
+
+
+  /// <param name="StartingLives">Lives available when a run starts.</param>
+  /// <param name="StartingPlayerSpeed">Speed at which the player starts moving.</param>
+  /// <param name="PlayerSpeedIncreasePerZUnit">Speed gain applied per unit traveled on Z.</param>
+  /// <param name="MaxPlayerSpeedIncrease">Maximum additional speed above the initial speed.</param>
+  /// <param name="SpawnDistanceMin">Minimum distance between spawns.</param>
+  /// <param name="SpawnDistanceMax">Maximum distance between spawns.</param>
+  /// <param name="SpawnZ">Initial spawn Z position.</param>
+  /// <param name="CollisionRadius">Absolute distance from player used for collision checks.</param>
+  /// <param name="ScoringPerSecond">Base score gain per second while playing.</param>
+  /// <param name="DodgeBonus">Bonus score gained when an obstacle is successfully dodged.</param>
+  /// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
+  public RunSettings(
+    int StartingLives = 3,
+    float StartingPlayerSpeed = 1.0f,
+    float PlayerSpeedIncreasePerZUnit = 0.05f,
+    float MaxPlayerSpeedIncrease = 3.0f,
+    float SpawnDistanceMin = 4.0f,
+    float SpawnDistanceMax = 8.0f,
+    float SpawnZ = 22.0f,
+    float CollisionRadius = 1f,
+    float ScoringPerSecond = 18.0f,
+    int DodgeBonus = 10,
+    int ScoreAnnouncementStep = 100)
+  {
+    this.StartingLives = StartingLives;
+    this.StartingPlayerSpeed = StartingPlayerSpeed;
+    this.PlayerSpeedIncreasePerZUnit = PlayerSpeedIncreasePerZUnit;
+    this.MaxPlayerSpeedIncrease = MaxPlayerSpeedIncrease;
+    this.SpawnDistanceMin = SpawnDistanceMin;
+    this.SpawnDistanceMax = SpawnDistanceMax;
+    this.SpawnZ = SpawnZ;
+    this.CollisionRadius = CollisionRadius;
+    this.ScoringPerSecond = ScoringPerSecond;
+    this.DodgeBonus = DodgeBonus;
+    this.ScoreAnnouncementStep = ScoreAnnouncementStep;
+  }
 }

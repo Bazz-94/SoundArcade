@@ -13,7 +13,7 @@ public sealed class GameLoop
   private readonly IInput input;
   private readonly ITts tts;
   private readonly IAudio audio;
-  private readonly RiverRunSession session;
+  private readonly Session session;
 
   /// <summary>
   /// Initializes a new instance of the <see cref="GameLoop"/> class.
@@ -22,7 +22,7 @@ public sealed class GameLoop
   /// <param name="tts">Text-to-speech abstraction for spoken feedback.</param>
   /// <param name="audio">Audio abstraction for non-speech cues.</param>
   /// <param name="session">Domain session that contains gameplay state and rules.</param>
-  public GameLoop(IInput input, ITts tts, IAudio audio, RiverRunSession session)
+  public GameLoop(IInput input, ITts tts, IAudio audio, Session session)
   {
     this.input = input;
     this.tts = tts;
@@ -33,7 +33,7 @@ public sealed class GameLoop
   /// <summary>
   /// Gets the active RiverRun session.
   /// </summary>
-  public RiverRunSession Session => this.session;
+  public Session Session => this.session;
 
   /// <summary>
   /// Starts a new run and emits initial events.
@@ -49,22 +49,22 @@ public sealed class GameLoop
   /// <param name="deltaTimeSeconds">Elapsed frame time in seconds.</param>
   public void Tick(float deltaTimeSeconds)
   {
-    if (this.input.IsKeyPressed(KeyboardKey.Left))
+    if (this.input.InputPressed(Input.Left))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.MoveLeft));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Right))
+    if (this.input.InputPressed(Input.Right))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.MoveRight));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Escape))
+    if (this.input.InputPressed(Input.Back))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.TogglePause));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Enter))
+    if (this.input.InputPressed(Input.Enter))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.Restart));
     }
@@ -74,10 +74,8 @@ public sealed class GameLoop
 
   private void EmitEvents(IReadOnlyList<RunEvent> events)
   {
-    for (int i = 0; i < events.Count; i++)
+    foreach (RunEvent gameEvent in events)
     {
-      RunEvent gameEvent = events[i];
-
       if (gameEvent is TextToSpeechEvent textToSpeechEvent)
       {
         this.tts.SpeakAsync(textToSpeechEvent.Text);

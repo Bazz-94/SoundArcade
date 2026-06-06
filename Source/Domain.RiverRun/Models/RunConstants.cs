@@ -6,35 +6,19 @@ namespace SoundArcade.Domain.RiverRun.Models;
 public static class RunConstants
 {
   /// <summary>
-  /// Lane index constants used by the three-lane gameplay model.
-  /// </summary>
-  public static class Lane
-  {
-    /// <summary>
-    /// Left lane index.
-    /// </summary>
-    public const int Left = 0;
-
-    /// <summary>
-    /// Center lane index.
-    /// </summary>
-    public const int Center = 1;
-
-    /// <summary>
-    /// Right lane index.
-    /// </summary>
-    public const int Right = 2;
-  }
-
-  /// <summary>
   /// X positions mapped to lane indices.
   /// </summary>
   public static class LaneX
   {
     /// <summary>
+    /// Width of one lane in world units.
+    /// </summary>
+    public const float LaneWidth = 1.0f;
+
+    /// <summary>
     /// Left lane X coordinate.
     /// </summary>
-    public const float Left = -2.0f;
+    public const float Left = -1.0f;
 
     /// <summary>
     /// Center lane X coordinate.
@@ -44,18 +28,13 @@ public static class RunConstants
     /// <summary>
     /// Right lane X coordinate.
     /// </summary>
-    public const float Right = 2.0f;
+    public const float Right = 1.0f;
   }
 
   /// <summary>
   /// Shared Y plane used by the core gameplay loop.
   /// </summary>
   public const float GroundY = 0.0f;
-
-  /// <summary>
-  /// Z threshold where an obstacle is considered safely passed.
-  /// </summary>
-  public const float PassedObstacleZ = -1.0f;
 
   /// <summary>
   /// Sound IDs emitted by the gameplay loop.
@@ -68,11 +47,6 @@ public static class RunConstants
     public const string RunStart = "run-start";
 
     /// <summary>
-    /// Sound played for lane centering at run start.
-    /// </summary>
-    public const string LaneCenter = "lane-center";
-
-    /// <summary>
     /// Sound played on pause.
     /// </summary>
     public const string Pause = "pause";
@@ -83,24 +57,14 @@ public static class RunConstants
     public const string Resume = "resume";
 
     /// <summary>
-    /// Sound played when the player changes lane.
-    /// </summary>
-    public const string LaneChange = "lane-change";
-
-    /// <summary>
-    /// Sound played when an obstacle spawns.
-    /// </summary>
-    public const string ObstacleSpawn = "obstacle-spawn";
-
-    /// <summary>
     /// Sound played on collision.
     /// </summary>
     public const string Collision = "collision";
 
     /// <summary>
-    /// Sound played at score milestones.
+    /// Sound played when the player gains score.
     /// </summary>
-    public const string ScoreMilestone = "score-milestone";
+    public const string GainedScore = "gained-score";
 
     /// <summary>
     /// Sound played on game over.
