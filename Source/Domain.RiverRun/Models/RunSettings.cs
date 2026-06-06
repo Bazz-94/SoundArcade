@@ -1,108 +1,32 @@
-using System;
-
 namespace SoundArcade.Domain.RiverRun.Models;
 
 /// <summary>
 /// Configurable settings for RiverRun gameplay pacing, scoring, and collisions.
 /// </summary>
-public sealed record RunSettings
+/// <param name="StartingLives">Lives available when a run starts.</param>
+/// <param name="StartingSpawnIntervalSeconds">Initial time between obstacle spawns.</param>
+/// <param name="MinimumSpawnIntervalSeconds">Lower bound for spawn interval.</param>
+/// <param name="SpawnIntervalDecayPerSecond">Per-second reduction of spawn interval.</param>
+/// <param name="StartingObstacleSpeed">Initial obstacle speed.</param>
+/// <param name="ObstacleSpeedGainPerSecond">Per-second increase in obstacle speed.</param>
+/// <param name="SpawnZ">Initial spawn Z position.</param>
+/// <param name="CollisionZWindow">Absolute Z-distance from player used for collision checks.</param>
+/// <param name="ScoringPerSecond">Base score gain per second while playing.</param>
+/// <param name="DodgeBonus">Bonus score gained when an obstacle is successfully dodged.</param>
+/// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
+public sealed record RunSettings(
+  int StartingLives,
+  float StartingSpawnIntervalSeconds,
+  float MinimumSpawnIntervalSeconds,
+  float SpawnIntervalDecayPerSecond,
+  float StartingObstacleSpeed,
+  float ObstacleSpeedGainPerSecond,
+  float SpawnZ,
+  float CollisionZWindow,
+  float ScoringPerSecond,
+  int DodgeBonus,
+  int ScoreAnnouncementStep)
 {
-  /// <summary>
-  /// Lives available when a run starts.
-  /// </summary>
-  public int StartingLives { get; init; }
-
-  /// <summary>
-  /// Initial time between obstacle spawns.
-  /// </summary>
-  public float StartingSpawnIntervalSeconds { get; init; }
-
-  /// <summary>
-  /// Lower bound for spawn interval.
-  /// </summary>
-  public float MinimumSpawnIntervalSeconds { get; init; }
-
-  /// <summary>
-  /// Per-second reduction of spawn interval.
-  /// </summary>
-  public float SpawnIntervalDecayPerSecond { get; init; }
-
-  /// <summary>
-  /// Initial obstacle speed.
-  /// </summary>
-  public float StartingObstacleSpeed { get; init; }
-
-  /// <summary>
-  /// Per-second increase in obstacle speed.
-  /// </summary>
-  public float ObstacleSpeedGainPerSecond { get; init; }
-
-  /// <summary>
-  /// Initial spawn Z position.
-  /// </summary>
-  public float SpawnZ { get; init; }
-
-  /// <summary>
-  /// Absolute Z-distance from player used for collision checks.
-  /// </summary>
-  public float CollisionZWindow { get; init; }
-
-  /// <summary>
-  /// Base score gain per second while playing.
-  /// </summary>
-  public float ScoringPerSecond { get; init; }
-
-  /// <summary>
-  /// Bonus score gained when an obstacle is successfully dodged.
-  /// </summary>
-  public int DodgeBonus { get; init; }
-
-  /// <summary>
-  /// Milestone interval for score announcements. Must be greater than or equal to 0.
-  /// Setting a negative value will throw an <see cref="ArgumentOutOfRangeException"/>.
-  /// </summary>
-  public int ScoreAnnouncementStep
-  {
-    get => this.ScoreAnnouncementStep;
-    init
-    {
-      if (value < 0)
-      {
-        throw new ArgumentOutOfRangeException(nameof(ScoreAnnouncementStep), "ScoreAnnouncementStep must be greater than or equal to 0.");
-      }
-      this.ScoreAnnouncementStep = value;
-    }
-  }
-
-  /// <summary>
-  /// Initializes a new instance of <see cref="RunSettings"/>.
-  /// </summary>
-  public RunSettings(
-    int StartingLives,
-    float StartingSpawnIntervalSeconds,
-    float MinimumSpawnIntervalSeconds,
-    float SpawnIntervalDecayPerSecond,
-    float StartingObstacleSpeed,
-    float ObstacleSpeedGainPerSecond,
-    float SpawnZ,
-    float CollisionZWindow,
-    float ScoringPerSecond,
-    int DodgeBonus,
-    int ScoreAnnouncementStep)
-  {
-    this.StartingLives = StartingLives;
-    this.StartingSpawnIntervalSeconds = StartingSpawnIntervalSeconds;
-    this.MinimumSpawnIntervalSeconds = MinimumSpawnIntervalSeconds;
-    this.SpawnIntervalDecayPerSecond = SpawnIntervalDecayPerSecond;
-    this.StartingObstacleSpeed = StartingObstacleSpeed;
-    this.ObstacleSpeedGainPerSecond = ObstacleSpeedGainPerSecond;
-    this.SpawnZ = SpawnZ;
-    this.CollisionZWindow = CollisionZWindow;
-    this.ScoringPerSecond = ScoringPerSecond;
-    this.DodgeBonus = DodgeBonus;
-    this.ScoreAnnouncementStep = ScoreAnnouncementStep;
-  }
-
   /// <summary>
   /// Gets default gameplay settings for RiverRun.
   /// </summary>

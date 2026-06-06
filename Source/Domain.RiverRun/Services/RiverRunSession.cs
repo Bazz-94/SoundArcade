@@ -78,6 +78,7 @@ public sealed class RiverRunSession
     this.Lane = RunConstants.Lane.Center;
     this.Lives = this.settings.StartingLives;
     this.State = RunState.Playing;
+    if (this.settings.ScoreAnnouncementStep <= 0) throw new InvalidOperationException("ScoreAnnouncementStep must be positive to start a run.");
     this.nextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
 
     return
