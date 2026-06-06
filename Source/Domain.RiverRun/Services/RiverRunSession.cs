@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SoundArcade.Domain.RiverRun.Models;
+using SoundArcade.Domain.Services;
 
 namespace SoundArcade.Domain.RiverRun.Services;
 
@@ -11,27 +12,25 @@ namespace SoundArcade.Domain.RiverRun.Services;
 public sealed class RiverRunSession
 {
   private readonly RunSettings settings;
-  private readonly RunSpawner spawner;
+  private readonly ObstacleSpawner spawner;
   private readonly List<RunObstacle> obstacles = [];
-
-  private float elapsedSeconds;
-  private float scoreRemainder;
-  private int nextScoreAnnouncement;
+  private float ScoreRemainder { get; set; }
+  private int NextScoreAnnouncement { get; set; }
 
   /// <summary>
   /// Initializes a new instance of the <see cref="RiverRunSession"/> class.
   /// </summary>
-  /// <param name="settings">Optional gameplay tuning settings.</param>
+  /// <param name="settings">Gameplay tuning settings.</param>
   /// <param name="random">Optional random source used by spawning services.</param>
-  public RiverRunSession(RunSettings? settings = null, Random? random = null)
+  public RiverRunSession(RunSettings settings, Random? random = null)
   {
-    this.settings = settings ?? RunSettings.Default;
-    spawner = new RunSpawner(this.settings, random);
+    this.settings = settings;
+    this.spawner = new ObstacleSpawner(this.settings, random);
 
-    Lane = RunConstants.Lane.Center;
-    Lives = this.settings.StartingLives;
-    nextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
-    State = RunState.GameOver;
+    this.Player = new Player(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f));
+    this.Lives = this.settings.StartingLives;
+    this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
+    this.State = RunState.GameOver;
   }
 
   /// <summary>
@@ -40,9 +39,9 @@ public sealed class RiverRunSession
   public RunState State { get; private set; }
 
   /// <summary>
-  /// Gets the player lane index.
+  /// Gets the player actor.
   /// </summary>
-  public int Lane { get; private set; }
+  public Player Player { get; private set; }
 
   /// <summary>
   /// Gets the remaining player lives.
@@ -57,7 +56,7 @@ public sealed class RiverRunSession
   /// <summary>
   /// Gets elapsed run time in seconds.
   /// </summary>
-  public float ElapsedSeconds => this.elapsedSeconds;
+  public float ElapsedSeconds { get; private set; }
 
   /// <summary>
   /// Gets active obstacles currently tracked in world space.
@@ -72,23 +71,23 @@ public sealed class RiverRunSession
   {
     this.obstacles.Clear();
     this.spawner.Reset();
-    this.elapsedSeconds = 0.0f;
-    this.scoreRemainder = 0.0f;
+    this.ElapsedSeconds = 0.0f;
+    this.ScoreRemainder = 0.0f;
     this.Score = 0;
-    this.Lane = RunConstants.Lane.Center;
+    this.Player = new Player(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f));
     this.Lives = this.settings.StartingLives;
     this.State = RunState.Playing;
-    if (this.settings.ScoreAnnouncementStep <= 0) throw new InvalidOperationException("ScoreAnnouncementStep must be positive to start a run.");
-    this.nextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
+    if (this.settings.ScoreAnnouncementStep <= 0)
+    {
+      throw new InvalidOperationException("ScoreAnnouncementStep must be positive to start a run.");
+    }
+
+    this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
 
     return
     [
       new TextToSpeechEvent(RunConstants.Speech.RunStarted),
-      new PlaySoundEvent(RunConstants.SoundId.RunStart),
-      new PlaySoundEvent(
-        RunConstants.SoundId.LaneCenter,
-        new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f),
-        RunConstants.Volume.LaneCue)
+      new PlaySoundEvent(RunConstants.SoundId.RunStart)
     ];
   }
 
@@ -99,47 +98,47 @@ public sealed class RiverRunSession
   /// <returns>Events emitted by command handling.</returns>
   public IReadOnlyList<RunEvent> HandleCommand(RunCommand command)
   {
-    List<RunEvent> events = [];
+    List<RunEvent> events = new List<RunEvent>();
 
-    switch (command)
+    switch (this.State)
     {
-      case RunCommand.TogglePause:
-        if (State == RunState.Playing)
+      case RunState.Playing:
+        switch (command)
         {
-          this.State = RunState.Paused;
-          events.Add(new TextToSpeechEvent(RunConstants.Speech.Paused));
-          events.Add(new PlaySoundEvent(RunConstants.SoundId.Pause));
-        }
-        else if (State == RunState.Paused)
-        {
-          this.State = RunState.Playing;
-          events.Add(new TextToSpeechEvent(RunConstants.Speech.Resumed));
-          events.Add(new PlaySoundEvent(RunConstants.SoundId.Resume));
-        }
-        break;
-
-      case RunCommand.MoveLeft:
-        if (State == RunState.Playing && Lane > RunConstants.Lane.Left)
-        {
-          this.Lane--;
-          events.Add(CreateLaneChangeEvent());
+          case RunCommand.TogglePause:
+            this.State = RunState.Paused;
+            events.Add(new TextToSpeechEvent(RunConstants.Speech.Paused));
+            events.Add(new PlaySoundEvent(RunConstants.SoundId.Pause));
+            break;
+          case RunCommand.MoveLeft:
+          case RunCommand.MoveRight:
+            {
+              this.Player.HandleCommand(command);
+              break;
+            }
         }
         break;
 
-      case RunCommand.MoveRight:
-        if (State == RunState.Playing && Lane < RunConstants.Lane.Right)
+      case RunState.Paused:
+        switch (command)
         {
-          this.Lane++;
-          events.Add(CreateLaneChangeEvent());
+          case RunCommand.TogglePause:
+            this.State = RunState.Playing;
+            events.Add(new TextToSpeechEvent(RunConstants.Speech.Resumed));
+            events.Add(new PlaySoundEvent(RunConstants.SoundId.Resume));
+            break;
+        }
+        break;
+      case RunState.GameOver:
+        switch (command)
+        {
+          case RunCommand.Restart:
+            return Start();
         }
         break;
 
-      case RunCommand.Restart:
-        if (State == RunState.GameOver)
-        {
-          return Start();
-        }
-        break;
+      default:
+        throw new InvalidOperationException($"Unhandled run state {this.State}.");
     }
 
     return events;
@@ -159,42 +158,37 @@ public sealed class RiverRunSession
 
     List<RunEvent> events = [];
 
-    this.elapsedSeconds += deltaTimeSeconds;
-    this.scoreRemainder += this.settings.ScoringPerSecond * deltaTimeSeconds;
+    this.ElapsedSeconds += deltaTimeSeconds;
+    this.ScoreRemainder += this.settings.ScoringPerSecond * deltaTimeSeconds;
 
-    if (this.scoreRemainder >= 1.0f)
+    if (this.ScoreRemainder >= 1.0f)
     {
-      int earned = (int)this.scoreRemainder;
+      int earned = (int)this.ScoreRemainder;
       this.Score += earned;
-      this.scoreRemainder -= earned;
+      this.ScoreRemainder -= earned;
 
-      while (this.Score >= this.nextScoreAnnouncement)
+      while (this.Score >= this.NextScoreAnnouncement)
       {
         events.Add(new TextToSpeechEvent(
-          $"{RunConstants.Speech.ScorePrefix} {this.nextScoreAnnouncement}"));
-        events.Add(new PlaySoundEvent(RunConstants.SoundId.ScoreMilestone, null, RunConstants.Volume.ScoreMilestone));
-        this.nextScoreAnnouncement += this.settings.ScoreAnnouncementStep;
+          $"{RunConstants.Speech.ScorePrefix} {this.NextScoreAnnouncement}"));
+        this.NextScoreAnnouncement += this.settings.ScoreAnnouncementStep;
       }
     }
 
-    IReadOnlyList<RunObstacle> spawned = this.spawner.Update(deltaTimeSeconds, this.elapsedSeconds);
+    IReadOnlyList<RunObstacle> spawned = this.spawner.Update(deltaTimeSeconds, this.ElapsedSeconds);
 
-    for (int i = 0; i < spawned.Count; i++)
+    foreach (RunObstacle spawnedObstacle in spawned)
     {
-      RunObstacle spawnedObstacle = spawned[i];
       this.obstacles.Add(spawnedObstacle);
-      events.Add(new PlaySoundEvent(
-        RunConstants.SoundId.ObstacleSpawn,
-        LaneToPosition(spawnedObstacle.Lane, spawnedObstacle.Z),
-        RunConstants.Volume.ObstacleSpawn));
     }
 
-    for (int i = this.obstacles.Count - 1; i >= 0; i--)
+    this.Player.Advance(deltaTimeSeconds, this.settings.StartingPlayerSpeed);
+
+    for (int i = 0; i < this.obstacles.Count; i++)
     {
       RunObstacle obstacle = this.obstacles[i];
-      obstacle = obstacle with { Z = obstacle.Z - (obstacle.Speed * deltaTimeSeconds) };
 
-      bool collides = obstacle.Lane == this.Lane && MathF.Abs(obstacle.Z) <= this.settings.CollisionZWindow;
+      bool collides = ProximityCollision.IsWithinBuffer(obstacle.Position, this.Player.Position, this.settings.CollisionRadius);
 
       if (collides)
       {
@@ -214,14 +208,11 @@ public sealed class RiverRunSession
         continue;
       }
 
-      if (obstacle.Z < RunConstants.PassedObstacleZ)
+      if (obstacle.Position.Z < this.Player.Position.Z)
       {
         this.obstacles.RemoveAt(i);
-        this.Score += this.settings.DodgeBonus;
         continue;
       }
-
-      this.obstacles[i] = obstacle;
     }
 
     return events;
@@ -232,31 +223,22 @@ public sealed class RiverRunSession
   /// </summary>
   /// <param name="lane">Target lane index.</param>
   /// <param name="z">Initial Z position.</param>
-  /// <param name="speed">Obstacle speed.</param>
-  public void QueueObstacle(int lane, float z, float speed)
+  public void QueueObstacle(float lane, float z)
   {
-    if (lane is < RunConstants.Lane.Left or > RunConstants.Lane.Right)
+    if (lane is < RunConstants.LaneX.Left or > RunConstants.LaneX.Right)
     {
       throw new ArgumentOutOfRangeException(nameof(lane));
     }
-
-    this.obstacles.Add(new RunObstacle(lane, z, speed));
+    Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
+    this.obstacles.Add(new RunObstacle(position));
   }
 
-  private RunEvent CreateLaneChangeEvent()
+  /// <summary>
+  /// Adds a deterministic obstacle using an explicit world position.
+  /// </summary>
+  /// <param name="position">Obstacle world position.</param>
+  public void QueueObstacle(Vector3 position)
   {
-    return new PlaySoundEvent(RunConstants.SoundId.LaneChange, LaneToPosition(this.Lane, 0.0f), RunConstants.Volume.LaneChange);
-  }
-
-  private static Vector3 LaneToPosition(int lane, float z)
-  {
-    float x = lane switch
-    {
-      RunConstants.Lane.Left => RunConstants.LaneX.Left,
-      RunConstants.Lane.Center => RunConstants.LaneX.Center,
-      _ => RunConstants.LaneX.Right
-    };
-
-    return new Vector3(x, RunConstants.GroundY, z);
+    this.obstacles.Add(new RunObstacle(position));
   }
 }

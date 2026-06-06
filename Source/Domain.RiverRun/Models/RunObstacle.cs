@@ -1,9 +1,19 @@
+using System.Numerics;
+
 namespace SoundArcade.Domain.RiverRun.Models;
 
 /// <summary>
 /// Represents one active obstacle in world space.
+/// Obstacles are stationary in world space; the player moves forward.
 /// </summary>
-/// <param name="Lane">Lane index occupied by the obstacle.</param>
-/// <param name="Z">Forward/backward world position.</param>
-/// <param name="Speed">Obstacle movement speed along the Z axis.</param>
-public readonly record struct RunObstacle(int Lane, float Z, float Speed);
+public sealed class RunObstacle : GameObject
+{
+  /// <summary>
+  /// Initializes a new instance of <see cref="RunObstacle"/>.
+  /// </summary>
+  /// <param name="position">Initial world position for the obstacle.</param>
+  public RunObstacle(Vector3 position)
+    : base(position, collidable: true)
+  {
+  }
+}

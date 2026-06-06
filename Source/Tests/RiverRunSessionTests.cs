@@ -22,11 +22,9 @@ public sealed class RiverRunSessionTests
   [Fact]
   public void Update_increases_score_while_playing()
   {
-    RunSettings settings = RunSettings.Default with
-    {
-      ScoringPerSecond = 50.0f,
-      ScoreAnnouncementStep = HighAnnouncementStep
-    };
+    RunSettings settings = new(
+      ScoringPerSecond: 50.0f,
+      ScoreAnnouncementStep: HighAnnouncementStep);
 
     RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
     session.Start();
@@ -42,7 +40,7 @@ public sealed class RiverRunSessionTests
   [Fact]
   public void TogglePause_transitions_between_playing_and_paused()
   {
-    RiverRunSession session = new RiverRunSession(RunSettings.Default, new System.Random(RandomSeed));
+    RiverRunSession session = new RiverRunSession(new RunSettings(), new System.Random(RandomSeed));
     session.Start();
 
     IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
@@ -62,24 +60,22 @@ public sealed class RiverRunSessionTests
   [Fact]
   public void Collision_until_no_lives_reaches_game_over()
   {
-    RunSettings settings = RunSettings.Default with
-    {
-      StartingLives = 2,
-      CollisionZWindow = 0.5f,
-      ScoringPerSecond = 0.0f,
-      ScoreAnnouncementStep = HighAnnouncementStep
-    };
+    RunSettings settings = new(
+      StartingLives: 2,
+      CollisionRadius: 0.5f,
+      ScoringPerSecond: 0.0f,
+      ScoreAnnouncementStep: HighAnnouncementStep);
 
     RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
     session.Start();
 
-    session.QueueObstacle(lane: RunConstants.Lane.Center, z: 0.0f, speed: 0.0f);
+    session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
     session.Update(FrameDelta);
 
     Assert.Equal(RunState.Playing, session.State);
     Assert.Equal(1, session.Lives);
 
-    session.QueueObstacle(lane: RunConstants.Lane.Center, z: 0.0f, speed: 0.0f);
+    session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
     IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
 
     Assert.Equal(RunState.GameOver, session.State);

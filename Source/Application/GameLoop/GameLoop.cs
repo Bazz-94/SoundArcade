@@ -49,22 +49,22 @@ public sealed class GameLoop
   /// <param name="deltaTimeSeconds">Elapsed frame time in seconds.</param>
   public void Tick(float deltaTimeSeconds)
   {
-    if (this.input.IsKeyPressed(KeyboardKey.Left))
+    if (this.input.InputPressed(Input.Left))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.MoveLeft));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Right))
+    if (this.input.InputPressed(Input.Right))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.MoveRight));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Escape))
+    if (this.input.InputPressed(Input.Back))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.TogglePause));
     }
 
-    if (this.input.IsKeyPressed(KeyboardKey.Enter))
+    if (this.input.InputPressed(Input.Enter))
     {
       this.EmitEvents(this.session.HandleCommand(RunCommand.Restart));
     }
@@ -74,10 +74,8 @@ public sealed class GameLoop
 
   private void EmitEvents(IReadOnlyList<RunEvent> events)
   {
-    for (int i = 0; i < events.Count; i++)
+    foreach (RunEvent gameEvent in events)
     {
-      RunEvent gameEvent = events[i];
-
       if (gameEvent is TextToSpeechEvent textToSpeechEvent)
       {
         this.tts.SpeakAsync(textToSpeechEvent.Text);

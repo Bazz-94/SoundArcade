@@ -194,8 +194,46 @@ Each mini-game has its own spec file. Game-specific design decisions, mechanics,
 ## C# Standards
 - Do not use var — always explicit types for clarity.
 - Write unit tests for all domain logic. Application and infrastructure code may be untested or have integration tests only.
-- Descriptions must be provided for all public methods and classes.
+- Descriptions must be provided for all methods, properties, and classes. They should be concise.
 - Rather defined constants or enums for values to provide context to what the values mean (e.g. If the starting position is 1, define a constant `StartingPosition = 1`) & never hardcode string values.
 - Don't use redundant words in class, method, or property names (eg. `RiverRunGameLoop` is redundant, just `GameLoop` since the context is already clear).
 - Use this. to refer to instance members for clarity.
 - Always use block bodies for methods.
+- Stateful types should use private setters plus explicit state-transition methods (instead of directly mutating private fields). E.g.
+```
+public class Player
+{
+    public Player(int health)
+    {
+      this.Health = health;
+    }
+
+    public int Health { get; private set; } = 100;
+
+    public void TakeDamage(int amount)
+    {
+        this.Health = Math.Max(0, this.Health - amount);
+    }
+
+    public void Heal(int amount)
+    {
+        this.Health = Math.Min(100, this.Health + amount);
+    }
+}
+```
+- Don't create unnecessary variables. E.g.
+```
+public void MoveLeft()
+{
+    float currentX = this.Position.X; // unnecessary variable
+
+    if (currentX <= RunConstants.LaneX.Left)
+    {
+        return;
+    }
+
+    float newX = currentX - 1.0f;
+    this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
+}
+```
+- Prefer foreach over for loops.
