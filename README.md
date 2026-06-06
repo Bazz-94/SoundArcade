@@ -6,20 +6,19 @@ Rather than converting visual games to audio, Sound Arcade focuses on mini-games
 
 ## Current Game: RiverRun
 
-RiverRun is an audio-first endless runner where the player survives as long as possible by switching lanes, jumping, and collecting points while obstacles rush toward them in a three-lane world.
+RiverRun is an audio-first endless runner where the player survives as long as possible by switching lanes and collecting points while obstacles rush toward them in a three-lane world.
 
-The player automatically runs forward through left, center, and right lanes. Moment-to-moment play is about using keyboard input to dodge obstacles, jump over hazards, and collect score items while the difficulty steadily increases.
+The player automatically runs forward through left, center, and right lanes. Moment-to-moment play is about using keyboard input to dodge obstacles and collect score items while the difficulty steadily increases.
 
 Audio is the primary interface:
 
 - Spatial audio communicates lane position and distance for obstacles and collectibles.
 - TTS announces score, pause state, game over, and significant events.
-- Lane changes, jumps, pickups, warnings, and collisions each use distinct sound effects.
+- Lane changes, pickups, warnings, and collisions each use distinct sound effects.
 
 Controls:
 
 - Left / Right arrows or A / D: change lanes
-- Space: jump
 - Escape or P: pause
 
 The run ends when the player collides with an obstacle. Score increases by surviving longer and collecting pickups.

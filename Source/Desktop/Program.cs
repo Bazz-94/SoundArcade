@@ -10,7 +10,7 @@ internal class Program
   private static void Main(string[] args)
   {
     IGame[] games = [new RiverRunGame()];
-    var registry = new GameRegistry(games);
+    GameRegistry registry = new GameRegistry(games);
 
     Console.WriteLine($"Registered {registry.Games.Count} game(s).");
   }
