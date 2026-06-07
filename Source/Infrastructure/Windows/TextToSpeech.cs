@@ -13,11 +13,28 @@ namespace SoundArcade.Infrastructure.Windows
   {
     private readonly SpeechSynthesizer synth = new();
 
+    /// <inheritdoc />
+    public event EventHandler? SpeakStarted;
+
+    /// <inheritdoc />
+    public event EventHandler? SpeakCompleted;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TextToSpeech"/> class.
+    /// </summary>
+    public TextToSpeech()
+    {
+      this.synth.SpeakStarted += this.OnSpeakStarted;
+      this.synth.SpeakCompleted += this.OnSpeakCompleted;
+    }
+
     /// <summary>
     /// Releases resources used by the instance.
     /// </summary>
     public void Dispose()
     {
+      this.synth.SpeakStarted -= this.OnSpeakStarted;
+      this.synth.SpeakCompleted -= this.OnSpeakCompleted;
       this.Stop();
       this.synth.Dispose();
     }
@@ -46,6 +63,26 @@ namespace SoundArcade.Infrastructure.Windows
     public void Stop()
     {
       this.synth.SpeakAsyncCancelAll();
+    }
+
+    /// <summary>
+    /// Raises the <see cref="SpeakStarted"/> event.
+    /// </summary>
+    /// <param name="sender">Event source.</param>
+    /// <param name="e">Event data.</param>
+    private void OnSpeakStarted(object? sender, SpeakStartedEventArgs e)
+    {
+      this.SpeakStarted?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Raises the <see cref="SpeakCompleted"/> event.
+    /// </summary>
+    /// <param name="sender">Event source.</param>
+    /// <param name="e">Event data.</param>
+    private void OnSpeakCompleted(object? sender, SpeakCompletedEventArgs e)
+    {
+      this.SpeakCompleted?.Invoke(this, EventArgs.Empty);
     }
   }
 }

@@ -1,3 +1,5 @@
+using System;
+
 namespace SoundArcade.Abstractions;
 
 /// <summary>
@@ -5,6 +7,16 @@ namespace SoundArcade.Abstractions;
 /// </summary>
 public interface ITts
 {
+  /// <summary>
+  /// Raised when speech begins.
+  /// </summary>
+  event EventHandler? SpeakStarted;
+
+  /// <summary>
+  /// Raised when speech ends or is cancelled.
+  /// </summary>
+  event EventHandler? SpeakCompleted;
+
   /// <summary>
   /// Speaks text synchronously.
   /// </summary>

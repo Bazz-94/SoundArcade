@@ -41,6 +41,7 @@ public sealed class GameLoop
   public void StartRun()
   {
     this.EmitEvents(this.session.Start());
+    this.UpdateAudioListenerPosition();
   }
 
   /// <summary>
@@ -70,6 +71,8 @@ public sealed class GameLoop
     }
 
     this.EmitEvents(this.session.Update(deltaTimeSeconds));
+    this.UpdateAudioListenerPosition();
+    this.audio.Update();
   }
 
   private void EmitEvents(IReadOnlyList<RunEvent> events)
@@ -93,5 +96,13 @@ public sealed class GameLoop
         }
       }
     }
+  }
+
+  /// <summary>
+  /// Syncs the audio listener with the current player position.
+  /// </summary>
+  private void UpdateAudioListenerPosition()
+  {
+    this.audio.SetListenerPosition(this.session.Player.Position);
   }
 }
