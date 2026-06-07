@@ -221,7 +221,7 @@ public class Player
     }
 }
 ```
-- Don't create unnecessary variables. E.g.
+- Don't create unnecessary variables. One time use variables are unnecessary. E.g.
 ```
 public void MoveLeft()
 {

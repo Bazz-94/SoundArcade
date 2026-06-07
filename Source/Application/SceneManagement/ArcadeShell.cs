@@ -4,9 +4,7 @@ namespace SoundArcade.Application.SceneManagement
   using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Abstractions;
-  using SoundArcade.Application.Game;
   using SoundArcade.Domain;
-  using SoundArcade.Domain.RiverRun.Models;
 
   /// <summary>
   /// Hosts the desktop loop and delegates behavior to reusable scenes.
@@ -43,7 +41,6 @@ namespace SoundArcade.Application.SceneManagement
     private readonly ITts tts;
     private readonly IAudio audio;
     private readonly ISettingsStore settingsStore;
-    private readonly GameLoop gameLoop;
 
     private readonly SceneManager sceneManager;
 
@@ -58,16 +55,14 @@ namespace SoundArcade.Application.SceneManagement
     /// <param name="input">Input abstraction.</param>
     /// <param name="tts">Text-to-speech abstraction.</param>
     /// <param name="audio">Audio abstraction.</param>
-    /// <param name="settingsStore">Settings persistence abstraction.</param>
-    /// <param name="gameLoop">RiverRun game loop.</param>
+    /// <param name="session">RiverRun session state.</param>
     public ArcadeShell(
       IWindow window,
       IRenderer renderer,
       IInput input,
       ITts tts,
       IAudio audio,
-      ISettingsStore settingsStore,
-      GameLoop gameLoop)
+      ISettingsStore settingsStore)
     {
       this.window = window;
       this.renderer = renderer;
@@ -75,7 +70,6 @@ namespace SoundArcade.Application.SceneManagement
       this.tts = tts;
       this.audio = audio;
       this.settingsStore = settingsStore;
-      this.gameLoop = gameLoop;
 
       sceneManager = new SceneManager();
 
@@ -118,17 +112,6 @@ namespace SoundArcade.Application.SceneManagement
       return actions;
     }
 
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreatePauseMenuActions()
-    {
-      Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
-      {
-        [(int)PauseMenuItem.Resume] = this.OnPauseMenuResumeSelected,
-        [(int)PauseMenuItem.MainMenu] = this.OnPauseMenuMainMenuSelected
-      };
-
-      return actions;
-    }
-
     private IReadOnlyDictionary<int, Action<MenuItem>> CreateSettingsMenuActions()
     {
       Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
@@ -147,68 +130,49 @@ namespace SoundArcade.Application.SceneManagement
 
     private MenuScene CreateMainMenuScene()
     {
-      Menu mainMenu = CreateMainMenu();
-
       return new MenuScene(
-        mainMenu,
-        input,
-        tts,
-        renderer,
-        MenuSelectedColor,
-        MenuUnselectedColor,
-        4.0f,
-        this.CreateMainMenuActions());
-    }
-
-    private MenuScene CreatePauseMenuScene()
-    {
-      Menu pauseMenu = CreatePauseMenu();
-
-      return new MenuScene(
-        pauseMenu,
-        input,
-        tts,
-        renderer,
-        MenuSelectedColor,
-        MenuUnselectedColor,
-        1.5f,
-        this.CreatePauseMenuActions(),
-        this.ResumeRunFromPause);
+        menu: CreateMainMenu(),
+        input: this.input,
+        tts: this.tts,
+        renderer: this.renderer,
+        selectedColor: MenuSelectedColor,
+        unselectedColor: MenuUnselectedColor,
+        menuZ: 4.0f,
+        itemActions: this.CreateMainMenuActions());
     }
 
     private MenuScene CreateSettingsMenuScene()
     {
-      Menu settingsMenu = CreateSettingsMenu();
-
       return new MenuScene(
-        settingsMenu,
-        input,
-        tts,
-        renderer,
-        MenuSelectedColor,
-        MenuUnselectedColor,
-        2.5f,
-        this.CreateSettingsMenuActions(),
-        this.ReturnToMainMenu,
-        this.RenderSettingsValues);
+        menu: CreateSettingsMenu(),
+        input: this.input,
+        tts: this.tts,
+        renderer: this.renderer,
+        selectedColor: MenuSelectedColor,
+        unselectedColor: MenuUnselectedColor,
+        menuZ: 2.5f,
+        itemActions: this.CreateSettingsMenuActions(),
+        backAction: this.ReturnToMainMenu,
+        afterRender: this.RenderSettingsValues);
     }
 
     private RiverRunScene CreateRunScene()
     {
       return new RiverRunScene(
-        gameLoop,
-        renderer,
-        this.ShowPauseMenu,
-        LaneColor,
-        PlayerColor,
-        ObstacleColor,
-        HudLivesColor,
-        HudScoreColor);
+        tts: this.tts,
+        audio: this.audio,
+        input: this.input,
+        renderer: this.renderer,
+        onMainMenuRequested: this.ShowMainMenu,
+        laneColor: LaneColor,
+        playerColor: PlayerColor,
+        obstacleColor: ObstacleColor,
+        hudLivesColor: HudLivesColor,
+        hudScoreColor: HudScoreColor);
     }
 
     private void OnMainMenuStartRunSelected(MenuItem item)
     {
-      gameLoop.StartRun();
       sceneManager.ChangeScene(this.CreateRunScene());
     }
 
@@ -220,16 +184,6 @@ namespace SoundArcade.Application.SceneManagement
     private void OnMainMenuExitSelected(MenuItem item)
     {
       shouldExit = true;
-    }
-
-    private void OnPauseMenuResumeSelected(MenuItem item)
-    {
-      this.ResumeRunFromPause();
-    }
-
-    private void OnPauseMenuMainMenuSelected(MenuItem item)
-    {
-      sceneManager.ChangeScene(this.CreateMainMenuScene());
     }
 
     private void OnSettingsMasterVolumeSelected(MenuItem item)
@@ -264,17 +218,6 @@ namespace SoundArcade.Application.SceneManagement
       tts.SpeakAsync("Input mappings reset");
     }
 
-    private void ShowPauseMenu()
-    {
-      sceneManager.ChangeScene(this.CreatePauseMenuScene());
-    }
-
-    private void ResumeRunFromPause()
-    {
-      gameLoop.DispatchCommand(RunCommand.TogglePause);
-      sceneManager.ChangeScene(this.CreateRunScene());
-    }
-
     private void ShowMainMenu()
     {
       sceneManager.ChangeScene(this.CreateMainMenuScene());
@@ -282,14 +225,8 @@ namespace SoundArcade.Application.SceneManagement
 
     private void ReturnToMainMenu()
     {
-      this.PersistSettings();
+      this.PersistSettings(); // TODO: move to onExit of settings scene.
       this.ShowMainMenu();
-    }
-
-    private void ReturnToPauseMenu()
-    {
-      this.PersistSettings();
-      sceneManager.ChangeScene(this.CreatePauseMenuScene());
     }
 
     private void RenderSettingsValues()
@@ -441,17 +378,6 @@ namespace SoundArcade.Application.SceneManagement
         ]);
     }
 
-    private static Menu CreatePauseMenu()
-    {
-      return new Menu(
-        (int)MenuType.Pause,
-        "Pause menu",
-        [
-          new MenuItem((int)PauseMenuItem.Resume, "Resume"),
-          new MenuItem((int)PauseMenuItem.MainMenu, "Main Menu")
-        ]);
-    }
-
     private static Menu CreateSettingsMenu()
     {
       return new Menu(
@@ -518,7 +444,6 @@ namespace SoundArcade.Application.SceneManagement
     private enum MenuType
     {
       Main,
-      Pause,
       Settings
     }
 
@@ -527,12 +452,6 @@ namespace SoundArcade.Application.SceneManagement
       StartRun,
       Settings,
       Exit
-    }
-
-    private enum PauseMenuItem
-    {
-      Resume,
-      MainMenu
     }
 
     private enum SettingsMenuItem
