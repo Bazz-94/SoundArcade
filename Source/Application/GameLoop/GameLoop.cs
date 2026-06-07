@@ -10,7 +10,7 @@ namespace SoundArcade.Application.GameLoop;
 /// </summary>
 public sealed class GameLoop
 {
-  private readonly IInput input;
+  private readonly PlayerController playerController;
   private readonly ITts tts;
   private readonly IAudio audio;
   private readonly Session session;
@@ -18,13 +18,13 @@ public sealed class GameLoop
   /// <summary>
   /// Initializes a new instance of the <see cref="GameLoop"/> class.
   /// </summary>
-  /// <param name="input">Input abstraction used for player commands.</param>
+  /// <param name="playerController">Player controller that maps input to domain commands.</param>
   /// <param name="tts">Text-to-speech abstraction for spoken feedback.</param>
   /// <param name="audio">Audio abstraction for non-speech cues.</param>
   /// <param name="session">Domain session that contains gameplay state and rules.</param>
-  public GameLoop(IInput input, ITts tts, IAudio audio, Session session)
+  public GameLoop(PlayerController playerController, ITts tts, IAudio audio, Session session)
   {
-    this.input = input;
+    this.playerController = playerController;
     this.tts = tts;
     this.audio = audio;
     this.session = session;
@@ -50,24 +50,11 @@ public sealed class GameLoop
   /// <param name="deltaTimeSeconds">Elapsed frame time in seconds.</param>
   public void Tick(float deltaTimeSeconds)
   {
-    if (this.input.InputPressed(Input.Left))
-    {
-      this.EmitEvents(this.session.HandleCommand(RunCommand.MoveLeft));
-    }
+    IReadOnlyList<RunCommand> commands = this.playerController.ReadCommands();
 
-    if (this.input.InputPressed(Input.Right))
+    foreach (RunCommand command in commands)
     {
-      this.EmitEvents(this.session.HandleCommand(RunCommand.MoveRight));
-    }
-
-    if (this.input.InputPressed(Input.Back))
-    {
-      this.EmitEvents(this.session.HandleCommand(RunCommand.TogglePause));
-    }
-
-    if (this.input.InputPressed(Input.Enter))
-    {
-      this.EmitEvents(this.session.HandleCommand(RunCommand.Restart));
+      this.EmitEvents(this.session.HandleCommand(command));
     }
 
     this.EmitEvents(this.session.Update(deltaTimeSeconds));
