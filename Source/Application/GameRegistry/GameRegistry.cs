@@ -1,28 +1,29 @@
-using System.Collections.Generic;
-using System.Linq;
-using SoundArcade.Domain;
-
-namespace SoundArcade.Application.GameRegistry;
-
-/// <summary>
-/// Stores registered mini-games for discovery and menu presentation.
-/// </summary>
-public sealed class GameRegistry
+namespace SoundArcade.Application.GameRegistry
 {
-  private readonly IReadOnlyList<IGame> games;
+  using System.Collections.Generic;
+  using System.Linq;
+  using SoundArcade.Domain;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="GameRegistry"/> class.
+  /// Stores registered mini-games for discovery and menu presentation.
   /// </summary>
-  /// <param name="games">Games to expose through the registry.</param>
-  public GameRegistry(IEnumerable<IGame> games)
+  public sealed class GameRegistry
   {
-    this.games = games.ToArray();
-  }
+    private readonly IReadOnlyList<IGame> games;
 
-  /// <summary>
-  /// Gets all registered games.
-  /// </summary>
-  public IReadOnlyList<IGame> Games
-    => this.games;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameRegistry"/> class.
+    /// </summary>
+    /// <param name="games">Games to expose through the registry.</param>
+    public GameRegistry(IEnumerable<IGame> games)
+    {
+      this.games = games.ToArray();
+    }
+
+    /// <summary>
+    /// Gets all registered games.
+    /// </summary>
+    public IReadOnlyList<IGame> Games
+      => games;
+  }
 }

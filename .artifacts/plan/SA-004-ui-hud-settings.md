@@ -19,7 +19,7 @@ Excludes:
 - Type: UI
 - Dependencies: SA-000, SA-003, SA-002
 - Complexity: Medium
-- Status: Not Started
+- Status: Completed
 
 ## Inputs
 - `ITts` and `IRenderer` from Abstractions.

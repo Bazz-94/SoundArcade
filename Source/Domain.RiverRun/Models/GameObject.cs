@@ -1,71 +1,72 @@
-using System;
-using System.Numerics;
-
-namespace SoundArcade.Domain.RiverRun.Models;
-
-/// <summary>
-/// Base class for all game objects with a world position and collidable flag.
-/// Validation is executed whenever the Position is changed.
-/// </summary>
-public abstract class GameObject
+namespace SoundArcade.Domain.RiverRun.Models
 {
-  private Vector3 _position;
+  using System;
+  using System.Numerics;
 
   /// <summary>
-  /// Gets or sets the world position. Setting the position triggers validation.
+  /// Base class for all game objects with a world position and collidable flag.
+  /// Validation is executed whenever the Position is changed.
   /// </summary>
-  public Vector3 Position
+  public abstract class GameObject
   {
-    get
-    {
-      return this._position;
-    }
-    set
-    {
-      this.ValidatePosition(value);
-      this._position = value;
-    }
-  }
+    private Vector3 _position;
 
-  /// <summary>
-  /// Gets or sets a value indicating whether the object participates in collisions.
-  /// </summary>
-  public bool Collidable { get; set; }
-
-  /// <summary>
-  /// Initializes a new instance of <see cref="GameObject"/>.
-  /// </summary>
-  /// <param name="position">Initial world position.</param>
-  /// <param name="collidable">Whether the object is collidable.</param>
-  protected GameObject(Vector3 position, bool collidable)
-  {
-    this.Collidable = collidable;
-    this.Position = position;
-  }
-
-  /// <summary>
-  /// Validates a position. Derived types may override to provide additional checks.
-  /// Default validation ensures X is within lane bounds, and Y equals the ground plane.
-  /// </summary>
-  /// <param name="position">Position to validate.</param>
-  /// <exception cref="ArgumentOutOfRangeException">Thrown when X is out of lane bounds or components are NaN/Infinity.</exception>
-  /// <exception cref="ArgumentException">Thrown when Y does not equal the ground plane.</exception>
-  protected virtual void ValidatePosition(Vector3 position)
-  {
-    switch (position.X)
+    /// <summary>
+    /// Gets or sets the world position. Setting the position triggers validation.
+    /// </summary>
+    public Vector3 Position
     {
-      case RunConstants.LaneX.Left:
-      case RunConstants.LaneX.Center:
-      case RunConstants.LaneX.Right:
-        // Valid lane positions.
-        break;
-      default:
-        throw new ArgumentOutOfRangeException(nameof(position), $"Position.X must on one of the game's lanes.");
+      get
+      {
+        return _position;
+      }
+      set
+      {
+        this.ValidatePosition(value);
+        _position = value;
+      }
     }
 
-    if (position.Y != RunConstants.GroundY)
+    /// <summary>
+    /// Gets or sets a value indicating whether the object participates in collisions.
+    /// </summary>
+    public bool Collidable { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="GameObject"/>.
+    /// </summary>
+    /// <param name="position">Initial world position.</param>
+    /// <param name="collidable">Whether the object is collidable.</param>
+    protected GameObject(Vector3 position, bool collidable)
     {
-      throw new ArgumentException($"Position.Y must equal the ground plane value {RunConstants.GroundY}.", nameof(position));
+      this.Collidable = collidable;
+      this.Position = position;
+    }
+
+    /// <summary>
+    /// Validates a position. Derived types may override to provide additional checks.
+    /// Default validation ensures X is within lane bounds, and Y equals the ground plane.
+    /// </summary>
+    /// <param name="position">Position to validate.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when X is out of lane bounds or components are NaN/Infinity.</exception>
+    /// <exception cref="ArgumentException">Thrown when Y does not equal the ground plane.</exception>
+    protected virtual void ValidatePosition(Vector3 position)
+    {
+      switch (position.X)
+      {
+        case RunConstants.LaneX.Left:
+        case RunConstants.LaneX.Center:
+        case RunConstants.LaneX.Right:
+          // Valid lane positions.
+          break;
+        default:
+          throw new ArgumentOutOfRangeException(nameof(position), $"Position.X must on one of the game's lanes.");
+      }
+
+      if (position.Y != RunConstants.GroundY)
+      {
+        throw new ArgumentException($"Position.Y must equal the ground plane value {RunConstants.GroundY}.", nameof(position));
+      }
     }
   }
 }

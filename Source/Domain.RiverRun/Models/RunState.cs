@@ -1,22 +1,23 @@
-namespace SoundArcade.Domain.RiverRun.Models;
-
-/// <summary>
-/// High-level state for a RiverRun gameplay session.
-/// </summary>
-public enum RunState
+namespace SoundArcade.Domain.RiverRun.Models
 {
   /// <summary>
-  /// Gameplay simulation is running.
+  /// High-level state for a RiverRun gameplay session.
   /// </summary>
-  Playing,
+  public enum RunState
+  {
+    /// <summary>
+    /// Gameplay simulation is running.
+    /// </summary>
+    Playing,
 
-  /// <summary>
-  /// Gameplay simulation is paused.
-  /// </summary>
-  Paused,
+    /// <summary>
+    /// Gameplay simulation is paused.
+    /// </summary>
+    Paused,
 
-  /// <summary>
-  /// The run has ended and awaits restart.
-  /// </summary>
-  GameOver
+    /// <summary>
+    /// The run has ended and awaits restart.
+    /// </summary>
+    GameOver
+  }
 }
