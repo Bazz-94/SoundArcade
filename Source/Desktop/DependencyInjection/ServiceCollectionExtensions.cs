@@ -1,8 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using SoundArcade.Abstractions;
+using SoundArcade.Application.GameLoop;
 using SoundArcade.Application.GameRegistry;
 using SoundArcade.Domain;
 using SoundArcade.Domain.RiverRun;
+using SoundArcade.Domain.RiverRun.Models;
+using SoundArcade.Domain.RiverRun.Services;
 using SoundArcade.Infrastructure.Audio;
 using SoundArcade.Infrastructure.Windows;
 
@@ -21,9 +24,14 @@ public static class ServiceCollectionExtensions
   public static IServiceCollection AddSoundArcade(this IServiceCollection services)
   {
     services.AddSingleton<IGame, RiverRunGame>();
+    services.AddSingleton<IInput, RaylibInput>();
     services.AddSingleton<ITts, TextToSpeech>();
     services.AddSingleton<RaylibAudio>(serviceProvider => new RaylibAudio(serviceProvider.GetRequiredService<ITts>()));
     services.AddSingleton<IAudio>(serviceProvider => serviceProvider.GetRequiredService<RaylibAudio>());
+    services.AddSingleton<RunSettings>();
+    services.AddSingleton<Session>();
+    services.AddSingleton<PlayerController>();
+    services.AddSingleton<GameLoop>();
     services.AddSingleton<GameRegistry>();
 
     return services;
