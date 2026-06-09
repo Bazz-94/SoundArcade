@@ -24,8 +24,8 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public TextToSpeech()
     {
-      this.synth.SpeakStarted += this.OnSpeakStarted;
-      this.synth.SpeakCompleted += this.OnSpeakCompleted;
+      synth.SpeakStarted += this.OnSpeakStarted;
+      synth.SpeakCompleted += this.OnSpeakCompleted;
     }
 
     /// <summary>
@@ -33,10 +33,10 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public void Dispose()
     {
-      this.synth.SpeakStarted -= this.OnSpeakStarted;
-      this.synth.SpeakCompleted -= this.OnSpeakCompleted;
+      synth.SpeakStarted -= this.OnSpeakStarted;
+      synth.SpeakCompleted -= this.OnSpeakCompleted;
       this.Stop();
-      this.synth.Dispose();
+      synth.Dispose();
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <param name="text">Text to speak.</param>
     public void Speak(string text)
     {
-      this.synth.Speak(text);
+      synth.Speak(text);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <param name="text">Text to speak.</param>
     public void SpeakAsync(string text)
     {
-      this.synth.SpeakAsync(text);
+      synth.SpeakAsync(text);
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public void Stop()
     {
-      this.synth.SpeakAsyncCancelAll();
+      synth.SpeakAsyncCancelAll();
     }
 
     /// <summary>

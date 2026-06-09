@@ -18,7 +18,7 @@ Excludes:
 - Type: Gameplay
 - Dependencies: SA-000
 - Complexity: Medium
-- Status: Not Started
+- Status: Completed
 
 ## Inputs
 - `IInput` interface from Abstractions.

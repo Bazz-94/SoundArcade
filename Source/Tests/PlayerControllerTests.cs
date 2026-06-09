@@ -1,124 +1,125 @@
-using System;
-using System.Collections.Generic;
-using SoundArcade.Abstractions;
-using SoundArcade.Application.GameLoop;
-using SoundArcade.Domain.RiverRun.Models;
-using Xunit;
-
-namespace SoundArcade.Tests;
-
-/// <summary>
-/// Tests for player input to command translation.
-/// </summary>
-public sealed class PlayerControllerTests
+namespace SoundArcade.Tests
 {
-  /// <summary>
-  /// Verifies mapped actions produce the expected command ordering.
-  /// </summary>
-  [Fact]
-  public void ReadCommands_returns_commands_for_pressed_inputs()
-  {
-    FakeInput input = new FakeInput();
-    PlayerController controller = new PlayerController(input);
-
-    input.SetPressed(Input.Left);
-    input.SetPressed(Input.Right);
-    input.SetPressed(Input.Back);
-    input.SetPressed(Input.Enter);
-
-    IReadOnlyList<RunCommand> commands = controller.ReadCommands();
-
-    Assert.Collection(
-      commands,
-      command => Assert.Equal(RunCommand.MoveLeft, command),
-      command => Assert.Equal(RunCommand.MoveRight, command),
-      command => Assert.Equal(RunCommand.TogglePause, command),
-      command => Assert.Equal(RunCommand.Restart, command));
-  }
+  using System;
+  using System.Collections.Generic;
+  using SoundArcade.Abstractions;
+  using SoundArcade.Application.Game;
+  using SoundArcade.Domain.RiverRun.Models;
+  using Xunit;
 
   /// <summary>
-  /// Verifies no commands are produced when no mapped input is pressed.
+  /// Tests for player input to command translation.
   /// </summary>
-  [Fact]
-  public void ReadCommands_returns_empty_when_no_inputs_pressed()
+  public sealed class PlayerControllerTests
   {
-    FakeInput input = new FakeInput();
-    PlayerController controller = new PlayerController(input);
-
-    IReadOnlyList<RunCommand> commands = controller.ReadCommands();
-
-    Assert.Empty(commands);
-  }
-
-  private sealed class FakeInput : IInput
-  {
-    private readonly HashSet<Input> pressed = new HashSet<Input>();
-    private readonly Dictionary<Input, string> mappings = new Dictionary<Input, string>
+    /// <summary>
+    /// Verifies mapped actions produce the expected command ordering.
+    /// </summary>
+    [Fact]
+    public void ReadCommands_returns_commands_for_pressed_inputs()
     {
-      [Input.Up] = "Up",
-      [Input.Down] = "Down",
-      [Input.Left] = "Left",
-      [Input.Right] = "Right",
-      [Input.Enter] = "Enter",
-      [Input.Back] = "Escape"
-    };
+      FakeInput input = new FakeInput();
+      PlayerController controller = new PlayerController(input);
 
-    public event EventHandler<InputPressedEventArgs>? Pressed;
+      input.SetPressed(Input.Left);
+      input.SetPressed(Input.Right);
+      input.SetPressed(Input.Back);
+      input.SetPressed(Input.Enter);
 
-    public bool InputPressed(Input input)
+      IReadOnlyList<RunCommand> commands = controller.ReadCommands();
+
+      Assert.Collection(
+        commands,
+        command => Assert.Equal(RunCommand.MoveLeft, command),
+        command => Assert.Equal(RunCommand.MoveRight, command),
+        command => Assert.Equal(RunCommand.TogglePause, command),
+        command => Assert.Equal(RunCommand.Restart, command));
+    }
+
+    /// <summary>
+    /// Verifies no commands are produced when no mapped input is pressed.
+    /// </summary>
+    [Fact]
+    public void ReadCommands_returns_empty_when_no_inputs_pressed()
     {
-      bool isPressed = this.pressed.Contains(input);
+      FakeInput input = new FakeInput();
+      PlayerController controller = new PlayerController(input);
 
-      if (isPressed)
+      IReadOnlyList<RunCommand> commands = controller.ReadCommands();
+
+      Assert.Empty(commands);
+    }
+
+    private sealed class FakeInput : IInput
+    {
+      private readonly HashSet<Input> pressed = new HashSet<Input>();
+      private readonly Dictionary<Input, string> mappings = new Dictionary<Input, string>
       {
-        this.Pressed?.Invoke(this, new InputPressedEventArgs(input));
+        [Input.Up] = "Up",
+        [Input.Down] = "Down",
+        [Input.Left] = "Left",
+        [Input.Right] = "Right",
+        [Input.Enter] = "Enter",
+        [Input.Back] = "Escape"
+      };
+
+      public event EventHandler<InputPressedEventArgs>? Pressed;
+
+      public bool InputPressed(Input input)
+      {
+        bool isPressed = pressed.Contains(input);
+
+        if (isPressed)
+        {
+          this.Pressed?.Invoke(this, new InputPressedEventArgs(input));
+        }
+
+        return isPressed;
       }
 
-      return isPressed;
-    }
-
-    public bool InputDown(Input input)
-    {
-      return this.pressed.Contains(input);
-    }
-
-    public IReadOnlyDictionary<Input, string> GetMappings()
-    {
-      return this.mappings;
-    }
-
-    public bool TrySetMapping(Input input, string keyName)
-    {
-      if (string.IsNullOrWhiteSpace(keyName))
+      public bool InputDown(Input input)
       {
-        return false;
+        return pressed.Contains(input);
       }
 
-      this.mappings[input] = keyName;
-      return true;
-    }
+      public IReadOnlyDictionary<Input, string> GetMappings()
+      {
+        return mappings;
+      }
 
-    public void ResetMappingsToDefault()
-    {
-      this.mappings[Input.Up] = "Up";
-      this.mappings[Input.Down] = "Down";
-      this.mappings[Input.Left] = "Left";
-      this.mappings[Input.Right] = "Right";
-      this.mappings[Input.Enter] = "Enter";
-      this.mappings[Input.Back] = "Escape";
-    }
+      public bool TrySetMapping(Input input, string keyName)
+      {
+        if (string.IsNullOrWhiteSpace(keyName))
+        {
+          return false;
+        }
 
-    public void LoadMappings()
-    {
-    }
+        mappings[input] = keyName;
+        return true;
+      }
 
-    public void SaveMappings()
-    {
-    }
+      public void ResetMappingsToDefault()
+      {
+        mappings[Input.Up] = "Up";
+        mappings[Input.Down] = "Down";
+        mappings[Input.Left] = "Left";
+        mappings[Input.Right] = "Right";
+        mappings[Input.Enter] = "Enter";
+        mappings[Input.Back] = "Escape";
+      }
 
-    public void SetPressed(Input input)
-    {
-      this.pressed.Add(input);
+      public void LoadMappings()
+      {
+      }
+
+      public void SaveMappings()
+      {
+      }
+
+      public void SetPressed(Input input)
+      {
+        pressed.Add(input);
+      }
     }
   }
 }

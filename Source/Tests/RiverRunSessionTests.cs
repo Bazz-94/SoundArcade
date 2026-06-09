@@ -1,135 +1,136 @@
-using System.Collections.Generic;
-using System.Linq;
-using SoundArcade.Domain.RiverRun.Models;
-using SoundArcade.Domain.RiverRun.Services;
-using Xunit;
-
-namespace SoundArcade.Tests;
-
-/// <summary>
-/// Tests for RiverRun session domain behavior.
-/// </summary>
-public sealed class RiverRunSessionTests
+namespace SoundArcade.Tests
 {
-  private const int RandomSeed = 1;
-  private const float OneSecond = 1.0f;
-  private const float FrameDelta = 0.016f;
-  private const int HighAnnouncementStep = 1_000;
+  using System.Collections.Generic;
+  using System.Linq;
+  using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Services;
+  using Xunit;
 
   /// <summary>
-  /// Verifies score increases over time while the session is playing.
+  /// Tests for RiverRun session domain behavior.
   /// </summary>
-  [Fact]
-  public void Update_increases_score_while_playing()
+  public sealed class RiverRunSessionTests
   {
-    RunSettings settings = new(
-      ScoringPerSecond: 50.0f,
-      ScoreAnnouncementStep: HighAnnouncementStep);
+    private const int RandomSeed = 1;
+    private const float OneSecond = 1.0f;
+    private const float FrameDelta = 0.016f;
+    private const int HighAnnouncementStep = 1_000;
 
-    Session session = new Session(settings, new System.Random(RandomSeed));
-    session.Start();
+    /// <summary>
+    /// Verifies score increases over time while the session is playing.
+    /// </summary>
+    [Fact]
+    public void Update_increases_score_while_playing()
+    {
+      RunSettings settings = new(
+        ScoringPerSecond: 50.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
 
-    session.Update(OneSecond);
+      Session session = new Session(settings, new System.Random(RandomSeed));
+      session.Start();
 
-    Assert.True(session.Score >= 50);
-  }
+      session.Update(OneSecond);
 
-  /// <summary>
-  /// Verifies player speed increases as distance is traveled and respects the cap.
-  /// </summary>
-  [Fact]
-  public void Update_increases_player_speed_with_distance_and_caps_it()
-  {
-    RunSettings settings = new(
-      StartingPlayerSpeed: 2.0f,
-      PlayerSpeedIncreasePerZUnit: 1.0f,
-      MaxPlayerSpeedIncrease: 1.0f,
-      ScoreAnnouncementStep: HighAnnouncementStep);
+      Assert.True(session.Score >= 50);
+    }
 
-    Session session = new Session(settings, new System.Random(RandomSeed));
-    session.Start();
+    /// <summary>
+    /// Verifies player speed increases as distance is traveled and respects the cap.
+    /// </summary>
+    [Fact]
+    public void Update_increases_player_speed_with_distance_and_caps_it()
+    {
+      RunSettings settings = new(
+        StartingPlayerSpeed: 2.0f,
+        PlayerSpeedIncreasePerZUnit: 1.0f,
+        MaxPlayerSpeedIncrease: 1.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
 
-    float startingSpeed = session.Player.Speed;
+      Session session = new Session(settings, new System.Random(RandomSeed));
+      session.Start();
 
-    session.Update(OneSecond);
+      float startingSpeed = session.Player.Speed;
 
-    Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
-    Assert.True(session.Player.Speed > startingSpeed);
+      session.Update(OneSecond);
 
-    session.Update(OneSecond);
+      Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
+      Assert.True(session.Player.Speed > startingSpeed);
 
-    Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
-  }
+      session.Update(OneSecond);
 
-  /// <summary>
-  /// Verifies obstacle spawning follows player Z progress rather than elapsed time.
-  /// </summary>
-  [Fact]
-  public void Update_spawns_obstacles_as_player_advances_in_z()
-  {
-    RunSettings settings = new(
-      StartingPlayerSpeed: 1.0f,
-      PlayerSpeedIncreasePerZUnit: 0.0f,
-      MaxPlayerSpeedIncrease: 0.0f,
-      SpawnZ: 1.0f,
-      SpawnDistanceMin: 1.0f,
-      SpawnDistanceMax: 1.0f,
-      ScoreAnnouncementStep: HighAnnouncementStep);
+      Assert.Equal(startingSpeed + settings.MaxPlayerSpeedIncrease, session.Player.Speed);
+    }
 
-    Session session = new Session(settings, new System.Random(RandomSeed));
-    session.Start();
+    /// <summary>
+    /// Verifies obstacle spawning follows player Z progress rather than elapsed time.
+    /// </summary>
+    [Fact]
+    public void Update_spawns_obstacles_as_player_advances_in_z()
+    {
+      RunSettings settings = new(
+        StartingPlayerSpeed: 1.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        SpawnZ: 1.0f,
+        SpawnDistanceMin: 1.0f,
+        SpawnDistanceMax: 1.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
 
-    session.Update(OneSecond);
+      Session session = new Session(settings, new System.Random(RandomSeed));
+      session.Start();
 
-    Assert.Single(session.Obstacles);
-  }
+      session.Update(OneSecond);
 
-  /// <summary>
-  /// Verifies pause command toggles between playing and paused states.
-  /// </summary>
-  [Fact]
-  public void TogglePause_transitions_between_playing_and_paused()
-  {
-    Session session = new Session(new RunSettings(), new System.Random(RandomSeed));
-    session.Start();
+      Assert.Single(session.Obstacles);
+    }
 
-    IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
+    /// <summary>
+    /// Verifies pause command toggles between playing and paused states.
+    /// </summary>
+    [Fact]
+    public void TogglePause_transitions_between_playing_and_paused()
+    {
+      Session session = new Session(new RunSettings(), new System.Random(RandomSeed));
+      session.Start();
 
-    Assert.Equal(RunState.Paused, session.State);
-    Assert.Contains(pauseEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Paused);
+      IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
 
-    IReadOnlyList<RunEvent> resumeEvents = session.HandleCommand(RunCommand.TogglePause);
+      Assert.Equal(RunState.Paused, session.State);
+      Assert.Contains(pauseEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Paused);
 
-    Assert.Equal(RunState.Playing, session.State);
-    Assert.Contains(resumeEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Resumed);
-  }
+      IReadOnlyList<RunEvent> resumeEvents = session.HandleCommand(RunCommand.TogglePause);
 
-  /// <summary>
-  /// Verifies repeated collisions consume lives and transition to game over.
-  /// </summary>
-  [Fact]
-  public void Collision_until_no_lives_reaches_game_over()
-  {
-    RunSettings settings = new(
-      StartingLives: 2,
-      CollisionRadius: 0.5f,
-      ScoringPerSecond: 0.0f,
-      ScoreAnnouncementStep: HighAnnouncementStep);
+      Assert.Equal(RunState.Playing, session.State);
+      Assert.Contains(resumeEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Resumed);
+    }
 
-    Session session = new Session(settings, new System.Random(RandomSeed));
-    session.Start();
+    /// <summary>
+    /// Verifies repeated collisions consume lives and transition to game over.
+    /// </summary>
+    [Fact]
+    public void Collision_until_no_lives_reaches_game_over()
+    {
+      RunSettings settings = new(
+        StartingLives: 2,
+        CollisionRadius: 0.5f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
 
-    session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
-    session.Update(FrameDelta);
+      Session session = new Session(settings, new System.Random(RandomSeed));
+      session.Start();
 
-    Assert.Equal(RunState.Playing, session.State);
-    Assert.Equal(1, session.Lives);
+      session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
+      session.Update(FrameDelta);
 
-    session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
-    IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
+      Assert.Equal(RunState.Playing, session.State);
+      Assert.Equal(1, session.Lives);
 
-    Assert.Equal(RunState.GameOver, session.State);
-    Assert.Equal(0, session.Lives);
-    Assert.Contains(events.OfType<TextToSpeechEvent>(), x => x.Text.StartsWith(RunConstants.Speech.GameOverPrefix));
+      session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
+      IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
+
+      Assert.Equal(RunState.GameOver, session.State);
+      Assert.Equal(0, session.Lives);
+      Assert.Contains(events.OfType<TextToSpeechEvent>(), x => x.Text.StartsWith(RunConstants.Speech.GameOverPrefix));
+    }
   }
 }

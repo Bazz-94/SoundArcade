@@ -1,105 +1,106 @@
-using System;
-using System.Numerics;
-
-namespace SoundArcade.Domain.RiverRun.Models;
-
-/// <summary>
-/// Player actor in the RiverRun world.
-/// Inherits position and collidable behaviour from GameObject.
-/// </summary>
-public sealed class Player : GameObject
+namespace SoundArcade.Domain.RiverRun.Models
 {
-  /// <summary>
-  /// Gets the current forward movement speed in world units per second.
-  /// </summary>
-  public float Speed { get; private set; }
-
-  private readonly float speedIncreasePerZUnit;
-  private readonly float maxSpeed;
+  using System;
+  using System.Numerics;
 
   /// <summary>
-  /// Initializes a new instance of <see cref="Player"/>.
+  /// Player actor in the RiverRun world.
+  /// Inherits position and collidable behaviour from GameObject.
   /// </summary>
-  /// <param name="position">Initial player world position.</param>
-  /// <param name="speed">Initial forward movement speed.</param>
-  /// <param name="speedIncreasePerZUnit">Speed gain applied per world unit traveled on Z.</param>
-  /// <param name="maxSpeedIncrease">Maximum additional speed allowed above the initial speed.</param>
-  /// <param name="collidable">Whether the player collides with obstacles. Defaults to true.</param>
-  public Player(
-    Vector3 position,
-    float speed,
-    float speedIncreasePerZUnit,
-    float maxSpeedIncrease,
-    bool collidable = true)
-    : base(position, collidable)
+  public sealed class Player : GameObject
   {
-    this.Speed = speed;
-    this.speedIncreasePerZUnit = speedIncreasePerZUnit;
-    this.maxSpeed = speed + maxSpeedIncrease;
-  }
+    /// <summary>
+    /// Gets the current forward movement speed in world units per second.
+    /// </summary>
+    public float Speed { get; private set; }
 
-  /// <summary>
-  /// Attempts to move the player one lane to the left.
-  /// </summary>
-  public void MoveLeft()
-  {
-    float currentX = this.Position.X;
+    private readonly float speedIncreasePerZUnit;
+    private readonly float maxSpeed;
 
-    if (currentX <= RunConstants.LaneX.Left)
+    /// <summary>
+    /// Initializes a new instance of <see cref="Player"/>.
+    /// </summary>
+    /// <param name="position">Initial player world position.</param>
+    /// <param name="speed">Initial forward movement speed.</param>
+    /// <param name="speedIncreasePerZUnit">Speed gain applied per world unit traveled on Z.</param>
+    /// <param name="maxSpeedIncrease">Maximum additional speed allowed above the initial speed.</param>
+    /// <param name="collidable">Whether the player collides with obstacles. Defaults to true.</param>
+    public Player(
+      Vector3 position,
+      float speed,
+      float speedIncreasePerZUnit,
+      float maxSpeedIncrease,
+      bool collidable = true)
+      : base(position, collidable)
     {
-      return;
+      this.Speed = speed;
+      this.speedIncreasePerZUnit = speedIncreasePerZUnit;
+      maxSpeed = speed + maxSpeedIncrease;
     }
 
-    float newX = currentX - RunConstants.LaneX.LaneWidth;
-    this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
-  }
-
-  /// <summary>
-  /// Attempts to move the player one lane to the right.
-  /// </summary>
-  public void MoveRight()
-  {
-    float currentX = this.Position.X;
-
-    if (currentX >= RunConstants.LaneX.Right)
+    /// <summary>
+    /// Attempts to move the player one lane to the left.
+    /// </summary>
+    public void MoveLeft()
     {
-      return;
+      float currentX = this.Position.X;
+
+      if (currentX <= RunConstants.LaneX.Left)
+      {
+        return;
+      }
+
+      float newX = currentX - RunConstants.LaneX.LaneWidth;
+      this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
     }
 
-    float newX = currentX + RunConstants.LaneX.LaneWidth;
-    this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
-  }
-
-  /// <summary>
-  /// Advances the player's Z position and increases speed based on distance traveled.
-  /// </summary>
-  /// <param name="deltaTimeSeconds">Frame delta in seconds.</param>
-  public void Advance(float deltaTimeSeconds)
-  {
-    float distanceTravelled = this.Speed * deltaTimeSeconds;
-    this.Position = new Vector3(this.Position.X, this.Position.Y, this.Position.Z + distanceTravelled);
-
-    this.Speed = MathF.Min(this.maxSpeed, this.Speed + (distanceTravelled * this.speedIncreasePerZUnit));
-  }
-
-  /// <summary>
-  /// Handles a <see cref="RunCommand"/> directed at the player.
-  /// Any command not understood by the player will throw an <see cref="ArgumentException"/>.
-  /// </summary>
-  /// <param name="command">Command to apply to the player.</param>
-  /// <exception cref="ArgumentException">Thrown when the command is not applicable to the player.</exception>
-  public void HandleCommand(RunCommand command)
-  {
-    switch (command)
+    /// <summary>
+    /// Attempts to move the player one lane to the right.
+    /// </summary>
+    public void MoveRight()
     {
-      case RunCommand.MoveLeft:
-        this.MoveLeft();
-        break;
-      case RunCommand.MoveRight:
-        this.MoveRight();
-        break;
-      default:
-        throw new ArgumentException($"Command {command} is not a player command.", nameof(command));
+      float currentX = this.Position.X;
+
+      if (currentX >= RunConstants.LaneX.Right)
+      {
+        return;
+      }
+
+      float newX = currentX + RunConstants.LaneX.LaneWidth;
+      this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
+    }
+
+    /// <summary>
+    /// Advances the player's Z position and increases speed based on distance traveled.
+    /// </summary>
+    /// <param name="deltaTimeSeconds">Frame delta in seconds.</param>
+    public void Advance(float deltaTimeSeconds)
+    {
+      float distanceTravelled = this.Speed * deltaTimeSeconds;
+      this.Position = new Vector3(this.Position.X, this.Position.Y, this.Position.Z + distanceTravelled);
+
+      this.Speed = MathF.Min(maxSpeed, this.Speed + (distanceTravelled * speedIncreasePerZUnit));
+    }
+
+    /// <summary>
+    /// Handles a <see cref="RunCommand"/> directed at the player.
+    /// Any command not understood by the player will throw an <see cref="ArgumentException"/>.
+    /// </summary>
+    /// <param name="command">Command to apply to the player.</param>
+    /// <exception cref="ArgumentException">Thrown when the command is not applicable to the player.</exception>
+    public void HandleCommand(RunCommand command)
+    {
+      switch (command)
+      {
+        case RunCommand.MoveLeft:
+          this.MoveLeft();
+          break;
+        case RunCommand.MoveRight:
+          this.MoveRight();
+          break;
+        default:
+          throw new ArgumentException($"Command {command} is not a player command.", nameof(command));
+      }
     }
   }
 }

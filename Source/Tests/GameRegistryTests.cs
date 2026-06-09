@@ -1,29 +1,30 @@
-using SoundArcade.Application.GameRegistry;
-using SoundArcade.Domain;
-using SoundArcade.Domain.RiverRun;
-using Xunit;
-
-namespace SoundArcade.Tests;
-
-/// <summary>
-/// Tests for game registry behavior.
-/// </summary>
-public sealed class GameRegistryTests
+namespace SoundArcade.Tests
 {
-  private const int FirstGameIndex = 0;
-  private const string RiverRunGameId = "river-run";
+  using SoundArcade.Application.GameRegistry;
+  using SoundArcade.Domain;
+  using SoundArcade.Domain.RiverRun;
+  using Xunit;
 
   /// <summary>
-  /// Verifies the registry returns all games passed during construction.
+  /// Tests for game registry behavior.
   /// </summary>
-  [Fact]
-  public void Registry_exposes_registered_games()
+  public sealed class GameRegistryTests
   {
-    IGame[] games = [new RiverRunGame()];
+    private const int FirstGameIndex = 0;
+    private const string RiverRunGameId = "river-run";
 
-    GameRegistry registry = new GameRegistry(games);
+    /// <summary>
+    /// Verifies the registry returns all games passed during construction.
+    /// </summary>
+    [Fact]
+    public void Registry_exposes_registered_games()
+    {
+      IGame[] games = [new RiverRunGame()];
 
-    Assert.Single(registry.Games);
-    Assert.Equal(RiverRunGameId, registry.Games[FirstGameIndex].Identity.Id);
+      GameRegistry registry = new GameRegistry(games);
+
+      Assert.Single(registry.Games);
+      Assert.Equal(RiverRunGameId, registry.Games[FirstGameIndex].Identity.Id);
+    }
   }
 }
