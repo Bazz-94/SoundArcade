@@ -235,77 +235,7 @@ namespace SoundArcade.Application
     private void RenderSettingsValues()
     {
       int volumePercent = (int)MathF.Round(appSettings.MasterVolume * 100.0f);
-      this.DrawNumber(volumePercent, new Vector3(3.0f, 3.1f, 2.7f), 0.19f, SettingsValueColor);
-    }
-
-    private void DrawNumber(int value, Vector3 origin, float scale, Color color)
-    {
-      string text = value.ToString();
-
-      for (int index = 0; index < text.Length; index++)
-      {
-        this.DrawDigit(text[index], new Vector3(origin.X + (index * scale * 1.5f), origin.Y, origin.Z), scale, color);
-      }
-    }
-
-    private void DrawDigit(char digit, Vector3 origin, float scale, Color color)
-    {
-      bool[] segments = digit switch
-      {
-        '0' => [true, true, true, true, true, true, false],
-        '1' => [false, true, true, false, false, false, false],
-        '2' => [true, true, false, true, true, false, true],
-        '3' => [true, true, true, true, false, false, true],
-        '4' => [false, true, true, false, false, true, true],
-        '5' => [true, false, true, true, false, true, true],
-        '6' => [true, false, true, true, true, true, true],
-        '7' => [true, true, true, false, false, false, false],
-        '8' => [true, true, true, true, true, true, true],
-        '9' => [true, true, true, true, false, true, true],
-        _ => [false, false, false, false, false, false, false]
-      };
-
-      Vector3 topLeft = new Vector3(origin.X, origin.Y, origin.Z);
-      Vector3 topRight = new Vector3(origin.X + scale, origin.Y, origin.Z);
-      Vector3 midLeft = new Vector3(origin.X, origin.Y - scale, origin.Z);
-      Vector3 midRight = new Vector3(origin.X + scale, origin.Y - scale, origin.Z);
-      Vector3 bottomLeft = new Vector3(origin.X, origin.Y - (scale * 2.0f), origin.Z);
-      Vector3 bottomRight = new Vector3(origin.X + scale, origin.Y - (scale * 2.0f), origin.Z);
-
-      if (segments[0])
-      {
-        renderer.DrawLine(topLeft, topRight, color);
-      }
-
-      if (segments[1])
-      {
-        renderer.DrawLine(topRight, midRight, color);
-      }
-
-      if (segments[2])
-      {
-        renderer.DrawLine(midRight, bottomRight, color);
-      }
-
-      if (segments[3])
-      {
-        renderer.DrawLine(bottomLeft, bottomRight, color);
-      }
-
-      if (segments[4])
-      {
-        renderer.DrawLine(midLeft, bottomLeft, color);
-      }
-
-      if (segments[5])
-      {
-        renderer.DrawLine(topLeft, midLeft, color);
-      }
-
-      if (segments[6])
-      {
-        renderer.DrawLine(midLeft, midRight, color);
-      }
+      renderer.DrawText(new Vector3(3.0f, 3.1f, 2.7f), volumePercent.ToString(), 24, SettingsValueColor);
     }
 
     private void LoadSettings()
@@ -412,36 +342,6 @@ namespace SoundArcade.Application
       }
 
       return wrapped;
-    }
-
-    private static Color ToColor(string hex)
-    {
-      if (string.IsNullOrWhiteSpace(hex))
-      {
-        throw new ArgumentException("Hex color cannot be empty.", nameof(hex));
-      }
-
-      if (!hex.StartsWith("#", StringComparison.Ordinal))
-      {
-        throw new ArgumentException("Hex color must start with '#'.", nameof(hex));
-      }
-
-      if (hex.Length != ShortHexLength && hex.Length != LongHexLength)
-      {
-        throw new ArgumentException("Hex color must be in #RRGGBB or #RRGGBBAA format.", nameof(hex));
-      }
-
-      byte red = Convert.ToByte(hex.Substring(1, 2), 16);
-      byte green = Convert.ToByte(hex.Substring(3, 2), 16);
-      byte blue = Convert.ToByte(hex.Substring(5, 2), 16);
-      byte alpha = 255;
-
-      if (hex.Length == LongHexLength)
-      {
-        alpha = Convert.ToByte(hex.Substring(7, 2), 16);
-      }
-
-      return new Color(red, green, blue, alpha);
     }
 
     private enum MenuType
