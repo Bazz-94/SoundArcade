@@ -1,10 +1,13 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Application
 {
   using System;
   using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain;
+  using SoundArcade.Domain.Models;
+  using SoundArcade.Domain.RiverRun.Scene;
+  using SoundArcade.Domain.Services;
 
   /// <summary>
   /// Hosts the desktop loop and delegates behavior to reusable scenes.
@@ -132,9 +135,9 @@ namespace SoundArcade.Application.SceneManagement
     {
       return new MenuScene(
         menu: CreateMainMenu(),
-        input: this.input,
-        tts: this.tts,
-        renderer: this.renderer,
+        input: input,
+        tts: tts,
+        renderer: renderer,
         selectedColor: MenuSelectedColor,
         unselectedColor: MenuUnselectedColor,
         menuZ: 4.0f,
@@ -145,9 +148,9 @@ namespace SoundArcade.Application.SceneManagement
     {
       return new MenuScene(
         menu: CreateSettingsMenu(),
-        input: this.input,
-        tts: this.tts,
-        renderer: this.renderer,
+        input: input,
+        tts: tts,
+        renderer: renderer,
         selectedColor: MenuSelectedColor,
         unselectedColor: MenuUnselectedColor,
         menuZ: 2.5f,
@@ -159,10 +162,10 @@ namespace SoundArcade.Application.SceneManagement
     private RiverRunScene CreateRunScene()
     {
       return new RiverRunScene(
-        tts: this.tts,
-        audio: this.audio,
-        input: this.input,
-        renderer: this.renderer,
+        tts: tts,
+        audio: audio,
+        input: input,
+        renderer: renderer,
         onMainMenuRequested: this.ShowMainMenu,
         laneColor: LaneColor,
         playerColor: PlayerColor,

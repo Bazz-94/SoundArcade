@@ -1,6 +1,6 @@
 namespace SoundArcade.Tests
 {
-  using SoundArcade.Application.GameRegistry;
+  using SoundArcade.Application;
   using SoundArcade.Domain;
   using SoundArcade.Domain.RiverRun;
   using Xunit;

@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.Game
+namespace SoundArcade.Domain.RiverRun.Game
 {
   using System.Collections.Generic;
   using SoundArcade.Abstractions;
@@ -13,7 +13,7 @@ namespace SoundArcade.Application.Game
     private readonly PlayerController playerController;
     private readonly ITts tts;
     private readonly IAudio audio;
-    private readonly Session session;
+    private readonly RiverRunSession session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameLoop"/> class.
@@ -22,7 +22,7 @@ namespace SoundArcade.Application.Game
     /// <param name="tts">Text-to-speech abstraction for spoken feedback.</param>
     /// <param name="audio">Audio abstraction for non-speech cues.</param>
     /// <param name="session">Domain session that contains gameplay state and rules.</param>
-    public GameLoop(PlayerController playerController, ITts tts, IAudio audio, Session session)
+    public GameLoop(PlayerController playerController, ITts tts, IAudio audio, RiverRunSession session)
     {
       this.playerController = playerController;
       this.tts = tts;
@@ -33,12 +33,12 @@ namespace SoundArcade.Application.Game
     /// <summary>
     /// Gets the active RiverRun session.
     /// </summary>
-    public Session Session => session;
+    public RiverRunSession Session => session;
 
     /// <summary>
     /// Starts a new run and emits initial events.
     /// </summary>
-    public void StartRun()
+    public void Start()
     {
       this.EmitEvents(session.Start());
       this.UpdateAudioListenerPosition();

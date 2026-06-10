@@ -1,10 +1,8 @@
-namespace SoundArcade.Desktop
+namespace SoundArcade.Application
 {
   using System;
   using Microsoft.Extensions.DependencyInjection;
-  using SoundArcade.Application.GameRegistry;
-  using SoundArcade.Application.SceneManagement;
-  using SoundArcade.Desktop.DependencyInjection;
+  using SoundArcade.Application.DependencyInjection;
 
   internal class Program
   {

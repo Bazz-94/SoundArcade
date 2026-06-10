@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Models
 {
   /// <summary>
   /// Menu item component.

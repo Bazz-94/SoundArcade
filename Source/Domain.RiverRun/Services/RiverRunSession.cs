@@ -9,20 +9,20 @@ namespace SoundArcade.Domain.RiverRun.Services
   /// <summary>
   /// Represents one RiverRun gameplay session and enforces run state, scoring, and collision rules.
   /// </summary>
-  public sealed class Session
+  public sealed class RiverRunSession
   {
-    private readonly RunSettings settings;
+    private readonly RiverRunSettings settings;
     private readonly ObstacleSpawner spawner;
     private readonly List<RunObstacle> obstacles = [];
     private float ScoreRemainder { get; set; }
     private int NextScoreAnnouncement { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Session"/> class.
+    /// Initializes a new instance of the <see cref="RiverRunSession"/> class.
     /// </summary>
     /// <param name="settings">Gameplay tuning settings.</param>
     /// <param name="random">Optional random source used by spawning services.</param>
-    public Session(RunSettings settings, Random? random = null)
+    public RiverRunSession(RiverRunSettings settings, Random? random = null)
     {
       this.settings = settings;
       spawner = new ObstacleSpawner(this.settings, random);
@@ -34,13 +34,13 @@ namespace SoundArcade.Domain.RiverRun.Services
         this.settings.MaxPlayerSpeedIncrease);
       this.Lives = this.settings.StartingLives;
       this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
-      this.State = RunState.GameOver;
+      this.State = SessionState.GameOver;
     }
 
     /// <summary>
     /// Gets the current high-level run state.
     /// </summary>
-    public RunState State { get; private set; }
+    public SessionState State { get; private set; }
 
     /// <summary>
     /// Gets the player actor.
@@ -84,7 +84,7 @@ namespace SoundArcade.Domain.RiverRun.Services
         settings.PlayerSpeedIncreasePerZUnit,
         settings.MaxPlayerSpeedIncrease);
       this.Lives = settings.StartingLives;
-      this.State = RunState.Playing;
+      this.State = SessionState.Playing;
       this.NextScoreAnnouncement = settings.ScoreAnnouncementStep;
 
       return
@@ -105,11 +105,11 @@ namespace SoundArcade.Domain.RiverRun.Services
 
       switch (this.State)
       {
-        case RunState.Playing:
+        case SessionState.Playing:
           switch (command)
           {
             case RunCommand.TogglePause:
-              this.State = RunState.Paused;
+              this.State = SessionState.Paused;
               events.Add(new TextToSpeechEvent(RunConstants.Speech.Paused));
               events.Add(new PlaySoundEvent(RunConstants.SoundId.Pause));
               break;
@@ -122,17 +122,17 @@ namespace SoundArcade.Domain.RiverRun.Services
           }
           break;
 
-        case RunState.Paused:
+        case SessionState.Paused:
           switch (command)
           {
             case RunCommand.TogglePause:
-              this.State = RunState.Playing;
+              this.State = SessionState.Playing;
               events.Add(new TextToSpeechEvent(RunConstants.Speech.Resumed));
               events.Add(new PlaySoundEvent(RunConstants.SoundId.Resume));
               break;
           }
           break;
-        case RunState.GameOver:
+        case SessionState.GameOver:
           switch (command)
           {
             case RunCommand.Restart:
@@ -154,7 +154,7 @@ namespace SoundArcade.Domain.RiverRun.Services
     /// <returns>Events emitted during frame simulation.</returns>
     public IReadOnlyList<RunEvent> Update(float deltaTimeSeconds)
     {
-      if (this.State != RunState.Playing)
+      if (this.State != SessionState.Playing)
       {
         return Array.Empty<RunEvent>();
       }
@@ -202,7 +202,7 @@ namespace SoundArcade.Domain.RiverRun.Services
 
           if (this.Lives <= 0)
           {
-            this.State = RunState.GameOver;
+            this.State = SessionState.GameOver;
             events.Add(new TextToSpeechEvent($"{RunConstants.Speech.GameOverPrefix} {this.Score}"));
             events.Add(new PlaySoundEvent(RunConstants.SoundId.GameOver, null));
             break;

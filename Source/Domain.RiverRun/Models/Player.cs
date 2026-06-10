@@ -2,12 +2,13 @@ namespace SoundArcade.Domain.RiverRun.Models
 {
   using System;
   using System.Numerics;
+  using SoundArcade.Domain.Models;
 
   /// <summary>
   /// Player actor in the RiverRun world.
   /// Inherits position and collidable behaviour from GameObject.
   /// </summary>
-  public sealed class Player : GameObject
+  public sealed class Player : GameObject, IPlayer
   {
     /// <summary>
     /// Gets the current forward movement speed in world units per second.

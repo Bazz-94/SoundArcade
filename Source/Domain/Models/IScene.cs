@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Models
 {
   /// <summary>
   /// Contract for a scene that can be entered, updated, and rendered.

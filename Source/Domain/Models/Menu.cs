@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Models
 {
   using System;
   using System.Collections.Generic;
@@ -6,7 +6,7 @@ namespace SoundArcade.Application.SceneManagement
   /// <summary>
   /// Menu component with selectable menu items.
   /// </summary>
-  public sealed class Menu : UIComponent
+  public class Menu : UIComponent
   {
     private readonly List<MenuItem> items = new List<MenuItem>();
 

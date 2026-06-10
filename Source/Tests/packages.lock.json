@@ -109,17 +109,58 @@
         "dependencies": {
           "Abstractions": "[1.0.0, )",
           "Domain": "[1.0.0, )",
-          "Domain.RiverRun": "[1.0.0, )"
+          "Domain.RiverRun": "[1.0.0, )",
+          "Infrastructure": "[1.0.0, )",
+          "Microsoft.Extensions.DependencyInjection": "[10.0.9, )",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.9, )"
         }
       },
       "domain": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Abstractions": "[1.0.0, )"
+        }
       },
       "domain.riverrun": {
         "type": "Project",
         "dependencies": {
           "Domain": "[1.0.0, )"
         }
+      },
+      "infrastructure": {
+        "type": "Project",
+        "dependencies": {
+          "Abstractions": "[1.0.0, )",
+          "Raylib-cs": "[8.0.0, )",
+          "System.Speech": "[10.0.8, )"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.9, )",
+        "resolved": "10.0.9",
+        "contentHash": "NijozhERJDIaJ4k5TSMy1jOi0cSC2HfkvRD/Sl+kGSSKgVbFnF4GxgtMN/MrzHB8D1JxIrD4xSer9Blh9v3axQ==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.9"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.9, )",
+        "resolved": "10.0.9",
+        "contentHash": "g41l/30G3K4B/d/L8kjux0+30e27c8D0FVQ/PFCpbekgfDpj9mnDhieP67EqXWvl1EWNeZh2rpR4F5B/jcDOHA=="
+      },
+      "Raylib-cs": {
+        "type": "CentralTransitive",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "m+fStTZjOGtkx05RNflERtKbmEUrIZ5/PFV5QXnlA02kAEwxxOC+XhNeCSZJhaGHu9d8m0eTMmefRhHueS3hkg=="
+      },
+      "System.Speech": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.8, )",
+        "resolved": "10.0.8",
+        "contentHash": "uxrdoUKw+S1eBo0foyv3pQ13NKV4LhsgaD5FV1zya1JHoi+QveWXt6I5nrLhA4GeheRr+cjLfDy0hx7UXUyHnw=="
       }
     }
   }

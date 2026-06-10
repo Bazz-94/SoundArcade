@@ -3,7 +3,7 @@ namespace SoundArcade.Tests
   using System;
   using System.Collections.Generic;
   using SoundArcade.Abstractions;
-  using SoundArcade.Application.Game;
+  using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
   using Xunit;
 

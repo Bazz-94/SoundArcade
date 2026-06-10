@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.GameRegistry
+namespace SoundArcade.Application
 {
   using System.Collections.Generic;
   using System.Linq;

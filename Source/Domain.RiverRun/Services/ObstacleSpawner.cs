@@ -10,7 +10,7 @@ namespace SoundArcade.Domain.RiverRun.Services
   /// </summary>
   public sealed class ObstacleSpawner
   {
-    private readonly RunSettings settings;
+    private readonly RiverRunSettings settings;
     private readonly Random random;
     private float NextSpawnZ { get; set; }
 
@@ -19,7 +19,7 @@ namespace SoundArcade.Domain.RiverRun.Services
     /// </summary>
     /// <param name="settings">Tuning values for spawn distance and obstacle spacing.</param>
     /// <param name="random">Optional random source used for lane selection.</param>
-    public ObstacleSpawner(RunSettings settings, Random? random = null)
+    public ObstacleSpawner(RiverRunSettings settings, Random? random = null)
     {
       this.settings = settings;
       this.random = random ?? new Random();

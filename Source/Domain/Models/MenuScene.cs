@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Models
 {
   using System;
   using System.Collections.Generic;

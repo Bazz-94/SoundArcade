@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Models
 {
   /// <summary>
   /// Base type for UI components with an identity and display text.

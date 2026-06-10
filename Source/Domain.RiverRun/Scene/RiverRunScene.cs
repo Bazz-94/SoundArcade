@@ -1,11 +1,12 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.RiverRun.Scene
 {
   using System;
   using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Abstractions;
-  using SoundArcade.Application.Game;
   using SoundArcade.Domain;
+  using SoundArcade.Domain.Models;
+  using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
   using SoundArcade.Domain.RiverRun.Services;
 
@@ -63,7 +64,7 @@ namespace SoundArcade.Application.SceneManagement
       Color hudLivesColor,
       Color hudScoreColor)
     {
-      gameLoop = new GameLoop(new PlayerController(input), tts, audio, new Session(new RunSettings()));
+      gameLoop = new GameLoop(new PlayerController(input), tts, audio, new RiverRunSession(new RiverRunSettings()));
       pauseMenu = this.CreatePauseMenu();
       pauseMenuActions = this.CreatePauseMenuActions();
       this.input = input;
@@ -81,7 +82,7 @@ namespace SoundArcade.Application.SceneManagement
     public void OnEnter()
     {
       isPaused = false;
-      gameLoop.StartRun();
+      gameLoop.Start();
     }
 
     /// <inheritdoc />
@@ -100,7 +101,7 @@ namespace SoundArcade.Application.SceneManagement
 
       gameLoop.Tick(deltaTime);
 
-      if (gameLoop.Session.State == RunState.Paused)
+      if (gameLoop.Session.State == SessionState.Paused)
       {
         isPaused = true;
         this.OnPauseMenuEnter();
@@ -110,7 +111,7 @@ namespace SoundArcade.Application.SceneManagement
     /// <inheritdoc />
     public void Render()
     {
-      this.RenderRunWorld();
+      this.RenderWorld();
       this.RenderHud();
 
       if (isPaused)
@@ -226,7 +227,7 @@ namespace SoundArcade.Application.SceneManagement
       }
     }
 
-    private void RenderRunWorld()
+    private void RenderWorld()
     {
       float laneStartZ = gameLoop.Session.Player.Position.Z - 2.0f;
       float laneEndZ = laneStartZ + 28.0f;

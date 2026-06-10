@@ -3,7 +3,7 @@ namespace SoundArcade.Domain.RiverRun.Models
   /// <summary>
   /// Configurable settings for RiverRun gameplay pacing, scoring, and collisions.
   /// </summary>
-  public sealed record RunSettings
+  public sealed record RiverRunSettings
   {
     public int StartingLives { get; private set; }
     public float StartingPlayerSpeed { get; private set; }
@@ -28,7 +28,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// <param name="ScoringPerSecond">Base score gain per second while playing.</param>
     /// <param name="DodgeBonus">Bonus score gained when an obstacle is successfully dodged.</param>
     /// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
-    public RunSettings(
+    public RiverRunSettings(
       int StartingLives = 3,
       float StartingPlayerSpeed = 1.0f,
       float PlayerSpeedIncreasePerZUnit = 0.05f,

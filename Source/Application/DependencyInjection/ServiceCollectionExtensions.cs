@@ -1,12 +1,11 @@
-namespace SoundArcade.Desktop.DependencyInjection
+namespace SoundArcade.Application.DependencyInjection
 {
   using Microsoft.Extensions.DependencyInjection;
   using SoundArcade.Abstractions;
-  using SoundArcade.Application.Game;
-  using SoundArcade.Application.GameRegistry;
-  using SoundArcade.Application.SceneManagement;
+  using SoundArcade.Application;
   using SoundArcade.Domain;
   using SoundArcade.Domain.RiverRun;
+  using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
   using SoundArcade.Domain.RiverRun.Services;
   using SoundArcade.Infrastructure.Audio;
@@ -32,8 +31,8 @@ namespace SoundArcade.Desktop.DependencyInjection
       services.AddSingleton<ITts, TextToSpeech>();
       services.AddSingleton<RaylibAudio>(serviceProvider => new RaylibAudio(serviceProvider.GetRequiredService<ITts>()));
       services.AddSingleton<IAudio>(serviceProvider => serviceProvider.GetRequiredService<RaylibAudio>());
-      services.AddSingleton<RunSettings>();
-      services.AddSingleton<Session>();
+      services.AddSingleton<RiverRunSettings>();
+      services.AddSingleton<RiverRunSession>();
       services.AddSingleton<PlayerController>();
       services.AddSingleton<GameLoop>();
       services.AddSingleton<ArcadeShell>();

@@ -3,7 +3,7 @@ namespace SoundArcade.Domain.RiverRun.Models
   /// <summary>
   /// High-level state for a RiverRun gameplay session.
   /// </summary>
-  public enum RunState
+  public enum SessionState
   {
     /// <summary>
     /// Gameplay simulation is running.

@@ -1,4 +1,4 @@
-namespace SoundArcade.Application.Game
+namespace SoundArcade.Domain.RiverRun.Game
 {
   using System.Collections.Generic;
   using SoundArcade.Abstractions;

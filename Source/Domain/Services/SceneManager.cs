@@ -1,6 +1,7 @@
-namespace SoundArcade.Application.SceneManagement
+namespace SoundArcade.Domain.Services
 {
   using System;
+  using SoundArcade.Domain.Models;
 
   /// <summary>
   /// Manages active scene transitions and dispatch.

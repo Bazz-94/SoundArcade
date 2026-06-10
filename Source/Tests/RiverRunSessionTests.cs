@@ -22,11 +22,11 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_increases_score_while_playing()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         ScoringPerSecond: 50.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -40,13 +40,13 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_increases_player_speed_with_distance_and_caps_it()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingPlayerSpeed: 2.0f,
         PlayerSpeedIncreasePerZUnit: 1.0f,
         MaxPlayerSpeedIncrease: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
       session.Start();
 
       float startingSpeed = session.Player.Speed;
@@ -67,7 +67,7 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_spawns_obstacles_as_player_advances_in_z()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingPlayerSpeed: 1.0f,
         PlayerSpeedIncreasePerZUnit: 0.0f,
         MaxPlayerSpeedIncrease: 0.0f,
@@ -76,7 +76,7 @@ namespace SoundArcade.Tests
         SpawnDistanceMax: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -90,17 +90,17 @@ namespace SoundArcade.Tests
     [Fact]
     public void TogglePause_transitions_between_playing_and_paused()
     {
-      Session session = new Session(new RunSettings(), new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new RiverRunSettings(), new System.Random(RandomSeed));
       session.Start();
 
       IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
 
-      Assert.Equal(RunState.Paused, session.State);
+      Assert.Equal(SessionState.Paused, session.State);
       Assert.Contains(pauseEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Paused);
 
       IReadOnlyList<RunEvent> resumeEvents = session.HandleCommand(RunCommand.TogglePause);
 
-      Assert.Equal(RunState.Playing, session.State);
+      Assert.Equal(SessionState.Playing, session.State);
       Assert.Contains(resumeEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Resumed);
     }
 
@@ -110,25 +110,25 @@ namespace SoundArcade.Tests
     [Fact]
     public void Collision_until_no_lives_reaches_game_over()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingLives: 2,
         CollisionRadius: 0.5f,
         ScoringPerSecond: 0.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
       session.Start();
 
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
       session.Update(FrameDelta);
 
-      Assert.Equal(RunState.Playing, session.State);
+      Assert.Equal(SessionState.Playing, session.State);
       Assert.Equal(1, session.Lives);
 
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
       IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
 
-      Assert.Equal(RunState.GameOver, session.State);
+      Assert.Equal(SessionState.GameOver, session.State);
       Assert.Equal(0, session.Lives);
       Assert.Contains(events.OfType<TextToSpeechEvent>(), x => x.Text.StartsWith(RunConstants.Speech.GameOverPrefix));
     }
