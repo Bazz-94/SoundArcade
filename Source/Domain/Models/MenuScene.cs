@@ -16,15 +16,15 @@ namespace SoundArcade.Domain.Models
     private const float MenuItemTextZOffset = 0.16f;
     private static readonly Vector3 MenuItemSize = new Vector3(2.4f, 0.28f, 0.28f);
 
-    private readonly IInput input;
-    private readonly ITts tts;
-    private readonly IRenderer renderer;
-    private readonly Color selectedColor;
-    private readonly Color unselectedColor;
-    private readonly float menuZ;
-    private readonly IReadOnlyDictionary<int, Action<MenuItem>> itemActions;
-    private readonly Action? backAction;
-    private readonly Action? afterRender;
+    protected IInput Input { get; set; }
+    protected ITts Tts { get; set; }
+    protected IRenderer Renderer { get; set; }
+    private Color SelectedColor { get; set; }
+    private Color UnselectedColor { get; set; }
+    private float MenuZ { get; set; }
+    private IReadOnlyDictionary<int, Action<MenuItem>> ItemActions { get; set; } = new Dictionary<int, Action<MenuItem>>();
+    private Action? BackAction { get; set; }
+    private Action? AfterRender { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuScene"/> class.
@@ -36,7 +36,6 @@ namespace SoundArcade.Domain.Models
     /// <param name="selectedColor">Selected item color.</param>
     /// <param name="unselectedColor">Unselected item color.</param>
     /// <param name="menuZ">Menu z position for rendering.</param>
-    /// <param name="itemActions">Menu item action map.</param>
     /// <param name="backAction">Optional back action.</param>
     /// <param name="afterRender">Optional extra render callback.</param>
     public MenuScene(
@@ -47,30 +46,33 @@ namespace SoundArcade.Domain.Models
       Color selectedColor,
       Color unselectedColor,
       float menuZ,
-      IReadOnlyDictionary<int, Action<MenuItem>> itemActions,
-      Action? backAction = null,
+      Action backAction,
       Action? afterRender = null)
     {
       this.menu = menu;
-      this.input = input;
-      this.tts = tts;
-      this.renderer = renderer;
-      this.selectedColor = selectedColor;
-      this.unselectedColor = unselectedColor;
-      this.menuZ = menuZ;
-      this.itemActions = itemActions;
-      this.backAction = backAction;
-      this.afterRender = afterRender;
+      this.Input = input;
+      this.Tts = tts;
+      this.Renderer = renderer;
+      this.SelectedColor = selectedColor;
+      this.UnselectedColor = unselectedColor;
+      this.MenuZ = menuZ;
+      this.BackAction = backAction;
+      this.AfterRender = afterRender;
     }
 
     private readonly Menu menu;
+
+    public void SetItemActions(IReadOnlyDictionary<int, Action<MenuItem>> itemActions)
+    {
+      this.ItemActions = itemActions;
+    }
 
     /// <inheritdoc />
     public void OnEnter()
     {
       menu.SelectFirst();
-      tts.SpeakAsync(menu.DisplayText);
-      tts.SpeakAsync(menu.SelectedItem.DisplayText);
+      this.Tts.SpeakAsync(menu.DisplayText);
+      this.Tts.SpeakAsync(menu.SelectedItem.DisplayText);
     }
 
     /// <inheritdoc />
@@ -83,13 +85,13 @@ namespace SoundArcade.Domain.Models
     {
       bool selectionChanged = false;
 
-      if (input.InputPressed(Input.Up))
+      if (this.Input.InputPressed(Abstractions.Input.Up))
       {
         menu.MovePrevious();
         selectionChanged = true;
       }
 
-      if (input.InputPressed(Input.Down))
+      if (this.Input.InputPressed(Abstractions.Input.Down))
       {
         menu.MoveNext();
         selectionChanged = true;
@@ -97,16 +99,16 @@ namespace SoundArcade.Domain.Models
 
       if (selectionChanged)
       {
-        tts.SpeakAsync(menu.SelectedItem.DisplayText);
+        this.Tts.SpeakAsync(menu.SelectedItem.DisplayText);
       }
 
-      if (input.InputPressed(Input.Back))
+      if (this.Input.InputPressed(Abstractions.Input.Back))
       {
         this.OnBackSelected();
         return;
       }
 
-      if (input.InputPressed(Input.Enter))
+      if (this.Input.InputPressed(Abstractions.Input.Enter))
       {
         this.OnItemSelected(menu.SelectedItem);
       }
@@ -121,22 +123,24 @@ namespace SoundArcade.Domain.Models
       {
         float y = DefaultMenuStartY - (itemIndex * DefaultMenuItemSpacing);
         bool isSelected = itemIndex == menu.SelectedIndex;
-        Color itemColor = isSelected ? selectedColor : unselectedColor;
-        Color textColor = isSelected ? unselectedColor : selectedColor;
-        renderer.DrawBox(new Vector3(0.0f, y, menuZ), MenuItemSize, itemColor);
-        renderer.DrawText(new Vector3(0.0f, y, menuZ + MenuItemTextZOffset), item.DisplayText, MenuItemFontSize, textColor);
+        Color itemColor = isSelected ? this.SelectedColor : this.UnselectedColor;
+        Color textColor = isSelected ? this.UnselectedColor : this.SelectedColor;
+        this.Renderer.DrawBox(new Vector3(0.0f, y, this.MenuZ), MenuItemSize, itemColor);
+        this.Renderer.DrawText(new Vector3(0.0f, y, this.MenuZ + MenuItemTextZOffset), item.DisplayText, MenuItemFontSize, textColor);
         itemIndex++;
       }
 
-      if (afterRender is not null)
+      if (this.AfterRender is not null)
       {
-        afterRender();
+        this.AfterRender();
       }
     }
 
     private void OnItemSelected(MenuItem item)
     {
-      if (itemActions.TryGetValue(item.Id, out Action<MenuItem>? action))
+      if (this.ItemActions is null) { throw new InvalidOperationException("Item actions not configured for menu."); }
+
+      if (this.ItemActions.TryGetValue(item.Id, out Action<MenuItem>? action))
       {
         action(item);
         return;
@@ -147,12 +151,12 @@ namespace SoundArcade.Domain.Models
 
     private void OnBackSelected()
     {
-      if (backAction is null)
+      if (this.BackAction is null)
       {
         return;
       }
 
-      backAction();
+      this.BackAction();
     }
   }
 }
