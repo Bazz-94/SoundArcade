@@ -10,6 +10,11 @@
   public class SettingsMenuScene : MenuScene
   {
     private static readonly float[] VolumeLevels = [0.2f, 0.4f, 0.6f, 0.8f, 1.0f];
+    private const float ValueTextX = 3.0f;
+    private const float MasterVolumeTextY = 3.1f;
+    private const float TtsVolumeTextY = 2.2f;
+    private const float ValueTextZ = 2.7f;
+    private const int ValueFontSize = 24;
 
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
@@ -21,8 +26,8 @@
       (int)MenuType.Settings,
       "Settings Menu",
       [
-        new MenuItem((int)SettingsMenuItem.MasterVolume, "Volume"),
-        new MenuItem((int)SettingsMenuItem.ResetDefaults, "Reset"),
+        new MenuItem((int)SettingsMenuItem.MasterVolume, "Game Volume"),
+        new MenuItem((int)SettingsMenuItem.TtsVolume, "Text to Speech Volume"),
         new MenuItem((int)SettingsMenuItem.Back, "Back")
       ]);
 
@@ -69,7 +74,7 @@
       Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
       {
         [(int)SettingsMenuItem.MasterVolume] = this.OnSettingsMasterVolumeSelected,
-        [(int)SettingsMenuItem.ResetDefaults] = _ => OnSettingsResetDefaultsSelected(this.Input, this.Tts),
+        [(int)SettingsMenuItem.TtsVolume] = this.OnSettingsTtsVolumeSelected,
         [(int)SettingsMenuItem.Back] = _ => this.OnBackSelected()
       };
 
@@ -78,13 +83,21 @@
 
     private void OnSettingsMasterVolumeSelected(MenuItem item)
     {
-      this.CycleVolume();
+      this.CycleMasterVolume();
+    }
+
+    private void OnSettingsTtsVolumeSelected(MenuItem item)
+    {
+      this.CycleTtsVolume();
     }
 
     private static void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)
     {
-      int volumePercent = (int)MathF.Round(appSettings.MasterVolume * 100.0f);
-      renderer.DrawText(new Vector3(3.0f, 3.1f, 2.7f), volumePercent.ToString(), 24, settingsValueColor);
+      int masterVolumePercent = (int)MathF.Round(appSettings.MasterVolume * 100.0f);
+      int ttsVolumePercent = (int)MathF.Round(appSettings.TtsVolume * 100.0f);
+
+      renderer.DrawText(new Vector3(ValueTextX, MasterVolumeTextY, ValueTextZ), masterVolumePercent.ToString(), ValueFontSize, settingsValueColor);
+      renderer.DrawText(new Vector3(ValueTextX, TtsVolumeTextY, ValueTextZ), ttsVolumePercent.ToString(), ValueFontSize, settingsValueColor);
     }
 
     private void PersistSettings()
@@ -93,13 +106,36 @@
       this.Input.SaveMappings();
     }
 
-    private void CycleVolume()
+    private void CycleMasterVolume()
+    {
+      this.AppSettings.MasterVolume = CycleVolumeLevel(this.AppSettings.MasterVolume);
+      this.Audio.SetMasterVolume(this.AppSettings.MasterVolume);
+      this.SettingsStore.Save(this.AppSettings);
+
+      int percent = (int)MathF.Round(this.AppSettings.MasterVolume * 100.0f);
+      this.Tts.Stop();
+      this.Tts.SpeakAsync($"{percent} game volume");
+    }
+
+    private void CycleTtsVolume()
+    {
+      this.AppSettings.TtsVolume = CycleVolumeLevel(this.AppSettings.TtsVolume);
+      this.Tts.Stop();
+      this.Tts.SetVolume(this.AppSettings.TtsVolume);
+      this.SettingsStore.Save(this.AppSettings);
+
+      int percent = (int)MathF.Round(this.AppSettings.TtsVolume * 100.0f);
+      this.Tts.Stop();
+      this.Tts.SpeakAsync($"{percent} text to speech volume");
+    }
+
+    private static float CycleVolumeLevel(float currentVolume)
     {
       int currentIndex = 0;
 
       for (int i = 0; i < VolumeLevels.Length; i++)
       {
-        if (Math.Abs(VolumeLevels[i] - this.AppSettings.MasterVolume) < 0.001f)
+        if (Math.Abs(VolumeLevels[i] - currentVolume) < 0.001f)
         {
           currentIndex = i;
           break;
@@ -107,12 +143,7 @@
       }
 
       int nextIndex = WrapArrayIndex(currentIndex + 1, VolumeLevels.Length);
-      this.AppSettings.MasterVolume = VolumeLevels[nextIndex];
-      this.Audio.SetMasterVolume(this.AppSettings.MasterVolume);
-      this.SettingsStore.Save(this.AppSettings);
-
-      int percent = (int)MathF.Round(this.AppSettings.MasterVolume * 100.0f);
-      this.Tts.SpeakAsync($"Volume {percent}");
+      return VolumeLevels[nextIndex];
     }
 
     private static int WrapArrayIndex(int index, int length)
@@ -132,16 +163,10 @@
       return wrapped;
     }
 
-    private static void OnSettingsResetDefaultsSelected(IInput input, ITts tts)
-    {
-      input.ResetMappingsToDefault();
-      input.SaveMappings();
-      tts.SpeakAsync("Input mappings reset");
-    }
-
     private enum SettingsMenuItem
     {
       MasterVolume,
+      TtsVolume,
       ResetDefaults,
       Back
     }

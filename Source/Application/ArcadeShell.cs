@@ -141,7 +141,9 @@ namespace SoundArcade.Application
     {
       this.AppSettings = this.SettingsStore.Load();
       this.AppSettings.MasterVolume = Math.Clamp(this.AppSettings.MasterVolume, MinimumVolume, MaximumVolume);
+      this.AppSettings.TtsVolume = Math.Clamp(this.AppSettings.TtsVolume, MinimumVolume, MaximumVolume);
       this.Audio.SetMasterVolume(this.AppSettings.MasterVolume);
+      this.Tts.SetVolume(this.AppSettings.TtsVolume);
       this.Input.LoadMappings();
     }
 
