@@ -61,14 +61,11 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void DrawText(Vector3 position, string text, int fontSize, Abstractions.Color color)
     {
-      this.WithCamera(() =>
-      {
-        Vector2 screenPosition = Raylib.GetWorldToScreen(position, camera);
-        int textWidth = Raylib.MeasureText(text, fontSize);
-        int x = (int)screenPosition.X - (textWidth / 2);
-        int y = (int)screenPosition.Y - (fontSize / 2);
-        Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
-      });
+      Vector2 screenPosition = Raylib.GetWorldToScreen(position, camera);
+      int textWidth = Raylib.MeasureText(text, fontSize);
+      int x = (int)screenPosition.X - (textWidth / 2);
+      int y = (int)screenPosition.Y - (fontSize / 2);
+      Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
     }
 
     /// <summary>

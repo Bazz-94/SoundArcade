@@ -2,6 +2,7 @@ namespace SoundArcade.Application
 {
   using System;
   using SoundArcade.Abstractions;
+  using SoundArcade.Application.Scenes;
   using SoundArcade.Domain;
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.RiverRun.Scene;

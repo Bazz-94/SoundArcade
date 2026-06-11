@@ -1,4 +1,4 @@
-namespace SoundArcade.Application
+namespace SoundArcade.Application.Scenes
 {
   using System;
   using System.Collections.Generic;
@@ -8,13 +8,11 @@ namespace SoundArcade.Application
 
   public sealed class MainMenuScene : MenuScene
   {
-    private const float menuZ = 4.0f;
-
     private static readonly Menu Menu = new Menu(
       (int)MenuType.Main,
-      "Main menu",
+      "Sound Arcade",
       [
-        new MenuItem((int)MainMenuItem.StartRun, "Start Run"),
+        new MenuItem((int)MainMenuItem.StartRun, "Start"),
         new MenuItem((int)MainMenuItem.Settings, "Settings"),
         new MenuItem((int)MainMenuItem.Exit, "Exit")
       ]);
@@ -32,31 +30,31 @@ namespace SoundArcade.Application
       Color unselectedColor,
       Action startRunAction,
       Action settingsAction,
-      Action exitAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor, menuZ)
+      Action exitAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor)
     {
       this.startRunAction = startRunAction;
       this.settingsAction = settingsAction;
       this.exitAction = exitAction;
-      this.itemActions = this.CreateMainMenuActions();
+      itemActions = this.CreateMainMenuActions();
     }
 
     protected override IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions()
     {
-      return this.itemActions;
+      return itemActions;
     }
 
     protected override void OnBackSelected()
     {
-      this.exitAction();
+      exitAction();
     }
 
     private IReadOnlyDictionary<int, Action<MenuItem>> CreateMainMenuActions()
     {
       Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
       {
-        [(int)MainMenuItem.StartRun] = _ => this.startRunAction(),
-        [(int)MainMenuItem.Settings] = _ => this.settingsAction(),
-        [(int)MainMenuItem.Exit] = _ => this.exitAction()
+        [(int)MainMenuItem.StartRun] = _ => startRunAction(),
+        [(int)MainMenuItem.Settings] = _ => settingsAction(),
+        [(int)MainMenuItem.Exit] = _ => exitAction()
       };
 
       return actions;

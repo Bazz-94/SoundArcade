@@ -1,4 +1,4 @@
-﻿namespace SoundArcade.Application
+﻿namespace SoundArcade.Application.Scenes
 {
   using System;
   using System.Collections.Generic;
@@ -9,12 +9,7 @@
 
   public class SettingsMenuScene : MenuScene
   {
-    private const float menuZ = 2.5f;
     private static readonly float[] VolumeLevels = [0.2f, 0.4f, 0.6f, 0.8f, 1.0f];
-    private static readonly string[] MoveLeftOptions = ["Left", "A", "J"];
-    private static readonly string[] MoveRightOptions = ["Right", "D", "L"];
-    private static readonly string[] ActionOptions = ["Enter", "Space"];
-    private static readonly string[] PauseOptions = ["Escape", "Backspace", "P"];
 
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
@@ -24,14 +19,10 @@
 
     private static readonly Menu Menu = new Menu(
       (int)MenuType.Settings,
-      "Settings",
+      "Settings Menu",
       [
-        new MenuItem((int)SettingsMenuItem.MasterVolume, "Master Volume"),
-        new MenuItem((int)SettingsMenuItem.MoveLeft, "Move Left"),
-        new MenuItem((int)SettingsMenuItem.MoveRight, "Move Right"),
-        new MenuItem((int)SettingsMenuItem.Action, "Action"),
-        new MenuItem((int)SettingsMenuItem.Pause, "Pause"),
-        new MenuItem((int)SettingsMenuItem.ResetDefaults, "Reset Defaults"),
+        new MenuItem((int)SettingsMenuItem.MasterVolume, "Volume"),
+        new MenuItem((int)SettingsMenuItem.ResetDefaults, "Reset"),
         new MenuItem((int)SettingsMenuItem.Back, "Back")
       ]);
 
@@ -45,13 +36,13 @@
       Color selectedColor,
       Color unselectedColor,
       Color settingsValueColor,
-      Action backAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor, menuZ)
+      Action backAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor)
     {
       this.AppSettings = appSettings;
       this.SettingsStore = settingsStore;
       this.Audio = audio;
       this.backAction = backAction;
-      this.itemActions = this.CreateSettingsMenuActions();
+      itemActions = this.CreateSettingsMenuActions();
       this.SettingsValueColor = settingsValueColor;
     }
 
@@ -59,13 +50,13 @@
 
     protected override IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions()
     {
-      return this.itemActions;
+      return itemActions;
     }
 
     protected override void OnBackSelected()
     {
       this.PersistSettings();
-      this.backAction();
+      backAction();
     }
 
     protected override void AfterRender()
@@ -78,10 +69,6 @@
       Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
       {
         [(int)SettingsMenuItem.MasterVolume] = this.OnSettingsMasterVolumeSelected,
-        [(int)SettingsMenuItem.MoveLeft] = this.OnSettingsMoveLeftSelected,
-        [(int)SettingsMenuItem.MoveRight] = this.OnSettingsMoveRightSelected,
-        [(int)SettingsMenuItem.Action] = this.OnSettingsActionSelected,
-        [(int)SettingsMenuItem.Pause] = this.OnSettingsPauseSelected,
         [(int)SettingsMenuItem.ResetDefaults] = _ => OnSettingsResetDefaultsSelected(this.Input, this.Tts),
         [(int)SettingsMenuItem.Back] = _ => this.OnBackSelected()
       };
@@ -92,26 +79,6 @@
     private void OnSettingsMasterVolumeSelected(MenuItem item)
     {
       this.CycleVolume();
-    }
-
-    private void OnSettingsMoveLeftSelected(MenuItem item)
-    {
-      this.CycleMapping(Abstractions.Input.Left, MoveLeftOptions, item.DisplayText);
-    }
-
-    private void OnSettingsMoveRightSelected(MenuItem item)
-    {
-      this.CycleMapping(Abstractions.Input.Right, MoveRightOptions, item.DisplayText);
-    }
-
-    private void OnSettingsActionSelected(MenuItem item)
-    {
-      this.CycleMapping(Abstractions.Input.Enter, ActionOptions, item.DisplayText);
-    }
-
-    private void OnSettingsPauseSelected(MenuItem item)
-    {
-      this.CycleMapping(Abstractions.Input.Back, PauseOptions, item.DisplayText);
     }
 
     private static void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)
@@ -148,31 +115,6 @@
       this.Tts.SpeakAsync($"Volume {percent}");
     }
 
-    private void CycleMapping(Input inputAction, string[] options, string label)
-    {
-      IReadOnlyDictionary<Input, string> mappings = this.Input.GetMappings();
-      string current = mappings.TryGetValue(inputAction, out string? keyName) ? keyName : options[0];
-      int currentIndex = 0;
-
-      for (int i = 0; i < options.Length; i++)
-      {
-        if (string.Equals(options[i], current, StringComparison.OrdinalIgnoreCase))
-        {
-          currentIndex = i;
-          break;
-        }
-      }
-
-      int nextIndex = WrapArrayIndex(currentIndex + 1, options.Length);
-      string nextKey = options[nextIndex];
-
-      if (this.Input.TrySetMapping(inputAction, nextKey))
-      {
-        this.Input.SaveMappings();
-        this.Tts.SpeakAsync($"{label} {nextKey}");
-      }
-    }
-
     private static int WrapArrayIndex(int index, int length)
     {
       if (length <= 0)
@@ -200,10 +142,6 @@
     private enum SettingsMenuItem
     {
       MasterVolume,
-      MoveLeft,
-      MoveRight,
-      Action,
-      Pause,
       ResetDefaults,
       Back
     }

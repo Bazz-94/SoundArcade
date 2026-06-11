@@ -10,18 +10,19 @@ namespace SoundArcade.Domain.Models
   /// </summary>
   public abstract class MenuScene : IScene
   {
-    private const float DefaultMenuStartY = 3.0f;
-    private const float DefaultMenuItemSpacing = 0.8f;
+    private const float menuZ = 2.5f;
+    private const float DefaultMenuStartY = 8.0f;
+    private const float DefaultMenuItemSpacing = 0.9f;
     private const int MenuItemFontSize = 22;
-    private const float MenuItemTextZOffset = 0.16f;
-    private static readonly Vector3 MenuItemSize = new Vector3(2.4f, 0.28f, 0.28f);
+    private const float MenuItemTextZOffset = -0.1f;
+    private static readonly Vector3 MenuItemSize = new Vector3(4f, 0.28f, 1f);
 
     protected IInput Input { get; set; }
     protected ITts Tts { get; set; }
     protected IRenderer Renderer { get; set; }
     private Color SelectedColor { get; set; }
     private Color UnselectedColor { get; set; }
-    private float MenuZ { get; set; }
+    private string MenuTitle { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuScene"/> class.
@@ -32,17 +33,13 @@ namespace SoundArcade.Domain.Models
     /// <param name="renderer">Renderer abstraction.</param>
     /// <param name="selectedColor">Selected item color.</param>
     /// <param name="unselectedColor">Unselected item color.</param>
-    /// <param name="menuZ">Menu z position for rendering.</param>
-    /// <param name="backAction">Optional back action.</param>
-    /// <param name="afterRender">Optional extra render callback.</param>
     public MenuScene(
       Menu menu,
       IInput input,
       ITts tts,
       IRenderer renderer,
       Color selectedColor,
-      Color unselectedColor,
-      float menuZ)
+      Color unselectedColor)
     {
       this.menu = menu;
       this.Input = input;
@@ -50,7 +47,7 @@ namespace SoundArcade.Domain.Models
       this.Renderer = renderer;
       this.SelectedColor = selectedColor;
       this.UnselectedColor = unselectedColor;
-      this.MenuZ = menuZ;
+      this.MenuTitle = menu.DisplayText;
     }
 
     private readonly Menu menu;
@@ -69,6 +66,7 @@ namespace SoundArcade.Domain.Models
     public void OnEnter()
     {
       menu.SelectFirst();
+      this.Tts.Stop();
       this.Tts.SpeakAsync(menu.DisplayText);
       this.Tts.SpeakAsync(menu.SelectedItem.DisplayText);
     }
@@ -97,6 +95,7 @@ namespace SoundArcade.Domain.Models
 
       if (selectionChanged)
       {
+        this.Tts.Stop();
         this.Tts.SpeakAsync(menu.SelectedItem.DisplayText);
       }
 
@@ -117,14 +116,16 @@ namespace SoundArcade.Domain.Models
     {
       int itemIndex = 0;
 
+      this.Renderer.DrawText(new Vector3(0.0f, DefaultMenuStartY + 2, menuZ), this.MenuTitle, MenuItemFontSize + 4, this.SelectedColor);
+
       foreach (MenuItem item in menu.Items)
       {
         float y = DefaultMenuStartY - (itemIndex * DefaultMenuItemSpacing);
         bool isSelected = itemIndex == menu.SelectedIndex;
         Color itemColor = isSelected ? this.SelectedColor : this.UnselectedColor;
         Color textColor = isSelected ? this.UnselectedColor : this.SelectedColor;
-        this.Renderer.DrawBox(new Vector3(0.0f, y, this.MenuZ), MenuItemSize, itemColor);
-        this.Renderer.DrawText(new Vector3(0.0f, y, this.MenuZ + MenuItemTextZOffset), item.DisplayText, MenuItemFontSize, textColor);
+        this.Renderer.DrawBox(new Vector3(0.0f, y, menuZ), MenuItemSize, itemColor);
+        this.Renderer.DrawText(new Vector3(0.0f, y, menuZ + MenuItemTextZOffset), item.DisplayText, MenuItemFontSize, textColor);
         itemIndex++;
       }
 
