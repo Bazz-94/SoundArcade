@@ -17,42 +17,11 @@ Sound Arcade is a multi-mini-game arcade collection designed **primarily for bli
 ## Solution Structure
 
 ```
-SoundArcade/
-│
-├── SoundArcade.Domain/ (shared)
-│   ├── Models/
-│   ├── Services/
-│   └── Events/
-│
-├── SoundArcade.Domain.Game1/ (bounded context)
-│   ├── Models/
-│   ├── Services/
-│   └── Events/
-│
-├── SoundArcade.Application/
-│   ├── GameLoop/
-│   ├── SceneManagement/
-│   ├── GameRegistry/
-│   ├── GameSessions/
-│   └── Interfaces/
-│
-├── SoundArcade.Abstractions/
-│   ├── IRenderer.cs
-│   ├── IAudio.cs
-│   ├── IInput.cs
-│   ├── ITts.cs
-│   └── IWindow.cs
-│
-├── SoundArcade.Infrastructure/
-│   ├── RaylibRenderer.cs
-│   ├── RaylibAudio.cs
-│   ├── RaylibInput.cs
-│   ├── RaylibWindow.cs
-│   └── RaylibTts.cs
-│
-└── SoundArcade.Desktop/
-    ├── Program.cs
-    └── DependencyInjection/
+Application => Abstractions => Infrastructure (Raylib)
+         ↘          
+          Domain
+           ↘
+            Mini-game1.Domain
 ```
 
 ---
@@ -60,8 +29,6 @@ SoundArcade/
 ## Dependency Rules (STRICT — never violate)
 
 ```
-Desktop
-  ↓
 Application
   ↓
 Domain.{Game}
