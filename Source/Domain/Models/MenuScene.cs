@@ -8,7 +8,7 @@ namespace SoundArcade.Domain.Models
   /// <summary>
   /// Base scene for keyboard-driven menus with focus announcements and command dispatch.
   /// </summary>
-  public class MenuScene : IScene
+  public abstract class MenuScene : IScene
   {
     private const float DefaultMenuStartY = 3.0f;
     private const float DefaultMenuItemSpacing = 0.8f;
@@ -22,9 +22,6 @@ namespace SoundArcade.Domain.Models
     private Color SelectedColor { get; set; }
     private Color UnselectedColor { get; set; }
     private float MenuZ { get; set; }
-    private IReadOnlyDictionary<int, Action<MenuItem>> ItemActions { get; set; } = new Dictionary<int, Action<MenuItem>>();
-    private Action? BackAction { get; set; }
-    private Action? AfterRender { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuScene"/> class.
@@ -45,9 +42,7 @@ namespace SoundArcade.Domain.Models
       IRenderer renderer,
       Color selectedColor,
       Color unselectedColor,
-      float menuZ,
-      Action backAction,
-      Action? afterRender = null)
+      float menuZ)
     {
       this.menu = menu;
       this.Input = input;
@@ -56,15 +51,18 @@ namespace SoundArcade.Domain.Models
       this.SelectedColor = selectedColor;
       this.UnselectedColor = unselectedColor;
       this.MenuZ = menuZ;
-      this.BackAction = backAction;
-      this.AfterRender = afterRender;
     }
 
     private readonly Menu menu;
 
-    public void SetItemActions(IReadOnlyDictionary<int, Action<MenuItem>> itemActions)
+    protected abstract IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions();
+
+    protected virtual void OnBackSelected()
     {
-      this.ItemActions = itemActions;
+    }
+
+    protected virtual void AfterRender()
+    {
     }
 
     /// <inheritdoc />
@@ -130,33 +128,20 @@ namespace SoundArcade.Domain.Models
         itemIndex++;
       }
 
-      if (this.AfterRender is not null)
-      {
-        this.AfterRender();
-      }
+      this.AfterRender();
     }
 
     private void OnItemSelected(MenuItem item)
     {
-      if (this.ItemActions is null) { throw new InvalidOperationException("Item actions not configured for menu."); }
+      IReadOnlyDictionary<int, Action<MenuItem>> itemActions = this.GetItemActions();
 
-      if (this.ItemActions.TryGetValue(item.Id, out Action<MenuItem>? action))
+      if (itemActions.TryGetValue(item.Id, out Action<MenuItem>? action))
       {
         action(item);
         return;
       }
 
       throw new InvalidOperationException($"No action configured for menu item {item.Id}.");
-    }
-
-    private void OnBackSelected()
-    {
-      if (this.BackAction is null)
-      {
-        return;
-      }
-
-      this.BackAction();
     }
   }
 }

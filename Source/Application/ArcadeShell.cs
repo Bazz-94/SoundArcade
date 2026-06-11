@@ -1,7 +1,6 @@
 namespace SoundArcade.Application
 {
   using System;
-  using System.Collections.Generic;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain;
   using SoundArcade.Domain.Models;
@@ -38,15 +37,6 @@ namespace SoundArcade.Application
     private SceneManager SceneManager { get; set; }
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
-
-    private readonly Menu MainMenu = new(
-      (int)MenuType.Main,
-      "Main menu",
-      [
-        new MenuItem((int)MainMenuItem.StartRun, "Start Run"),
-        new MenuItem((int)MainMenuItem.Settings, "Settings"),
-        new MenuItem((int)MainMenuItem.Exit, "Exit")
-      ]);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ArcadeShell"/> class.
@@ -98,31 +88,17 @@ namespace SoundArcade.Application
       this.Window.Close();
     }
 
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreateMainMenuActions()
-    {
-      Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
-      {
-        [(int)MainMenuItem.StartRun] = _ => this.SceneManager.ChangeScene(this.CreateRunScene()),
-        [(int)MainMenuItem.Settings] = _ => this.SceneManager.ChangeScene(this.CreateSettingsMenuScene()),
-        [(int)MainMenuItem.Exit] = _ => this.Exit()
-      };
-
-      return actions;
-    }
-
     private MenuScene CreateMainMenuScene()
     {
-      MenuScene mainMenuScene = new MenuScene(
-        menu: MainMenu,
+      return new MainMenuScene(
         input: this.Input,
         tts: this.Tts,
         renderer: this.Renderer,
         selectedColor: MenuSelectedColor,
         unselectedColor: MenuUnselectedColor,
-        backAction: this.Exit,
-        menuZ: 4.0f);
-      mainMenuScene.SetItemActions(this.CreateMainMenuActions());
-      return mainMenuScene;
+        startRunAction: () => this.SceneManager.ChangeScene(this.CreateRunScene()),
+        settingsAction: () => this.SceneManager.ChangeScene(this.CreateSettingsMenuScene()),
+        exitAction: this.Exit);
     }
 
     private MenuScene CreateSettingsMenuScene()

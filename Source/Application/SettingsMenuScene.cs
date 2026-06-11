@@ -19,6 +19,8 @@
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
     private IAudio Audio { get; set; }
+    private readonly Action backAction;
+    private readonly IReadOnlyDictionary<int, Action<MenuItem>> itemActions;
 
     private static readonly Menu Menu = new Menu(
       (int)MenuType.Settings,
@@ -43,15 +45,35 @@
       Color selectedColor,
       Color unselectedColor,
       Color settingsValueColor,
-      Action backAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor, menuZ, backAction, () => RenderSettingsValues(renderer, appSettings, settingsValueColor))
+      Action backAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor, menuZ)
     {
-      this.SetItemActions(this.CreateSettingsMenuActions(backAction));
       this.AppSettings = appSettings;
       this.SettingsStore = settingsStore;
       this.Audio = audio;
+      this.backAction = backAction;
+      this.itemActions = this.CreateSettingsMenuActions();
+      this.SettingsValueColor = settingsValueColor;
     }
 
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreateSettingsMenuActions(Action backAction)
+    private Color SettingsValueColor { get; set; }
+
+    protected override IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions()
+    {
+      return this.itemActions;
+    }
+
+    protected override void OnBackSelected()
+    {
+      this.PersistSettings();
+      this.backAction();
+    }
+
+    protected override void AfterRender()
+    {
+      RenderSettingsValues(this.Renderer, this.AppSettings, this.SettingsValueColor);
+    }
+
+    private IReadOnlyDictionary<int, Action<MenuItem>> CreateSettingsMenuActions()
     {
       Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
       {
@@ -61,7 +83,7 @@
         [(int)SettingsMenuItem.Action] = this.OnSettingsActionSelected,
         [(int)SettingsMenuItem.Pause] = this.OnSettingsPauseSelected,
         [(int)SettingsMenuItem.ResetDefaults] = _ => OnSettingsResetDefaultsSelected(this.Input, this.Tts),
-        [(int)SettingsMenuItem.Back] = _ => this.ReturnToMainMenu(backAction)
+        [(int)SettingsMenuItem.Back] = _ => this.OnBackSelected()
       };
 
       return actions;
@@ -166,12 +188,6 @@
       }
 
       return wrapped;
-    }
-
-    private void ReturnToMainMenu(Action backAction)
-    {
-      this.PersistSettings();
-      backAction();
     }
 
     private static void OnSettingsResetDefaultsSelected(IInput input, ITts tts)
