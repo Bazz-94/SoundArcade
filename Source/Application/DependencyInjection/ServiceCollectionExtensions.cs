@@ -4,10 +4,12 @@ namespace SoundArcade.Application.DependencyInjection
   using SoundArcade.Abstractions;
   using SoundArcade.Application;
   using SoundArcade.Domain;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun;
   using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
   using SoundArcade.Domain.RiverRun.Services;
+  using SoundArcade.Domain.Services;
   using SoundArcade.Infrastructure.Audio;
   using SoundArcade.Infrastructure.Windows;
 
@@ -31,13 +33,20 @@ namespace SoundArcade.Application.DependencyInjection
       services.AddSingleton<ITts, TextToSpeech>();
       services.AddSingleton<RaylibAudio>(serviceProvider => new RaylibAudio(serviceProvider.GetRequiredService<ITts>()));
       services.AddSingleton<IAudio>(serviceProvider => serviceProvider.GetRequiredService<RaylibAudio>());
+      services.AddSingleton<ArcadeShell>();
+      services.AddSingleton<GameRegistry>();
+      services.AddSingleton<SceneManager>();
+      services.AddSingleton<ColorPalette>();
+
+      return services;
+    }
+
+    public static IServiceCollection AddRiverRun(this IServiceCollection services)
+    {
       services.AddSingleton<RiverRunSettings>();
       services.AddSingleton<RiverRunSession>();
       services.AddSingleton<PlayerController>();
       services.AddSingleton<GameLoop>();
-      services.AddSingleton<ArcadeShell>();
-      services.AddSingleton<GameRegistry>();
-
       return services;
     }
   }

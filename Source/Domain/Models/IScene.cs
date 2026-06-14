@@ -25,5 +25,10 @@ namespace SoundArcade.Domain.Models
     /// Renders the scene.
     /// </summary>
     void Render();
+
+    /// <summary>
+    /// Called when the back action is pressed.
+    /// </summary>
+    void OnBackSelected();
   }
 }

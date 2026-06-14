@@ -8,12 +8,7 @@ namespace SoundArcade.Domain.Services
   /// </summary>
   public sealed class SceneManager
   {
-    private IScene? activeScene;
-
-    /// <summary>
-    /// Gets the active scene.
-    /// </summary>
-    public IScene? ActiveScene => activeScene;
+    private IScene? ActiveScene { get; set; }
 
     /// <summary>
     /// Changes the active scene.
@@ -26,18 +21,18 @@ namespace SoundArcade.Domain.Services
         throw new ArgumentNullException(nameof(scene));
       }
 
-      if (ReferenceEquals(activeScene, scene))
+      if (ReferenceEquals(this.ActiveScene, scene))
       {
         return;
       }
 
-      if (activeScene is not null)
+      if (this.ActiveScene is not null)
       {
-        activeScene.OnExit();
+        this.ActiveScene.OnExit();
       }
 
-      activeScene = scene;
-      activeScene.OnEnter();
+      this.ActiveScene = scene;
+      this.ActiveScene.OnEnter();
     }
 
     /// <summary>
@@ -46,12 +41,12 @@ namespace SoundArcade.Domain.Services
     /// <param name="deltaTime">Frame delta time in seconds.</param>
     public void Update(float deltaTime)
     {
-      if (activeScene is null)
+      if (this.ActiveScene is null)
       {
         return;
       }
 
-      activeScene.Update(deltaTime);
+      this.ActiveScene.Update(deltaTime);
     }
 
     /// <summary>
@@ -59,12 +54,12 @@ namespace SoundArcade.Domain.Services
     /// </summary>
     public void Render()
     {
-      if (activeScene is null)
+      if (this.ActiveScene is null)
       {
         return;
       }
 
-      activeScene.Render();
+      this.ActiveScene.Render();
     }
   }
 }

@@ -11,6 +11,7 @@ namespace SoundArcade.Application
     {
       ServiceCollection services = new ServiceCollection();
       services.AddSoundArcade();
+      services.AddRiverRun();
 
       using ServiceProvider serviceProvider = services.BuildServiceProvider();
       GameRegistry registry = serviceProvider.GetRequiredService<GameRegistry>();

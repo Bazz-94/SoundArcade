@@ -1,63 +1,70 @@
 namespace SoundArcade.Application.Scenes
 {
   using System;
-  using System.Collections.Generic;
   using SoundArcade.Abstractions;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
   using static SoundArcade.Application.ArcadeShell;
 
-  public sealed class MainMenuScene : MenuScene
+  public sealed class MainMenuScene : IScene
   {
-    private static readonly Menu Menu = new Menu(
-      (int)MenuType.Main,
-      "Sound Arcade",
-      [
-        new MenuItem((int)MainMenuItem.StartRun, "Start"),
-        new MenuItem((int)MainMenuItem.Settings, "Settings"),
-        new MenuItem((int)MainMenuItem.Exit, "Exit")
-      ]);
-
-    private readonly Action startRunAction;
-    private readonly Action settingsAction;
-    private readonly Action exitAction;
-    private readonly IReadOnlyDictionary<int, Action<MenuItem>> itemActions;
+    private Menu Menu { get; set; }
+    public IInput Input { get; }
+    private Action ExitAction { get; }
 
     public MainMenuScene(
       IInput input,
       ITts tts,
       IRenderer renderer,
-      Color selectedColor,
-      Color unselectedColor,
+      MenuColors menuColors,
       Action startRunAction,
       Action settingsAction,
-      Action exitAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor)
+      Action exitAction)
     {
-      this.startRunAction = startRunAction;
-      this.settingsAction = settingsAction;
-      this.exitAction = exitAction;
-      itemActions = this.CreateMainMenuActions();
+      this.Menu = new Menu(
+      input,
+      tts,
+      renderer,
+      (int)MenuType.Main,
+      [
+        new MenuItem((int)MainMenuItem.StartRun, "Start", startRunAction),
+        new MenuItem((int)MainMenuItem.Settings, "Settings", settingsAction),
+        new MenuItem((int)MainMenuItem.Exit, "Exit", exitAction)
+      ],
+      menuColors,
+      "Sound Arcade"
+      );
+      this.Input = input;
+      this.ExitAction = exitAction;
     }
 
-    protected override IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions()
+    public void OnBackSelected()
     {
-      return itemActions;
+      this.ExitAction();
     }
 
-    protected override void OnBackSelected()
+    public void OnExit()
     {
-      exitAction();
     }
 
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreateMainMenuActions()
+    public void Update(float deltaTime)
     {
-      Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
+      this.Menu.Update();
+
+      if (this.Input.InputPressed(Abstractions.Input.Back))
       {
-        [(int)MainMenuItem.StartRun] = _ => startRunAction(),
-        [(int)MainMenuItem.Settings] = _ => settingsAction(),
-        [(int)MainMenuItem.Exit] = _ => exitAction()
-      };
+        this.OnBackSelected();
+      }
+    }
 
-      return actions;
+    public void Render()
+    {
+      this.Menu.Render();
+    }
+
+    public void OnEnter()
+    {
+      this.Menu.SelectFirstItem();
     }
   }
 }

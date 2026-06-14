@@ -3,8 +3,7 @@ namespace SoundArcade.Application
   using System;
   using SoundArcade.Abstractions;
   using SoundArcade.Application.Scenes;
-  using SoundArcade.Domain;
-  using SoundArcade.Domain.Models;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun.Scene;
   using SoundArcade.Domain.Services;
 
@@ -19,15 +18,11 @@ namespace SoundArcade.Application
     private const float MinimumVolume = 0.0f;
     private const float MaximumVolume = 1.0f;
 
-    private static readonly Color BackgroundColor = new Color(Colors.Black);
-    private static readonly Color LaneColor = new Color(Colors.Teal);
-    private static readonly Color PlayerColor = new Color(Colors.Purple);
-    private static readonly Color ObstacleColor = new Color(Colors.Pink);
-    private static readonly Color HudLivesColor = new Color(Colors.Pink);
-    private static readonly Color HudScoreColor = new Color(Colors.Purple);
-    private static readonly Color MenuSelectedColor = new Color(Colors.Pink);
-    private static readonly Color MenuUnselectedColor = new Color(Colors.Teal);
-    private static readonly Color SettingsValueColor = new Color(Colors.Purple);
+    private static readonly Color LaneColor = new Color(ColorsHex.Teal);
+    private static readonly Color PlayerColor = new Color(ColorsHex.Purple);
+    private static readonly Color ObstacleColor = new Color(ColorsHex.Pink);
+    private static readonly Color HudLivesColor = new Color(ColorsHex.Pink);
+    private static readonly Color HudScoreColor = new Color(ColorsHex.Purple);
     private bool shouldExit;
 
     private IWindow Window { get; set; }
@@ -36,6 +31,7 @@ namespace SoundArcade.Application
     private ITts Tts { get; set; }
     private IAudio Audio { get; set; }
     private SceneManager SceneManager { get; set; }
+    public ColorPalette ColorPalette { get; }
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
 
@@ -47,14 +43,17 @@ namespace SoundArcade.Application
     /// <param name="input">Input abstraction.</param>
     /// <param name="tts">Text-to-speech abstraction.</param>
     /// <param name="audio">Audio abstraction.</param>
-    /// <param name="session">RiverRun session state.</param>
+    /// <param name="settingsStore">Settings store abstraction.</param>
+    /// <param name="sceneManager">Scene manager abstraction.</param>
     public ArcadeShell(
       IWindow window,
       IRenderer renderer,
       IInput input,
       ITts tts,
       IAudio audio,
-      ISettingsStore settingsStore)
+      ISettingsStore settingsStore,
+      SceneManager sceneManager,
+      ColorPalette colorPalette)
     {
       this.Window = window;
       this.Renderer = renderer;
@@ -62,7 +61,8 @@ namespace SoundArcade.Application
       this.Tts = tts;
       this.Audio = audio;
       this.SettingsStore = settingsStore;
-      this.SceneManager = new SceneManager();
+      this.SceneManager = sceneManager;
+      this.ColorPalette = colorPalette;
       this.AppSettings = new AppSettings();
     }
 
@@ -81,7 +81,7 @@ namespace SoundArcade.Application
         this.SceneManager.Update(deltaTime);
 
         this.Window.BeginFrame();
-        this.Renderer.Clear(BackgroundColor);
+        this.Renderer.Clear(this.ColorPalette.Menu.Background);
         this.SceneManager.Render();
         this.Window.EndFrame();
       }
@@ -89,29 +89,27 @@ namespace SoundArcade.Application
       this.Window.Close();
     }
 
-    private MenuScene CreateMainMenuScene()
+    private MainMenuScene CreateMainMenuScene()
     {
       return new MainMenuScene(
         input: this.Input,
         tts: this.Tts,
         renderer: this.Renderer,
-        selectedColor: MenuSelectedColor,
-        unselectedColor: MenuUnselectedColor,
+        menuColors: this.ColorPalette.Menu,
         startRunAction: () => this.SceneManager.ChangeScene(this.CreateRunScene()),
         settingsAction: () => this.SceneManager.ChangeScene(this.CreateSettingsMenuScene()),
         exitAction: this.Exit);
     }
 
-    private MenuScene CreateSettingsMenuScene()
+    private SettingsMenuScene CreateSettingsMenuScene()
     {
       return new SettingsMenuScene(
         audio: this.Audio,
         appSettings: this.AppSettings,
         settingsStore: this.SettingsStore,
         input: this.Input,
-        selectedColor: MenuSelectedColor,
-        unselectedColor: MenuUnselectedColor,
-        settingsValueColor: SettingsValueColor,
+        menuColors: this.ColorPalette.Menu,
+        settingsValueColor: this.ColorPalette.Menu.Text,
         tts: this.Tts,
         renderer: this.Renderer,
         backAction: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()));
@@ -124,6 +122,7 @@ namespace SoundArcade.Application
         audio: this.Audio,
         input: this.Input,
         renderer: this.Renderer,
+        menuColors: this.ColorPalette.Menu,
         onMainMenuRequested: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()),
         laneColor: LaneColor,
         playerColor: PlayerColor,

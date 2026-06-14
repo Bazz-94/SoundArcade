@@ -1,10 +1,9 @@
 namespace SoundArcade.Domain.RiverRun.Scene
 {
   using System;
-  using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Abstractions;
-  using SoundArcade.Domain;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
@@ -15,21 +14,9 @@ namespace SoundArcade.Domain.RiverRun.Scene
   /// </summary>
   public sealed class RiverRunScene : IScene
   {
-    private const float PauseMenuStartY = 3.0f;
-    private const float PauseMenuItemSpacing = 0.8f;
-    private const int PauseMenuItemFontSize = 22;
-    private const float PauseMenuItemTextZOffset = 0.16f;
-    private const float PauseMenuZ = 1.5f;
-
-    private static readonly Vector3 PauseMenuItemSize = new Vector3(2.4f, 0.28f, 0.28f);
-    private static readonly Color PauseMenuSelectedColor = new Color(Colors.Pink);
-    private static readonly Color PauseMenuUnselectedColor = new Color(Colors.Teal);
-
     private readonly GameLoop gameLoop;
     private readonly Menu pauseMenu;
-    private readonly IReadOnlyDictionary<int, Action<MenuItem>> pauseMenuActions;
     private readonly IInput input;
-    private readonly ITts tts;
     private readonly IRenderer renderer;
     private readonly Action onMainMenuRequested;
     private readonly Color laneColor;
@@ -46,6 +33,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
     /// <param name="audio">Audio abstraction.</param>
     /// <param name="input">Input abstraction.</param>
     /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="menuColors">Pause menu color palette.</param>
     /// <param name="onMainMenuRequested">Callback invoked when the scene should return to the main menu.</param>
     /// <param name="laneColor">Lane color.</param>
     /// <param name="playerColor">Player color.</param>
@@ -57,6 +45,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
       IAudio audio,
       IInput input,
       IRenderer renderer,
+      MenuColors menuColors,
       Action onMainMenuRequested,
       Color laneColor,
       Color playerColor,
@@ -65,10 +54,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
       Color hudScoreColor)
     {
       gameLoop = new GameLoop(new PlayerController(input), tts, audio, new RiverRunSession(new RiverRunSettings()));
-      pauseMenu = this.CreatePauseMenu();
-      pauseMenuActions = this.CreatePauseMenuActions();
       this.input = input;
-      this.tts = tts;
       this.renderer = renderer;
       this.onMainMenuRequested = onMainMenuRequested;
       this.laneColor = laneColor;
@@ -76,6 +62,18 @@ namespace SoundArcade.Domain.RiverRun.Scene
       this.obstacleColor = obstacleColor;
       this.hudLivesColor = hudLivesColor;
       this.hudScoreColor = hudScoreColor;
+
+      pauseMenu = new Menu(
+        input,
+        tts,
+        renderer,
+        id: (int)PauseMenuType.Pause,
+        menuTitle: "Pause Menu",
+        menuColors: menuColors,
+        items: [
+          new MenuItem((int)PauseMenuItem.Resume, "Resume", this.ResumeRunFromPause),
+          new MenuItem((int)PauseMenuItem.MainMenu, "Main Menu", OnPauseMenuMainMenuSelected)
+        ]);
     }
 
     /// <inheritdoc />
@@ -104,7 +102,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
       if (gameLoop.Session.State == SessionState.Paused)
       {
         isPaused = true;
-        this.OnPauseMenuEnter();
+        pauseMenu.SelectFirstItem();
       }
     }
 
@@ -116,81 +114,27 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
       if (isPaused)
       {
-        this.RenderPauseMenu();
+        pauseMenu.Render();
       }
     }
 
-    private Menu CreatePauseMenu()
+    /// <inheritdoc />
+    public void OnBackSelected()
     {
-      return new Menu(
-        (int)PauseMenuType.Pause,
-        "Pause menu",
-        [
-          new MenuItem((int)PauseMenuItem.Resume, "Resume"),
-          new MenuItem((int)PauseMenuItem.MainMenu, "Main Menu")
-        ]);
-    }
-
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreatePauseMenuActions()
-    {
-      Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
+      if (isPaused)
       {
-        [(int)PauseMenuItem.Resume] = this.OnPauseMenuResumeSelected,
-        [(int)PauseMenuItem.MainMenu] = this.OnPauseMenuMainMenuSelected
-      };
-
-      return actions;
-    }
-
-    private void OnPauseMenuEnter()
-    {
-      pauseMenu.SelectFirst();
-      tts.SpeakAsync(pauseMenu.DisplayText);
-      tts.SpeakAsync(pauseMenu.SelectedItem.DisplayText);
+        this.ResumeRunFromPause();
+      }
     }
 
     private void UpdatePauseMenu()
     {
-      bool selectionChanged = false;
-
-      if (input.InputPressed(Input.Up))
-      {
-        pauseMenu.MovePrevious();
-        selectionChanged = true;
-      }
-
-      if (input.InputPressed(Input.Down))
-      {
-        pauseMenu.MoveNext();
-        selectionChanged = true;
-      }
-
-      if (selectionChanged)
-      {
-        tts.SpeakAsync(pauseMenu.SelectedItem.DisplayText);
-      }
+      pauseMenu.Update();
 
       if (input.InputPressed(Input.Back))
       {
         this.ResumeRunFromPause();
-        return;
       }
-
-      if (input.InputPressed(Input.Enter))
-      {
-        this.OnPauseMenuSelected(pauseMenu.SelectedItem);
-        return;
-      }
-    }
-
-    private void OnPauseMenuSelected(MenuItem item)
-    {
-      if (!pauseMenuActions.TryGetValue(item.Id, out Action<MenuItem>? action))
-      {
-        throw new InvalidOperationException($"No action configured for pause menu item {item.Id}.");
-      }
-
-      action(item);
     }
 
     private void ResumeRunFromPause()
@@ -199,32 +143,10 @@ namespace SoundArcade.Domain.RiverRun.Scene
       isPaused = false;
     }
 
-    private void OnPauseMenuResumeSelected(MenuItem item)
-    {
-      this.ResumeRunFromPause();
-    }
-
-    private void OnPauseMenuMainMenuSelected(MenuItem item)
+    private void OnPauseMenuMainMenuSelected()
     {
       this.ResumeRunFromPause();
       onMainMenuRequested();
-    }
-
-    private void RenderPauseMenu()
-    {
-      int itemIndex = 0;
-
-      foreach (MenuItem item in pauseMenu.Items)
-      {
-        float y = PauseMenuStartY - (itemIndex * PauseMenuItemSpacing);
-        bool isSelected = itemIndex == pauseMenu.SelectedIndex;
-        Color itemColor = isSelected ? PauseMenuSelectedColor : PauseMenuUnselectedColor;
-        Color textColor = isSelected ? PauseMenuUnselectedColor : PauseMenuSelectedColor;
-
-        renderer.DrawBox(new Vector3(0.0f, y, PauseMenuZ), PauseMenuItemSize, itemColor);
-        renderer.DrawText(new Vector3(0.0f, y, PauseMenuZ + PauseMenuItemTextZOffset), item.DisplayText, PauseMenuItemFontSize, textColor);
-        itemIndex++;
-      }
     }
 
     private void RenderWorld()

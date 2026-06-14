@@ -10,6 +10,7 @@ Domain - Contains the arcade shell and shared game logic (e.g., scoring, player 
 Domain.{Game} - Each mini-game has its own project for game-specific logic and state.
 Abstractions - Defines interfaces for platform-specific implementations.
 Infrastructure - Implements platform-specific functionality (e.g., Raylib).
+```
 
 ## Dependency Rules
 ```

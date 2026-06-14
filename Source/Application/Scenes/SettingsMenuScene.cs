@@ -1,13 +1,13 @@
 ﻿namespace SoundArcade.Application.Scenes
 {
   using System;
-  using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Abstractions;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
   using static SoundArcade.Application.ArcadeShell;
 
-  public class SettingsMenuScene : MenuScene
+  public class SettingsMenuScene : IScene
   {
     private static readonly float[] VolumeLevels = [0.2f, 0.4f, 0.6f, 0.8f, 1.0f];
     private const float ValueTextX = 3.0f;
@@ -16,20 +16,14 @@
     private const float ValueTextZ = 2.7f;
     private const int ValueFontSize = 24;
 
-    private AppSettings AppSettings { get; set; }
-    private ISettingsStore SettingsStore { get; set; }
-    private IAudio Audio { get; set; }
+    private IInput Input { get; }
+    private AppSettings AppSettings { get; }
+    private ISettingsStore SettingsStore { get; }
+    public ITts Tts { get; }
+    public IRenderer Renderer { get; }
+    private IAudio Audio { get; }
     private readonly Action backAction;
-    private readonly IReadOnlyDictionary<int, Action<MenuItem>> itemActions;
-
-    private static readonly Menu Menu = new Menu(
-      (int)MenuType.Settings,
-      "Settings Menu",
-      [
-        new MenuItem((int)SettingsMenuItem.MasterVolume, "Game Volume"),
-        new MenuItem((int)SettingsMenuItem.TtsVolume, "Text to Speech Volume"),
-        new MenuItem((int)SettingsMenuItem.Back, "Back")
-      ]);
+    private Menu Menu { get; }
 
     public SettingsMenuScene(
       IAudio audio,
@@ -38,57 +32,39 @@
       IInput input,
       ITts tts,
       IRenderer renderer,
-      Color selectedColor,
-      Color unselectedColor,
+      MenuColors menuColors,
       Color settingsValueColor,
-      Action backAction) : base(Menu, input, tts, renderer, selectedColor, unselectedColor)
+      Action backAction)
     {
       this.AppSettings = appSettings;
       this.SettingsStore = settingsStore;
+      this.Input = input;
+      this.Tts = tts;
+      this.Renderer = renderer;
       this.Audio = audio;
       this.backAction = backAction;
-      itemActions = this.CreateSettingsMenuActions();
       this.SettingsValueColor = settingsValueColor;
+
+      this.Menu = new Menu(
+      input,
+      tts,
+      renderer,
+      menuColors: menuColors,
+      id: (int)MenuType.Settings,
+      menuTitle: "Settings Menu",
+      items: [
+        new MenuItem((int)SettingsMenuItem.MasterVolume, "Game Volume", this.CycleMasterVolume),
+        new MenuItem((int)SettingsMenuItem.TtsVolume, "Text to Speech Volume", this.CycleTtsVolume),
+        new MenuItem((int)SettingsMenuItem.Back, "Back", this.OnBackSelected)
+      ]);
     }
 
     private Color SettingsValueColor { get; set; }
 
-    protected override IReadOnlyDictionary<int, Action<MenuItem>> GetItemActions()
-    {
-      return itemActions;
-    }
-
-    protected override void OnBackSelected()
+    public void OnBackSelected()
     {
       this.PersistSettings();
       backAction();
-    }
-
-    protected override void AfterRender()
-    {
-      RenderSettingsValues(this.Renderer, this.AppSettings, this.SettingsValueColor);
-    }
-
-    private IReadOnlyDictionary<int, Action<MenuItem>> CreateSettingsMenuActions()
-    {
-      Dictionary<int, Action<MenuItem>> actions = new Dictionary<int, Action<MenuItem>>
-      {
-        [(int)SettingsMenuItem.MasterVolume] = this.OnSettingsMasterVolumeSelected,
-        [(int)SettingsMenuItem.TtsVolume] = this.OnSettingsTtsVolumeSelected,
-        [(int)SettingsMenuItem.Back] = _ => this.OnBackSelected()
-      };
-
-      return actions;
-    }
-
-    private void OnSettingsMasterVolumeSelected(MenuItem item)
-    {
-      this.CycleMasterVolume();
-    }
-
-    private void OnSettingsTtsVolumeSelected(MenuItem item)
-    {
-      this.CycleTtsVolume();
     }
 
     private static void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)
@@ -161,6 +137,27 @@
       }
 
       return wrapped;
+    }
+
+    public void OnEnter()
+    {
+      this.Menu.SelectFirstItem();
+    }
+
+    public void OnExit()
+    {
+      this.PersistSettings();
+    }
+
+    public void Update(float deltaTime)
+    {
+      this.Menu.Update();
+    }
+
+    public void Render()
+    {
+      this.Menu.Render();
+      RenderSettingsValues(this.Renderer, this.AppSettings, this.SettingsValueColor);
     }
 
     private enum SettingsMenuItem

@@ -5,6 +5,7 @@ namespace SoundArcade.Tests
   using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Application.Scenes;
+  using SoundArcade.Domain.Colors;
   using Xunit;
 
   /// <summary>
@@ -34,8 +35,7 @@ namespace SoundArcade.Tests
         input: input,
         tts: tts,
         renderer: renderer,
-        selectedColor: new Color(0, 0, 0),
-        unselectedColor: new Color(0, 0, 0),
+        menuColors: new MenuColors(),
         settingsValueColor: new Color(0, 0, 0),
         backAction: () => { });
 
@@ -49,7 +49,7 @@ namespace SoundArcade.Tests
 
       Assert.Equal(0.6f, settingsStore.Settings.TtsVolume, precision: 3);
       Assert.Equal(0.6f, tts.Volume, precision: 3);
-      Assert.Equal("TTS volume 60", tts.LastSpokenText);
+      Assert.Equal("60 text to speech volume", tts.LastSpokenText);
       Assert.Equal(1.0f, audio.MasterVolume, precision: 3);
       Assert.Equal(0.6f, settingsStore.LastSavedSettings!.TtsVolume, precision: 3);
     }
@@ -147,12 +147,12 @@ namespace SoundArcade.Tests
 
       public bool InputPressed(Input input)
       {
-        if (!this.pressed.Contains(input))
+        if (!pressed.Contains(input))
         {
           return false;
         }
 
-        this.pressed.Remove(input);
+        pressed.Remove(input);
         return true;
       }
 
@@ -185,7 +185,7 @@ namespace SoundArcade.Tests
 
       public void Press(Input input)
       {
-        this.pressed.Add(input);
+        pressed.Add(input);
       }
     }
 
