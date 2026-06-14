@@ -3,6 +3,7 @@ namespace SoundArcade.Domain.RiverRun.Services
   using System;
   using System.Collections.Generic;
   using System.Numerics;
+  using SoundArcade.Abstractions;
   using SoundArcade.Domain.RiverRun.Models;
 
   /// <summary>
@@ -10,6 +11,7 @@ namespace SoundArcade.Domain.RiverRun.Services
   /// </summary>
   public sealed class ObstacleSpawner
   {
+    private Color Color { get; }
     private readonly RiverRunSettings settings;
     private readonly Random random;
     private float NextSpawnZ { get; set; }
@@ -19,8 +21,9 @@ namespace SoundArcade.Domain.RiverRun.Services
     /// </summary>
     /// <param name="settings">Tuning values for spawn distance and obstacle spacing.</param>
     /// <param name="random">Optional random source used for lane selection.</param>
-    public ObstacleSpawner(RiverRunSettings settings, Random? random = null)
+    public ObstacleSpawner(Color color, RiverRunSettings settings, Random? random = null)
     {
+      this.Color = color;
       this.settings = settings;
       this.random = random ?? new Random();
       this.NextSpawnZ = this.settings.SpawnZ;
@@ -31,9 +34,9 @@ namespace SoundArcade.Domain.RiverRun.Services
     /// </summary>
     /// <param name="playerZ">Current player Z position.</param>
     /// <returns>All obstacles due for spawn this frame.</returns>
-    public IReadOnlyList<RunObstacle> Update(float playerZ)
+    public IReadOnlyList<Obstacle> Update(float playerZ)
     {
-      List<RunObstacle> spawned = new List<RunObstacle>();
+      List<Obstacle> spawned = new List<Obstacle>();
 
       while (this.NextSpawnZ - playerZ <= settings.SpawnZ)
       {
@@ -58,10 +61,15 @@ namespace SoundArcade.Domain.RiverRun.Services
         float spawnZ = this.NextSpawnZ + spacing;
         this.NextSpawnZ = spawnZ;
 
-        spawned.Add(new RunObstacle(new Vector3(laneX, RunConstants.GroundY, spawnZ)));
+        spawned.Add(this.CreateRunObstacle(new Vector3(laneX, RunConstants.GroundY, spawnZ)));
       }
 
       return spawned;
+    }
+
+    public Obstacle CreateRunObstacle(Vector3 position)
+    {
+      return new Obstacle(position, this.Color);
     }
 
     /// <summary>

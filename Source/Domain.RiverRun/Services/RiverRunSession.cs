@@ -3,6 +3,8 @@ namespace SoundArcade.Domain.RiverRun.Services
   using System;
   using System.Collections.Generic;
   using System.Numerics;
+  using SoundArcade.Abstractions;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun.Models;
   using SoundArcade.Domain.Services;
 
@@ -11,61 +13,48 @@ namespace SoundArcade.Domain.RiverRun.Services
   /// </summary>
   public sealed class RiverRunSession
   {
-    private readonly RiverRunSettings settings;
-    private readonly ObstacleSpawner spawner;
-    private readonly List<RunObstacle> obstacles = [];
     private float ScoreRemainder { get; set; }
     private int NextScoreAnnouncement { get; set; }
+    public IReadOnlyList<Obstacle> Obstacles => obstacles;
+    private readonly List<Obstacle> obstacles = [];
+
+    private ObstacleSpawner Spawner { get; }
+    public Theme Theme { get; }
+    private RiverRunSettings Settings { get; }
+    public float ElapsedSeconds { get; private set; }
+    public int Lives { get; private set; }
+    public int Score { get; private set; }
+    public Player Player { get; private set; }
+    public SessionState State { get; private set; }
+
+    private readonly Color laneColor;
+    private readonly Color hudLivesColor;
+    private readonly Color hudScoreColor;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RiverRunSession"/> class.
     /// </summary>
     /// <param name="settings">Gameplay tuning settings.</param>
     /// <param name="random">Optional random source used by spawning services.</param>
-    public RiverRunSession(RiverRunSettings settings, Random? random = null)
+    public RiverRunSession(Theme theme, RiverRunSettings settings, Random? random = null)
     {
-      this.settings = settings;
-      spawner = new ObstacleSpawner(this.settings, random);
+      this.Theme = theme;
+      this.Settings = settings;
+      this.Spawner = new ObstacleSpawner(this.Theme.ColorPalette.Secondary, this.Settings, random);
 
       this.Player = new Player(
+        this.Theme.ColorPalette.Tertiary,
         new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f),
-        this.settings.StartingPlayerSpeed,
-        this.settings.PlayerSpeedIncreasePerZUnit,
-        this.settings.MaxPlayerSpeedIncrease);
-      this.Lives = this.settings.StartingLives;
-      this.NextScoreAnnouncement = this.settings.ScoreAnnouncementStep;
+        this.Settings.StartingPlayerSpeed,
+        this.Settings.PlayerSpeedIncreasePerZUnit,
+        this.Settings.MaxPlayerSpeedIncrease);
+      this.Lives = this.Settings.StartingLives;
+      this.NextScoreAnnouncement = this.Settings.ScoreAnnouncementStep;
       this.State = SessionState.GameOver;
+      laneColor = this.Theme.ColorPalette.Primary;
+      hudLivesColor = this.Theme.ColorPalette.Accent;
+      hudScoreColor = this.Theme.ColorPalette.Accent;
     }
-
-    /// <summary>
-    /// Gets the current high-level run state.
-    /// </summary>
-    public SessionState State { get; private set; }
-
-    /// <summary>
-    /// Gets the player actor.
-    /// </summary>
-    public Player Player { get; private set; }
-
-    /// <summary>
-    /// Gets the remaining player lives.
-    /// </summary>
-    public int Lives { get; private set; }
-
-    /// <summary>
-    /// Gets the current score.
-    /// </summary>
-    public int Score { get; private set; }
-
-    /// <summary>
-    /// Gets elapsed run time in seconds.
-    /// </summary>
-    public float ElapsedSeconds { get; private set; }
-
-    /// <summary>
-    /// Gets active obstacles currently tracked in world space.
-    /// </summary>
-    public IReadOnlyList<RunObstacle> Obstacles => obstacles;
 
     /// <summary>
     /// Starts a fresh run.
@@ -74,18 +63,19 @@ namespace SoundArcade.Domain.RiverRun.Services
     public IReadOnlyList<RunEvent> Start()
     {
       obstacles.Clear();
-      spawner.Reset();
+      this.Spawner.Reset();
       this.ElapsedSeconds = 0.0f;
       this.ScoreRemainder = 0.0f;
       this.Score = 0;
       this.Player = new Player(
+        this.Theme.ColorPalette.Tertiary,
         new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, 0.0f),
-        settings.StartingPlayerSpeed,
-        settings.PlayerSpeedIncreasePerZUnit,
-        settings.MaxPlayerSpeedIncrease);
-      this.Lives = settings.StartingLives;
+        this.Settings.StartingPlayerSpeed,
+        this.Settings.PlayerSpeedIncreasePerZUnit,
+        this.Settings.MaxPlayerSpeedIncrease);
+      this.Lives = this.Settings.StartingLives;
       this.State = SessionState.Playing;
-      this.NextScoreAnnouncement = settings.ScoreAnnouncementStep;
+      this.NextScoreAnnouncement = this.Settings.ScoreAnnouncementStep;
 
       return
       [
@@ -162,7 +152,7 @@ namespace SoundArcade.Domain.RiverRun.Services
       List<RunEvent> events = [];
 
       this.ElapsedSeconds += deltaTimeSeconds;
-      this.ScoreRemainder += settings.ScoringPerSecond * deltaTimeSeconds;
+      this.ScoreRemainder += this.Settings.ScoringPerSecond * deltaTimeSeconds;
 
       if (this.ScoreRemainder >= 1.0f)
       {
@@ -174,13 +164,13 @@ namespace SoundArcade.Domain.RiverRun.Services
         {
           events.Add(new TextToSpeechEvent(
             $"{RunConstants.Speech.ScorePrefix} {this.NextScoreAnnouncement}"));
-          this.NextScoreAnnouncement += settings.ScoreAnnouncementStep;
+          this.NextScoreAnnouncement += this.Settings.ScoreAnnouncementStep;
         }
       }
 
-      IReadOnlyList<RunObstacle> spawned = spawner.Update(this.Player.Position.Z);
+      IReadOnlyList<Obstacle> spawned = this.Spawner.Update(this.Player.Position.Z);
 
-      foreach (RunObstacle spawnedObstacle in spawned)
+      foreach (Obstacle spawnedObstacle in spawned)
       {
         obstacles.Add(spawnedObstacle);
       }
@@ -189,9 +179,9 @@ namespace SoundArcade.Domain.RiverRun.Services
 
       for (int i = 0; i < obstacles.Count; i++)
       {
-        RunObstacle obstacle = obstacles[i];
+        Obstacle obstacle = obstacles[i];
 
-        bool collides = ProximityCollision.IsWithinBuffer(obstacle.Position, this.Player.Position, settings.CollisionRadius);
+        bool collides = ProximityCollision.IsWithinBuffer(obstacle.Position, this.Player.Position, this.Settings.CollisionRadius);
 
         if (collides)
         {
@@ -221,6 +211,37 @@ namespace SoundArcade.Domain.RiverRun.Services
       return events;
     }
 
+    public void Render(IRenderer renderer)
+    {
+      this.RenderHud(renderer);
+      float laneStartZ = this.Player.Position.Z - 2.0f;
+      float laneEndZ = laneStartZ + 28.0f;
+
+      renderer.DrawLine(new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneEndZ), laneColor);
+      renderer.DrawLine(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneEndZ), laneColor);
+      renderer.DrawLine(new Vector3(RunConstants.LaneX.Right, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Right, RunConstants.GroundY, laneEndZ), laneColor);
+
+      this.Player.Render(renderer);
+
+      foreach (Obstacle obstacle in obstacles)
+      {
+        obstacle.Render(renderer);
+      }
+    }
+
+    public void RenderHud(IRenderer renderer)
+    {
+      int lives = Math.Max(0, this.Lives);
+      int score = Math.Max(0, this.Score);
+
+      for (int i = 0; i < lives; i++)
+      {
+        renderer.DrawSphere(new Vector3(-3.5f + (i * 0.45f), 5.8f, 6.5f), 0.12f, hudLivesColor);
+      }
+
+      renderer.DrawText(new Vector3(1.0f, 5.6f, 6.5f), $"Score: {score}", 24, hudScoreColor);
+    }
+
     /// <summary>
     /// Adds a deterministic obstacle for tests or scripted scenarios.
     /// </summary>
@@ -233,7 +254,7 @@ namespace SoundArcade.Domain.RiverRun.Services
         throw new ArgumentOutOfRangeException(nameof(lane));
       }
       Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
-      obstacles.Add(new RunObstacle(position));
+      obstacles.Add(this.Spawner.CreateRunObstacle(position));
     }
 
     /// <summary>
@@ -242,7 +263,7 @@ namespace SoundArcade.Domain.RiverRun.Services
     /// <param name="position">Obstacle world position.</param>
     public void QueueObstacle(Vector3 position)
     {
-      obstacles.Add(new RunObstacle(position));
+      obstacles.Add(this.Spawner.CreateRunObstacle(position));
     }
   }
 }

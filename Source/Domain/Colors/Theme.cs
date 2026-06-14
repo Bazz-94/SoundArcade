@@ -2,16 +2,19 @@
 {
   using SoundArcade.Abstractions;
 
-  public record ColorPalette
+  public record Theme
   {
-    public readonly MenuColors Menu = new();
+    public readonly ColorPalette ColorPalette = new();
+    public int FontSize { get; set; } = 22;
   }
 
-  public record MenuColors
+  public record ColorPalette
   {
     public Color Background = new Color(ColorsHex.Black);
-    public Color MenuItem = new(ColorsHex.MidnightBlue);
-    public Color Text = new(ColorsHex.Pink);
+    public Color Accent = new(ColorsHex.Pink);
+    public Color Primary = new(ColorsHex.MidnightBlue);
+    public Color Secondary = new(ColorsHex.Purple);
+    public Color Tertiary = new(ColorsHex.Teal);
   }
 
   public static class ColorsHex

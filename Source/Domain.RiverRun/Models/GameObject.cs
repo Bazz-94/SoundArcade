@@ -2,6 +2,7 @@ namespace SoundArcade.Domain.RiverRun.Models
 {
   using System;
   using System.Numerics;
+  using SoundArcade.Abstractions;
 
   /// <summary>
   /// Base class for all game objects with a world position and collidable flag.
@@ -30,16 +31,16 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// <summary>
     /// Gets or sets a value indicating whether the object participates in collisions.
     /// </summary>
-    public bool Collidable { get; set; }
+    public bool IsCollidable { get; set; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="GameObject"/>.
     /// </summary>
     /// <param name="position">Initial world position.</param>
-    /// <param name="collidable">Whether the object is collidable.</param>
-    protected GameObject(Vector3 position, bool collidable)
+    /// <param name="isCollidable">Whether the object is collidable.</param>
+    protected GameObject(Vector3 position, bool isCollidable)
     {
-      this.Collidable = collidable;
+      this.IsCollidable = isCollidable;
       this.Position = position;
     }
 
@@ -68,5 +69,7 @@ namespace SoundArcade.Domain.RiverRun.Models
         throw new ArgumentException($"Position.Y must equal the ground plane value {RunConstants.GroundY}.", nameof(position));
       }
     }
+
+    public abstract void Render(IRenderer renderer);
   }
 }

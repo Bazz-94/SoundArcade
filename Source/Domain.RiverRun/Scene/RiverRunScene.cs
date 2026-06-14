@@ -1,30 +1,23 @@
 namespace SoundArcade.Domain.RiverRun.Scene
 {
   using System;
-  using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
-  using SoundArcade.Domain.RiverRun.Services;
 
   /// <summary>
   /// Gameplay scene for RiverRun run simulation and rendering.
   /// </summary>
   public sealed class RiverRunScene : IScene
   {
-    private readonly GameLoop gameLoop;
-    private readonly Menu pauseMenu;
-    private readonly IInput input;
-    private readonly IRenderer renderer;
-    private readonly Action onMainMenuRequested;
-    private readonly Color laneColor;
-    private readonly Color playerColor;
-    private readonly Color obstacleColor;
-    private readonly Color hudLivesColor;
-    private readonly Color hudScoreColor;
-    private bool isPaused;
+    private Game Game { get; }
+    private Menu Menu { get; }
+    private IInput Input { get; }
+    private IRenderer Renderer { get; }
+    public Theme Theme { get; }
+    private Action OnMainMenuRequested { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RiverRunScene"/> class.
@@ -45,42 +38,32 @@ namespace SoundArcade.Domain.RiverRun.Scene
       IAudio audio,
       IInput input,
       IRenderer renderer,
-      MenuColors menuColors,
-      Action onMainMenuRequested,
-      Color laneColor,
-      Color playerColor,
-      Color obstacleColor,
-      Color hudLivesColor,
-      Color hudScoreColor)
+      Theme theme,
+      Action onMainMenuRequested)
     {
-      gameLoop = new GameLoop(new PlayerController(input), tts, audio, new RiverRunSession(new RiverRunSettings()));
-      this.input = input;
-      this.renderer = renderer;
-      this.onMainMenuRequested = onMainMenuRequested;
-      this.laneColor = laneColor;
-      this.playerColor = playerColor;
-      this.obstacleColor = obstacleColor;
-      this.hudLivesColor = hudLivesColor;
-      this.hudScoreColor = hudScoreColor;
+      this.Game = new Game(renderer, tts, audio, theme, new PlayerController(input));
+      this.Input = input;
+      this.Renderer = renderer;
+      this.Theme = theme;
+      this.OnMainMenuRequested = onMainMenuRequested;
 
-      pauseMenu = new Menu(
+      this.Menu = new Menu(
         input,
         tts,
         renderer,
         id: (int)PauseMenuType.Pause,
         menuTitle: "Pause Menu",
-        menuColors: menuColors,
+        theme: theme,
         items: [
-          new MenuItem((int)PauseMenuItem.Resume, "Resume", this.ResumeRunFromPause),
-          new MenuItem((int)PauseMenuItem.MainMenu, "Main Menu", OnPauseMenuMainMenuSelected)
+          new MenuItem(theme, (int)PauseMenuItem.Resume, "Resume", this.ResumeRunFromPause),
+          new MenuItem(theme, (int)PauseMenuItem.MainMenu, "Main Menu", this.OnPauseMenuMainMenuSelected)
         ]);
     }
 
     /// <inheritdoc />
     public void OnEnter()
     {
-      isPaused = false;
-      gameLoop.Start();
+      this.Game.Start();
     }
 
     /// <inheritdoc />
@@ -91,47 +74,40 @@ namespace SoundArcade.Domain.RiverRun.Scene
     /// <inheritdoc />
     public void Update(float deltaTime)
     {
-      if (isPaused)
+      if (this.Game.Session.State == SessionState.Paused)
       {
-        this.UpdatePauseMenu();
+        this.Menu.Update();
+
+        if (this.Input.InputPressed(Abstractions.Input.Back))
+        {
+          this.ResumeRunFromPause();
+        }
         return;
       }
 
-      gameLoop.Tick(deltaTime);
+      this.Game.Tick(deltaTime);
 
-      if (gameLoop.Session.State == SessionState.Paused)
+      if (this.Game.Session.State == SessionState.Paused)
       {
-        isPaused = true;
-        pauseMenu.SelectFirstItem();
+        this.Menu.SelectFirstItem();
       }
     }
 
     /// <inheritdoc />
     public void Render()
     {
-      this.RenderWorld();
-      this.RenderHud();
+      this.Game.Render();
 
-      if (isPaused)
+      if (this.Game.Session.State == SessionState.Paused)
       {
-        pauseMenu.Render();
+        this.Menu.Render();
       }
     }
 
     /// <inheritdoc />
     public void OnBackSelected()
     {
-      if (isPaused)
-      {
-        this.ResumeRunFromPause();
-      }
-    }
-
-    private void UpdatePauseMenu()
-    {
-      pauseMenu.Update();
-
-      if (input.InputPressed(Input.Back))
+      if (this.Game.Session.State == SessionState.Paused)
       {
         this.ResumeRunFromPause();
       }
@@ -139,44 +115,12 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
     private void ResumeRunFromPause()
     {
-      gameLoop.DispatchCommand(RunCommand.TogglePause);
-      isPaused = false;
+      this.Game.DispatchCommand(RunCommand.TogglePause);
     }
 
     private void OnPauseMenuMainMenuSelected()
     {
-      this.ResumeRunFromPause();
-      onMainMenuRequested();
-    }
-
-    private void RenderWorld()
-    {
-      float laneStartZ = gameLoop.Session.Player.Position.Z - 2.0f;
-      float laneEndZ = laneStartZ + 28.0f;
-
-      renderer.DrawLine(new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneEndZ), laneColor);
-      renderer.DrawLine(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneEndZ), laneColor);
-      renderer.DrawLine(new Vector3(RunConstants.LaneX.Right, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Right, RunConstants.GroundY, laneEndZ), laneColor);
-
-      renderer.DrawSphere(gameLoop.Session.Player.Position, 0.35f, playerColor);
-
-      foreach (RunObstacle obstacle in gameLoop.Session.Obstacles)
-      {
-        renderer.DrawBox(obstacle.Position, new Vector3(0.6f, 0.6f, 0.6f), obstacleColor);
-      }
-    }
-
-    private void RenderHud()
-    {
-      int lives = Math.Max(0, gameLoop.Session.Lives);
-      int score = Math.Max(0, gameLoop.Session.Score);
-
-      for (int i = 0; i < lives; i++)
-      {
-        renderer.DrawSphere(new Vector3(-3.5f + (i * 0.45f), 5.8f, 6.5f), 0.12f, hudLivesColor);
-      }
-
-      renderer.DrawText(new Vector3(1.0f, 5.6f, 6.5f), $"Score: {score}", 24, hudScoreColor);
+      this.OnMainMenuRequested();
     }
 
     private enum PauseMenuType

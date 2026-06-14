@@ -36,7 +36,7 @@ namespace SoundArcade.Application.DependencyInjection
       services.AddSingleton<ArcadeShell>();
       services.AddSingleton<GameRegistry>();
       services.AddSingleton<SceneManager>();
-      services.AddSingleton<ColorPalette>();
+      services.AddSingleton<Theme>();
 
       return services;
     }
@@ -46,7 +46,7 @@ namespace SoundArcade.Application.DependencyInjection
       services.AddSingleton<RiverRunSettings>();
       services.AddSingleton<RiverRunSession>();
       services.AddSingleton<PlayerController>();
-      services.AddSingleton<GameLoop>();
+      services.AddSingleton<Game>();
       return services;
     }
   }

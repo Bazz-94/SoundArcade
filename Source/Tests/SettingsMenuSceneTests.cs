@@ -35,8 +35,7 @@ namespace SoundArcade.Tests
         input: input,
         tts: tts,
         renderer: renderer,
-        menuColors: new MenuColors(),
-        settingsValueColor: new Color(0, 0, 0),
+        theme: new Theme(),
         backAction: () => { });
 
       scene.OnEnter();

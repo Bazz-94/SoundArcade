@@ -1,5 +1,8 @@
 namespace SoundArcade.Domain.Models
 {
+  using System.Numerics;
+  using SoundArcade.Abstractions;
+
   /// <summary>
   /// Base type for UI components with an identity and display text.
   /// </summary>
@@ -10,10 +13,11 @@ namespace SoundArcade.Domain.Models
     /// </summary>
     /// <param name="id">Stable component identifier.</param>
     /// <param name="displayText">Display text announced to users.</param>
-    protected UIComponent(int id, string displayText)
+    protected UIComponent(Color color, int id, string displayText)
     {
       this.Id = id;
       this.DisplayText = displayText;
+      this.Color = color;
     }
 
     /// <summary>
@@ -25,5 +29,9 @@ namespace SoundArcade.Domain.Models
     /// Gets the display text for this component.
     /// </summary>
     public string DisplayText { get; }
+
+    public Vector3 Position { get; set; } = new Vector3();
+
+    public Color Color { get; set; } = new Color(255, 255, 255);
   }
 }

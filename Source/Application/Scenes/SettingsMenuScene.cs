@@ -10,9 +10,7 @@
   public class SettingsMenuScene : IScene
   {
     private static readonly float[] VolumeLevels = [0.2f, 0.4f, 0.6f, 0.8f, 1.0f];
-    private const float ValueTextX = 3.0f;
-    private const float MasterVolumeTextY = 3.1f;
-    private const float TtsVolumeTextY = 2.2f;
+    private const float ValueTextX = -6.0f;
     private const float ValueTextZ = 2.7f;
     private const int ValueFontSize = 24;
 
@@ -32,8 +30,7 @@
       IInput input,
       ITts tts,
       IRenderer renderer,
-      MenuColors menuColors,
-      Color settingsValueColor,
+      Theme theme,
       Action backAction)
     {
       this.AppSettings = appSettings;
@@ -43,19 +40,19 @@
       this.Renderer = renderer;
       this.Audio = audio;
       this.backAction = backAction;
-      this.SettingsValueColor = settingsValueColor;
+      this.SettingsValueColor = theme.ColorPalette.Accent;
 
       this.Menu = new Menu(
       input,
       tts,
       renderer,
-      menuColors: menuColors,
+      theme: theme,
       id: (int)MenuType.Settings,
       menuTitle: "Settings Menu",
       items: [
-        new MenuItem((int)SettingsMenuItem.MasterVolume, "Game Volume", this.CycleMasterVolume),
-        new MenuItem((int)SettingsMenuItem.TtsVolume, "Text to Speech Volume", this.CycleTtsVolume),
-        new MenuItem((int)SettingsMenuItem.Back, "Back", this.OnBackSelected)
+        new MenuItem(theme, (int)SettingsMenuItem.MasterVolume, "Game Volume", this.CycleMasterVolume),
+        new MenuItem(theme, (int)SettingsMenuItem.TtsVolume, "Text to Speech Volume", this.CycleTtsVolume),
+        new MenuItem(theme, (int)SettingsMenuItem.Back, "Back", this.OnBackSelected)
       ]);
     }
 
@@ -67,13 +64,13 @@
       backAction();
     }
 
-    private static void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)
+    private void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)
     {
       int masterVolumePercent = (int)MathF.Round(appSettings.MasterVolume * 100.0f);
       int ttsVolumePercent = (int)MathF.Round(appSettings.TtsVolume * 100.0f);
 
-      renderer.DrawText(new Vector3(ValueTextX, MasterVolumeTextY, ValueTextZ), masterVolumePercent.ToString(), ValueFontSize, settingsValueColor);
-      renderer.DrawText(new Vector3(ValueTextX, TtsVolumeTextY, ValueTextZ), ttsVolumePercent.ToString(), ValueFontSize, settingsValueColor);
+      renderer.DrawText(new Vector3(ValueTextX, this.Menu.Items[(int)SettingsMenuItem.MasterVolume].Position.Y, ValueTextZ), masterVolumePercent.ToString(), ValueFontSize, settingsValueColor);
+      renderer.DrawText(new Vector3(ValueTextX, this.Menu.Items[(int)SettingsMenuItem.TtsVolume].Position.Y, ValueTextZ), ttsVolumePercent.ToString(), ValueFontSize, settingsValueColor);
     }
 
     private void PersistSettings()
@@ -157,7 +154,7 @@
     public void Render()
     {
       this.Menu.Render();
-      RenderSettingsValues(this.Renderer, this.AppSettings, this.SettingsValueColor);
+      this.RenderSettingsValues(this.Renderer, this.AppSettings, this.SettingsValueColor);
     }
 
     private enum SettingsMenuItem

@@ -15,8 +15,15 @@ namespace SoundArcade.Domain.Models
     public float DefaultMenuStartY { get; set; } = 8.0f;
     public float DefaultMenuItemSpacing { get; set; } = 0.9f;
     public int MenuItemFontSize { get; set; } = 22;
-    public float MenuItemTextZOffset { get; set; } = -0.1f;
     public Vector3 MenuItemSize { get; set; } = new Vector3(4f, 0.28f, 1f);
+    private string MenuTitle { get; }
+    public List<MenuItem> Items { get; }
+    private int SelectedIndex { get; set; }
+    private MenuItem SelectedItem => this.Items[this.SelectedIndex];
+    private Theme Theme { get; }
+    public IInput Input { get; }
+    public ITts Tts { get; }
+    public IRenderer Renderer { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Menu"/> class.
@@ -26,9 +33,10 @@ namespace SoundArcade.Domain.Models
     /// <param name="menuTitle">Title of the menu.</param>
     /// <param name="input">Input abstraction.</param>
     /// <param name="tts">Text-to-speech abstraction.</param>
-    public Menu(IInput input, ITts tts, IRenderer renderer, int id, IEnumerable<MenuItem> items, MenuColors menuColors, string menuTitle)
-      : base(id, menuTitle)
+    public Menu(IInput input, ITts tts, IRenderer renderer, int id, IEnumerable<MenuItem> items, Theme theme, string menuTitle)
+      : base(theme.ColorPalette.Tertiary, id, menuTitle)
     {
+      this.Theme = theme;
       this.Items = [.. items];
 
       if (this.Items.Count == 0)
@@ -39,21 +47,8 @@ namespace SoundArcade.Domain.Models
       this.Input = input;
       this.Tts = tts;
       this.Renderer = renderer;
-      this.SelectedColor = menuColors.Text;
-      this.UnselectedColor = menuColors.MenuItem;
       this.MenuTitle = menuTitle;
     }
-
-    private Color SelectedColor { get; }
-    private Color UnselectedColor { get; }
-    private string MenuTitle { get; }
-    private List<MenuItem> Items { get; }
-    private int SelectedIndex { get; set; }
-    private MenuItem SelectedItem => this.Items[this.SelectedIndex];
-
-    public IInput Input { get; }
-    public ITts Tts { get; }
-    public IRenderer Renderer { get; }
 
     public void SelectFirstItem()
     {
@@ -98,18 +93,18 @@ namespace SoundArcade.Domain.Models
 
     public void Render()
     {
+
+      this.Renderer.DrawText(new Vector3(0.0f, this.DefaultMenuStartY + 2, this.MenuZ), this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
+
       int itemIndex = 0;
-
-      this.Renderer.DrawText(new Vector3(0.0f, this.DefaultMenuStartY + 2, this.MenuZ), this.MenuTitle, this.MenuItemFontSize + 4, this.SelectedColor);
-
       foreach (MenuItem item in this.Items)
       {
         float y = this.DefaultMenuStartY - (itemIndex * this.DefaultMenuItemSpacing);
-        bool isSelected = itemIndex == this.SelectedIndex;
-        Color itemColor = isSelected ? this.SelectedColor : this.UnselectedColor;
-        Color textColor = isSelected ? this.UnselectedColor : this.SelectedColor;
-        this.Renderer.DrawBox(new Vector3(0.0f, y, this.MenuZ), this.MenuItemSize, itemColor);
-        this.Renderer.DrawText(new Vector3(0.0f, y, this.MenuZ + this.MenuItemTextZOffset), item.DisplayText, this.MenuItemFontSize, textColor);
+        item.Position = new Vector3(0.0f, y, this.MenuZ);
+        item.Color = this.Theme.ColorPalette.Primary;
+        item.TextColor = this.Theme.ColorPalette.Accent;
+        item.Render(this.Renderer, itemIndex == this.SelectedIndex);
+
         itemIndex++;
       }
     }

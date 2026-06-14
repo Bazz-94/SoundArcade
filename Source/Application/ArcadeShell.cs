@@ -31,7 +31,7 @@ namespace SoundArcade.Application
     private ITts Tts { get; set; }
     private IAudio Audio { get; set; }
     private SceneManager SceneManager { get; set; }
-    public ColorPalette ColorPalette { get; }
+    public Theme Theme { get; }
     private AppSettings AppSettings { get; set; }
     private ISettingsStore SettingsStore { get; set; }
 
@@ -53,7 +53,7 @@ namespace SoundArcade.Application
       IAudio audio,
       ISettingsStore settingsStore,
       SceneManager sceneManager,
-      ColorPalette colorPalette)
+      Theme theme)
     {
       this.Window = window;
       this.Renderer = renderer;
@@ -62,7 +62,7 @@ namespace SoundArcade.Application
       this.Audio = audio;
       this.SettingsStore = settingsStore;
       this.SceneManager = sceneManager;
-      this.ColorPalette = colorPalette;
+      this.Theme = theme;
       this.AppSettings = new AppSettings();
     }
 
@@ -81,7 +81,7 @@ namespace SoundArcade.Application
         this.SceneManager.Update(deltaTime);
 
         this.Window.BeginFrame();
-        this.Renderer.Clear(this.ColorPalette.Menu.Background);
+        this.Renderer.Clear(this.Theme.ColorPalette.Background);
         this.SceneManager.Render();
         this.Window.EndFrame();
       }
@@ -95,7 +95,7 @@ namespace SoundArcade.Application
         input: this.Input,
         tts: this.Tts,
         renderer: this.Renderer,
-        menuColors: this.ColorPalette.Menu,
+        theme: this.Theme,
         startRunAction: () => this.SceneManager.ChangeScene(this.CreateRunScene()),
         settingsAction: () => this.SceneManager.ChangeScene(this.CreateSettingsMenuScene()),
         exitAction: this.Exit);
@@ -108,8 +108,7 @@ namespace SoundArcade.Application
         appSettings: this.AppSettings,
         settingsStore: this.SettingsStore,
         input: this.Input,
-        menuColors: this.ColorPalette.Menu,
-        settingsValueColor: this.ColorPalette.Menu.Text,
+        theme: this.Theme,
         tts: this.Tts,
         renderer: this.Renderer,
         backAction: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()));
@@ -122,13 +121,8 @@ namespace SoundArcade.Application
         audio: this.Audio,
         input: this.Input,
         renderer: this.Renderer,
-        menuColors: this.ColorPalette.Menu,
-        onMainMenuRequested: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()),
-        laneColor: LaneColor,
-        playerColor: PlayerColor,
-        obstacleColor: ObstacleColor,
-        hudLivesColor: HudLivesColor,
-        hudScoreColor: HudScoreColor);
+        theme: this.Theme,
+        onMainMenuRequested: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()));
     }
 
     private void Exit()

@@ -2,6 +2,7 @@ namespace SoundArcade.Tests
 {
   using System.Collections.Generic;
   using System.Linq;
+  using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun.Models;
   using SoundArcade.Domain.RiverRun.Services;
   using Xunit;
@@ -26,7 +27,7 @@ namespace SoundArcade.Tests
         ScoringPerSecond: 50.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -46,7 +47,7 @@ namespace SoundArcade.Tests
         MaxPlayerSpeedIncrease: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       float startingSpeed = session.Player.Speed;
@@ -76,7 +77,7 @@ namespace SoundArcade.Tests
         SpawnDistanceMax: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -90,7 +91,7 @@ namespace SoundArcade.Tests
     [Fact]
     public void TogglePause_transitions_between_playing_and_paused()
     {
-      RiverRunSession session = new RiverRunSession(new RiverRunSettings(), new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), new RiverRunSettings(), new System.Random(RandomSeed));
       session.Start();
 
       IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
@@ -116,7 +117,7 @@ namespace SoundArcade.Tests
         ScoringPerSecond: 0.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      RiverRunSession session = new RiverRunSession(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);

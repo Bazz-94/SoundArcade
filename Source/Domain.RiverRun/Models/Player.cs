@@ -2,6 +2,7 @@ namespace SoundArcade.Domain.RiverRun.Models
 {
   using System;
   using System.Numerics;
+  using SoundArcade.Abstractions;
   using SoundArcade.Domain.Models;
 
   /// <summary>
@@ -14,6 +15,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// Gets the current forward movement speed in world units per second.
     /// </summary>
     public float Speed { get; private set; }
+    public Color color { get; }
 
     private readonly float speedIncreasePerZUnit;
     private readonly float maxSpeed;
@@ -27,6 +29,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// <param name="maxSpeedIncrease">Maximum additional speed allowed above the initial speed.</param>
     /// <param name="collidable">Whether the player collides with obstacles. Defaults to true.</param>
     public Player(
+      Color color,
       Vector3 position,
       float speed,
       float speedIncreasePerZUnit,
@@ -34,6 +37,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       bool collidable = true)
       : base(position, collidable)
     {
+      this.color = color;
       this.Speed = speed;
       this.speedIncreasePerZUnit = speedIncreasePerZUnit;
       maxSpeed = speed + maxSpeedIncrease;
@@ -102,6 +106,11 @@ namespace SoundArcade.Domain.RiverRun.Models
         default:
           throw new ArgumentException($"Command {command} is not a player command.", nameof(command));
       }
+    }
+
+    public override void Render(IRenderer renderer)
+    {
+      renderer.DrawSphere(this.Position, 0.35f, this.color);
     }
   }
 }

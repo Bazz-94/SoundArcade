@@ -16,7 +16,7 @@ namespace SoundArcade.Application.Scenes
       IInput input,
       ITts tts,
       IRenderer renderer,
-      MenuColors menuColors,
+      Theme theme,
       Action startRunAction,
       Action settingsAction,
       Action exitAction)
@@ -27,11 +27,11 @@ namespace SoundArcade.Application.Scenes
       renderer,
       (int)MenuType.Main,
       [
-        new MenuItem((int)MainMenuItem.StartRun, "Start", startRunAction),
-        new MenuItem((int)MainMenuItem.Settings, "Settings", settingsAction),
-        new MenuItem((int)MainMenuItem.Exit, "Exit", exitAction)
+        new MenuItem(theme, (int)MainMenuItem.StartRun, "Start", startRunAction),
+        new MenuItem(theme, (int)MainMenuItem.Settings, "Settings", settingsAction),
+        new MenuItem(theme, (int)MainMenuItem.Exit, "Exit", exitAction)
       ],
-      menuColors,
+      theme,
       "Sound Arcade"
       );
       this.Input = input;
