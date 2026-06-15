@@ -79,8 +79,7 @@ namespace SoundArcade.Domain.RiverRun.Services
 
       return
       [
-        new TextToSpeechEvent(RunConstants.Speech.RunStarted),
-        new PlaySoundEvent(RunConstants.SoundId.RunStart)
+        new TextToSpeechEvent(RunConstants.Speech.RunStarted)
       ];
     }
 
@@ -101,7 +100,6 @@ namespace SoundArcade.Domain.RiverRun.Services
             case RunCommand.TogglePause:
               this.State = SessionState.Paused;
               events.Add(new TextToSpeechEvent(RunConstants.Speech.Paused));
-              events.Add(new PlaySoundEvent(RunConstants.SoundId.Pause));
               break;
             case RunCommand.MoveLeft:
             case RunCommand.MoveRight:
@@ -118,7 +116,6 @@ namespace SoundArcade.Domain.RiverRun.Services
             case RunCommand.TogglePause:
               this.State = SessionState.Playing;
               events.Add(new TextToSpeechEvent(RunConstants.Speech.Resumed));
-              events.Add(new PlaySoundEvent(RunConstants.SoundId.Resume));
               break;
           }
           break;
@@ -194,7 +191,6 @@ namespace SoundArcade.Domain.RiverRun.Services
           {
             this.State = SessionState.GameOver;
             events.Add(new TextToSpeechEvent($"{RunConstants.Speech.GameOverPrefix} {this.Score}"));
-            events.Add(new PlaySoundEvent(RunConstants.SoundId.GameOver, null));
             break;
           }
 

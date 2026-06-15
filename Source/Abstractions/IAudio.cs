@@ -72,5 +72,12 @@ namespace SoundArcade.Abstractions
     /// </summary>
     /// <param name="volume">Music volume in the range 0 to 1.</param>
     void SetMusicVolume(float volume);
+
+    /// <summary>
+    /// Registers a sound asset with the audio system for later playback.
+    /// </summary>
+    /// <param name="soundId">Audio asset identifier.</param>
+    /// <param name="assetPath">Path to the audio file.</param>
+    void RegisterSound(string soundId, string assetPath);
   }
 }

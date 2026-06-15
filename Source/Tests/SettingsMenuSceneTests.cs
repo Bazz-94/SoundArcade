@@ -101,6 +101,10 @@ namespace SoundArcade.Tests
       public void SetMusicVolume(float volume)
       {
       }
+
+      public void RegisterSound(string soundId, string assetPath)
+      {
+      }
     }
 
     private sealed class FakeSettingsStore : ISettingsStore

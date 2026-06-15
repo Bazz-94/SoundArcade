@@ -13,7 +13,7 @@ namespace SoundArcade.Domain.Models
   {
     public float MenuZ { get; set; } = 2.5f;
     public float DefaultMenuStartY { get; set; } = 8.0f;
-    public float DefaultMenuItemSpacing { get; set; } = 0.9f;
+    public float DefaultMenuItemSpacing { get; set; } = 1f;
     public int MenuItemFontSize { get; set; } = 22;
     public Vector3 MenuItemSize { get; set; } = new Vector3(4f, 0.28f, 1f);
     private string MenuTitle { get; }
@@ -94,7 +94,7 @@ namespace SoundArcade.Domain.Models
     public void Render()
     {
 
-      this.Renderer.DrawText(new Vector3(0.0f, this.DefaultMenuStartY + 2, this.MenuZ), this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
+      this.Renderer.DrawText(new Vector3(0.0f, this.DefaultMenuStartY + 2f, this.MenuZ), this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
 
       int itemIndex = 0;
       foreach (MenuItem item in this.Items)
@@ -103,6 +103,7 @@ namespace SoundArcade.Domain.Models
         item.Position = new Vector3(0.0f, y, this.MenuZ);
         item.Color = this.Theme.ColorPalette.Primary;
         item.TextColor = this.Theme.ColorPalette.Accent;
+        item.Size = new Vector3(3f, 0.65f, 0.28f);
         item.Render(this.Renderer, itemIndex == this.SelectedIndex);
 
         itemIndex++;

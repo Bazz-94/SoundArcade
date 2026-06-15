@@ -41,35 +41,11 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// </summary>
     public static class SoundId
     {
-      /// <summary>
-      /// Sound played when a run starts.
-      /// </summary>
-      public const string RunStart = "run-start";
-
-      /// <summary>
-      /// Sound played on pause.
-      /// </summary>
-      public const string Pause = "pause";
-
-      /// <summary>
-      /// Sound played on resume.
-      /// </summary>
-      public const string Resume = "resume";
-
-      /// <summary>
-      /// Sound played on collision.
-      /// </summary>
+      public const string RiverNoise = "river_noise";
+      public const string ObstacleNoise = "obstacle_noise";
+      public const string rewardNoise = "reward_noise";
       public const string Collision = "collision";
-
-      /// <summary>
-      /// Sound played when the player gains score.
-      /// </summary>
-      public const string GainedScore = "gained-score";
-
-      /// <summary>
-      /// Sound played on game over.
-      /// </summary>
-      public const string GameOver = "game-over";
+      public const string Reward = "reward";
     }
 
     /// <summary>

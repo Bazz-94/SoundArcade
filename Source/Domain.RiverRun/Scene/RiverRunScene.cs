@@ -14,6 +14,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
   {
     private Game Game { get; }
     private Menu Menu { get; }
+    public IAudio Audio { get; }
     private IInput Input { get; }
     private IRenderer Renderer { get; }
     public Theme Theme { get; }
@@ -42,10 +43,12 @@ namespace SoundArcade.Domain.RiverRun.Scene
       Action onMainMenuRequested)
     {
       this.Game = new Game(renderer, tts, audio, theme, new PlayerController(input));
+      this.Audio = audio;
       this.Input = input;
       this.Renderer = renderer;
       this.Theme = theme;
       this.OnMainMenuRequested = onMainMenuRequested;
+      this.Audio = audio;
 
       this.Menu = new Menu(
         input,
@@ -58,6 +61,12 @@ namespace SoundArcade.Domain.RiverRun.Scene
           new MenuItem(theme, (int)PauseMenuItem.Resume, "Resume", this.ResumeRunFromPause),
           new MenuItem(theme, (int)PauseMenuItem.MainMenu, "Main Menu", this.OnPauseMenuMainMenuSelected)
         ]);
+
+      this.Audio.RegisterSound(RunConstants.SoundId.Collision, "\\Source\\Domain.RiverRun\\Assets\\Obstacle.mp3");
+      this.Audio.RegisterSound(RunConstants.SoundId.ObstacleNoise, "\\Source\\Domain.RiverRun\\Assets\\ObstacleNoise.mp3");
+      this.Audio.RegisterSound(RunConstants.SoundId.Reward, "\\Source\\Domain.RiverRun\\Assets\\Reward.mp3");
+      this.Audio.RegisterSound(RunConstants.SoundId.rewardNoise, "\\Source\\Domain.RiverRun\\Assets\\RewardNoise.mp3");
+      this.Audio.RegisterSound(RunConstants.SoundId.RiverNoise, "\\Source\\Domain.RiverRun\\Assets\\RiverNoise.mp3");
     }
 
     /// <inheritdoc />

@@ -32,6 +32,6 @@ namespace SoundArcade.Domain.Models
 
     public Vector3 Position { get; set; } = new Vector3();
 
-    public Color Color { get; set; } = new Color(255, 255, 255);
+    public Color Color { get; set; }
   }
 }
