@@ -1,6 +1,7 @@
 namespace SoundArcade.Domain.RiverRun.Scene
 {
   using System;
+  using System.IO;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
@@ -62,11 +63,12 @@ namespace SoundArcade.Domain.RiverRun.Scene
           new MenuItem(theme, (int)PauseMenuItem.MainMenu, "Main Menu", this.OnPauseMenuMainMenuSelected)
         ]);
 
-      this.Audio.RegisterSound(RunConstants.SoundId.Collision, "\\Source\\Domain.RiverRun\\Assets\\Obstacle.mp3");
-      this.Audio.RegisterSound(RunConstants.SoundId.ObstacleNoise, "\\Source\\Domain.RiverRun\\Assets\\ObstacleNoise.mp3");
-      this.Audio.RegisterSound(RunConstants.SoundId.Reward, "\\Source\\Domain.RiverRun\\Assets\\Reward.mp3");
-      this.Audio.RegisterSound(RunConstants.SoundId.rewardNoise, "\\Source\\Domain.RiverRun\\Assets\\RewardNoise.mp3");
-      this.Audio.RegisterSound(RunConstants.SoundId.RiverNoise, "\\Source\\Domain.RiverRun\\Assets\\RiverNoise.mp3");
+      string assetBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+      this.Audio.RegisterSound(RunConstants.SoundId.Collision, Path.Combine(assetBasePath, "Obstacle.mp3"));
+      this.Audio.RegisterSound(RunConstants.SoundId.ObstacleNoise, Path.Combine(assetBasePath, "ObstacleNoise.mp3"));
+      this.Audio.RegisterSound(RunConstants.SoundId.Reward, Path.Combine(assetBasePath, "Reward.mp3"));
+      this.Audio.RegisterSound(RunConstants.SoundId.rewardNoise, Path.Combine(assetBasePath, "RewardNoise.mp3"));
+      this.Audio.RegisterSound(RunConstants.SoundId.RiverNoise, Path.Combine(assetBasePath, "RiverNoise.mp3"));
     }
 
     /// <inheritdoc />
