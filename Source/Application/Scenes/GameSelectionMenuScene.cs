@@ -6,13 +6,13 @@ namespace SoundArcade.Application.Scenes
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.Services;
 
-  public sealed class MainMenuScene : IScene
+  public sealed class GameSelectionMenuScene : IScene
   {
     private Menu Menu { get; set; }
     public IInput Input { get; }
     private SceneManager SceneManager { get; }
 
-    public MainMenuScene(
+    public GameSelectionMenuScene(
       IInput input,
       ITts tts,
       IRenderer renderer,
@@ -24,21 +24,20 @@ namespace SoundArcade.Application.Scenes
       input,
       tts,
       renderer,
-      (int)MenuType.Main,
+      (int)MenuType.GameSelection,
       [
-        new MenuItem(theme, (int)MainMenuItem.Play, "Play", () => this.SceneManager.ChangeScene(SceneType.GameSelectionMenu)),
-        new MenuItem(theme, (int)MainMenuItem.Settings, "Settings", () => this.SceneManager.ChangeScene(SceneType.SettingsMenu)),
-        new MenuItem(theme, (int)MainMenuItem.Exit, "Exit", () => this.SceneManager.ChangeScene(SceneType.Exit))
+        new MenuItem(theme, (int)GameSelectionMenuItem.RiverRun, "RiverRun", () => this.SceneManager.ChangeScene(SceneType.Run)),
+        new MenuItem(theme, (int)GameSelectionMenuItem.Back, "Back", this.OnBackSelected)
       ],
       theme,
-      "Sound Arcade"
+      "Select a Game"
       );
       this.Input = input;
     }
 
     public void OnBackSelected()
     {
-      this.SceneManager.ChangeScene(SceneType.Exit);
+      this.SceneManager.ChangeScene(SceneType.MainMenu);
     }
 
     public void OnExit()
@@ -65,11 +64,10 @@ namespace SoundArcade.Application.Scenes
       this.Menu.SelectFirstItem();
     }
 
-    public enum MainMenuItem
+    public enum GameSelectionMenuItem
     {
-      Play,
-      Settings,
-      Exit
+      RiverRun,
+      Back
     }
   }
 }

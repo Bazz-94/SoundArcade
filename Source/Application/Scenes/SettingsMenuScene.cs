@@ -4,8 +4,9 @@
   using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
+  using SoundArcade.Domain.Enums;
   using SoundArcade.Domain.Models;
-  using static SoundArcade.Application.ArcadeShell;
+  using SoundArcade.Domain.Services;
 
   public class SettingsMenuScene : IScene
   {
@@ -20,7 +21,7 @@
     public ITts Tts { get; }
     public IRenderer Renderer { get; }
     private IAudio Audio { get; }
-    private readonly Action backAction;
+    private SceneManager SceneManager { get; }
     private Menu Menu { get; }
 
     public SettingsMenuScene(
@@ -31,7 +32,7 @@
       ITts tts,
       IRenderer renderer,
       Theme theme,
-      Action backAction)
+      SceneManager sceneManager)
     {
       this.AppSettings = appSettings;
       this.SettingsStore = settingsStore;
@@ -39,7 +40,7 @@
       this.Tts = tts;
       this.Renderer = renderer;
       this.Audio = audio;
-      this.backAction = backAction;
+      this.SceneManager = sceneManager;
       this.SettingsValueColor = theme.ColorPalette.Accent;
 
       this.Menu = new Menu(
@@ -61,7 +62,7 @@
     public void OnBackSelected()
     {
       this.PersistSettings();
-      backAction();
+      this.SceneManager.ChangeScene(SceneType.MainMenu);
     }
 
     private void RenderSettingsValues(IRenderer renderer, AppSettings appSettings, Color settingsValueColor)

@@ -11,6 +11,37 @@ namespace SoundArcade.Domain.Services
     private IScene? ActiveScene { get; set; }
 
     /// <summary>
+    /// Gets or sets the factory used to build scenes requested by <see cref="SceneType"/>.
+    /// </summary>
+    public ISceneFactory? SceneFactory { get; set; }
+
+    /// <summary>
+    /// Raised when <see cref="SceneType.Exit"/> is requested instead of a scene transition.
+    /// </summary>
+    public event Action? ExitRequested;
+
+    /// <summary>
+    /// Changes the active scene to the one identified by <paramref name="sceneType"/>, or
+    /// raises <see cref="ExitRequested"/> when <paramref name="sceneType"/> is <see cref="SceneType.Exit"/>.
+    /// </summary>
+    /// <param name="sceneType">Scene to activate.</param>
+    public void ChangeScene(SceneType sceneType)
+    {
+      if (sceneType == SceneType.Exit)
+      {
+        this.ExitRequested?.Invoke();
+        return;
+      }
+
+      if (this.SceneFactory is null)
+      {
+        throw new InvalidOperationException("SceneManager.SceneFactory must be set before requesting a scene change.");
+      }
+
+      this.ChangeScene(this.SceneFactory.CreateScene(sceneType));
+    }
+
+    /// <summary>
     /// Changes the active scene.
     /// </summary>
     /// <param name="scene">Scene to activate.</param>

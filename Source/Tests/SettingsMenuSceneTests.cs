@@ -6,6 +6,7 @@ namespace SoundArcade.Tests
   using SoundArcade.Abstractions;
   using SoundArcade.Application.Scenes;
   using SoundArcade.Domain.Colors;
+  using SoundArcade.Domain.Services;
   using Xunit;
 
   /// <summary>
@@ -36,7 +37,7 @@ namespace SoundArcade.Tests
         tts: tts,
         renderer: renderer,
         theme: new Theme(),
-        backAction: () => { });
+        sceneManager: new SceneManager());
 
       scene.OnEnter();
 

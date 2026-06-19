@@ -2,9 +2,8 @@ namespace SoundArcade.Application
 {
   using System;
   using SoundArcade.Abstractions;
-  using SoundArcade.Application.Scenes;
   using SoundArcade.Domain.Colors;
-  using SoundArcade.Domain.RiverRun.Scene;
+  using SoundArcade.Domain.Models;
   using SoundArcade.Domain.Services;
 
   /// <summary>
@@ -17,12 +16,6 @@ namespace SoundArcade.Application
     private const string WindowTitle = "Sound Arcade";
     private const float MinimumVolume = 0.0f;
     private const float MaximumVolume = 1.0f;
-
-    private static readonly Color LaneColor = new Color(ColorsHex.Teal);
-    private static readonly Color PlayerColor = new Color(ColorsHex.Purple);
-    private static readonly Color ObstacleColor = new Color(ColorsHex.Pink);
-    private static readonly Color HudLivesColor = new Color(ColorsHex.Pink);
-    private static readonly Color HudScoreColor = new Color(ColorsHex.Purple);
     private bool shouldExit;
 
     private IWindow Window { get; set; }
@@ -64,6 +57,7 @@ namespace SoundArcade.Application
       this.SceneManager = sceneManager;
       this.Theme = theme;
       this.AppSettings = new AppSettings();
+      this.SceneManager.ExitRequested += this.Exit;
     }
 
     /// <summary>
@@ -73,7 +67,16 @@ namespace SoundArcade.Application
     {
       this.Window.Initialize(WindowWidth, WindowHeight, WindowTitle);
       this.LoadSettings();
-      this.SceneManager.ChangeScene(this.CreateMainMenuScene());
+      this.SceneManager.SceneFactory = new SceneFactory(
+        input: this.Input,
+        tts: this.Tts,
+        renderer: this.Renderer,
+        audio: this.Audio,
+        settingsStore: this.SettingsStore,
+        appSettings: this.AppSettings,
+        theme: this.Theme,
+        sceneManager: this.SceneManager);
+      this.SceneManager.ChangeScene(SceneType.MainMenu);
 
       while (!this.Window.ShouldClose && !shouldExit)
       {
@@ -89,42 +92,6 @@ namespace SoundArcade.Application
       this.Window.Close();
     }
 
-    private MainMenuScene CreateMainMenuScene()
-    {
-      return new MainMenuScene(
-        input: this.Input,
-        tts: this.Tts,
-        renderer: this.Renderer,
-        theme: this.Theme,
-        startRunAction: () => this.SceneManager.ChangeScene(this.CreateRunScene()),
-        settingsAction: () => this.SceneManager.ChangeScene(this.CreateSettingsMenuScene()),
-        exitAction: this.Exit);
-    }
-
-    private SettingsMenuScene CreateSettingsMenuScene()
-    {
-      return new SettingsMenuScene(
-        audio: this.Audio,
-        appSettings: this.AppSettings,
-        settingsStore: this.SettingsStore,
-        input: this.Input,
-        theme: this.Theme,
-        tts: this.Tts,
-        renderer: this.Renderer,
-        backAction: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()));
-    }
-
-    private RiverRunScene CreateRunScene()
-    {
-      return new RiverRunScene(
-        tts: this.Tts,
-        audio: this.Audio,
-        input: this.Input,
-        renderer: this.Renderer,
-        theme: this.Theme,
-        onMainMenuRequested: () => this.SceneManager.ChangeScene(this.CreateMainMenuScene()));
-    }
-
     private void Exit()
     {
       shouldExit = true;
@@ -138,19 +105,6 @@ namespace SoundArcade.Application
       this.Audio.SetMasterVolume(this.AppSettings.MasterVolume);
       this.Tts.SetVolume(this.AppSettings.TtsVolume);
       this.Input.LoadMappings();
-    }
-
-    public enum MenuType
-    {
-      Main,
-      Settings
-    }
-
-    public enum MainMenuItem
-    {
-      StartRun,
-      Settings,
-      Exit
     }
   }
 }

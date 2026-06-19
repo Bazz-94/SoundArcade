@@ -7,6 +7,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.Services;
 
   /// <summary>
   /// Gameplay scene for RiverRun run simulation and rendering.
@@ -19,7 +20,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
     private IInput Input { get; }
     private IRenderer Renderer { get; }
     public Theme Theme { get; }
-    private Action OnMainMenuRequested { get; }
+    private SceneManager SceneManager { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RiverRunScene"/> class.
@@ -28,27 +29,22 @@ namespace SoundArcade.Domain.RiverRun.Scene
     /// <param name="audio">Audio abstraction.</param>
     /// <param name="input">Input abstraction.</param>
     /// <param name="renderer">Renderer abstraction.</param>
-    /// <param name="menuColors">Pause menu color palette.</param>
-    /// <param name="onMainMenuRequested">Callback invoked when the scene should return to the main menu.</param>
-    /// <param name="laneColor">Lane color.</param>
-    /// <param name="playerColor">Player color.</param>
-    /// <param name="obstacleColor">Obstacle color.</param>
-    /// <param name="hudLivesColor">HUD lives color.</param>
-    /// <param name="hudScoreColor">HUD score color.</param>
+    /// <param name="theme">Color theme.</param>
+    /// <param name="sceneManager">Scene manager used to request transitions.</param>
     public RiverRunScene(
       ITts tts,
       IAudio audio,
       IInput input,
       IRenderer renderer,
       Theme theme,
-      Action onMainMenuRequested)
+      SceneManager sceneManager)
     {
       this.Game = new Game(renderer, tts, audio, theme, new PlayerController(input));
       this.Audio = audio;
       this.Input = input;
       this.Renderer = renderer;
       this.Theme = theme;
-      this.OnMainMenuRequested = onMainMenuRequested;
+      this.SceneManager = sceneManager;
       this.Audio = audio;
 
       this.Menu = new Menu(
@@ -131,7 +127,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
     private void OnPauseMenuMainMenuSelected()
     {
-      this.OnMainMenuRequested();
+      this.SceneManager.ChangeScene(SceneType.MainMenu);
     }
 
     private enum PauseMenuType
