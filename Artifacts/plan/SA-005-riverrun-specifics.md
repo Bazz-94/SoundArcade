@@ -6,10 +6,13 @@ Implement RiverRun-specific mechanics and data: three-lane world model, lane swi
 ## Scope
 Includes:
 - Three-lane world model and lane positions mapped to `Vector3` coordinates.
-- Player controller support for lane change, Left/Right, and Pause, Escape/P.
-- Spawner that creates lane-based obstacles and pickups moving toward the player.
+- Player controller support for lane change, Left/Right, and Pause.
+- Spawner that creates lane-based obstacles and pickups.
 - Collision detection for obstacles and pickups, single-life collision -> GameOver.
-- Assign SFX string IDs for lane change, pickup, collision; TTS announcements for score milestones, pause, and game over.
+- Assign SFX string IDs for pickup, collision.
+- The camera should move up as the player progresses.
+- 3D positional audio, Obstacles and pickups should make noise so that the player can hear them coming and react accordingly.
+- 3D positional audio, for the rivers on each side of the player to help the player know which lane they are in.
 
 Excludes:
 - Complex graphics or animation.
@@ -20,7 +23,7 @@ Excludes:
 - Type: Gameplay
 - Dependencies: SA-001, SA-002, SA-003
 - Complexity: Medium
-- Status: Not Started
+- Status: Completed
 
 ## Inputs
 - `IAudio` and `ITts`, positional audio and TTS.

@@ -14,6 +14,8 @@ namespace SoundArcade.Domain.RiverRun.Scene
   /// </summary>
   public sealed class RiverRunScene : IScene
   {
+    private const float PauseMenuZOffset = 2.5f;
+
     private Game Game { get; }
     private Menu Menu { get; }
     public IAudio Audio { get; }
@@ -63,7 +65,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
       this.Audio.RegisterSound(RunConstants.SoundId.Collision, Path.Combine(assetBasePath, "Obstacle.mp3"));
       this.Audio.RegisterSound(RunConstants.SoundId.ObstacleNoise, Path.Combine(assetBasePath, "ObstacleNoise.mp3"));
       this.Audio.RegisterSound(RunConstants.SoundId.Reward, Path.Combine(assetBasePath, "Reward.mp3"));
-      this.Audio.RegisterSound(RunConstants.SoundId.rewardNoise, Path.Combine(assetBasePath, "RewardNoise.mp3"));
+      this.Audio.RegisterSound(RunConstants.SoundId.RewardNoise, Path.Combine(assetBasePath, "RewardNoise.mp3"));
       this.Audio.RegisterSound(RunConstants.SoundId.RiverNoise, Path.Combine(assetBasePath, "RiverNoise.mp3"));
     }
 
@@ -76,6 +78,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
     /// <inheritdoc />
     public void OnExit()
     {
+      this.Renderer.ResetCamera();
     }
 
     /// <inheritdoc />
@@ -107,6 +110,7 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
       if (this.Game.Session.State == SessionState.Paused)
       {
+        this.Menu.MenuZ = this.Game.Session.Player.Position.Z + PauseMenuZOffset;
         this.Menu.Render();
       }
     }

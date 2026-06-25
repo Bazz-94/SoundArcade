@@ -52,5 +52,16 @@ namespace SoundArcade.Abstractions
     /// <param name="fontSize">Font size in pixels.</param>
     /// <param name="color">Text color.</param>
     void DrawText(Vector3 position, string text, int fontSize, Color color);
+
+    /// <summary>
+    /// Moves the camera to follow a world position, preserving its default viewing offset.
+    /// </summary>
+    /// <param name="focusPosition">World position the camera should follow.</param>
+    void SetCameraTarget(Vector3 focusPosition);
+
+    /// <summary>
+    /// Restores the camera to its default position and target.
+    /// </summary>
+    void ResetCamera();
   }
 }

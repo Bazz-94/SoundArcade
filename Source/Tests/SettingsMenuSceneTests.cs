@@ -218,6 +218,14 @@ namespace SoundArcade.Tests
       public void DrawText(Vector3 position, string text, int fontSize, Color color)
       {
       }
+
+      public void SetCameraTarget(Vector3 focusPosition)
+      {
+      }
+
+      public void ResetCamera()
+      {
+      }
     }
 
     private sealed class FakeTts : ITts

@@ -43,7 +43,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     {
       public const string RiverNoise = "river_noise";
       public const string ObstacleNoise = "obstacle_noise";
-      public const string rewardNoise = "reward_noise";
+      public const string RewardNoise = "reward_noise";
       public const string Collision = "collision";
       public const string Reward = "reward";
     }
@@ -82,6 +82,11 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// Spoken prefix used for game-over announcements.
       /// </summary>
       public const string GameOverPrefix = "Game over. Final score";
+
+      /// <summary>
+      /// Spoken prefix used when a pickup is collected.
+      /// </summary>
+      public const string PickupPrefix = "Pickup. Plus";
     }
 
     /// <summary>
@@ -108,6 +113,26 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// Obstacle spawn volume.
       /// </summary>
       public const float ObstacleSpawn = 0.9f;
+
+      /// <summary>
+      /// Loudest volume for obstacle and pickup approach noise cues, used when the object is right next to the player.
+      /// </summary>
+      public const float ApproachNoiseMax = 0.6f;
+
+      /// <summary>
+      /// Quietest volume for obstacle and pickup approach noise cues, used at the edge of the approach noise radius.
+      /// </summary>
+      public const float ApproachNoiseMin = 0.15f;
+
+      /// <summary>
+      /// Volume for the ambient river noise either side of the player.
+      /// </summary>
+      public const float RiverAmbient = 0.4f;
+
+      /// <summary>
+      /// Volume for pickup collection feedback.
+      /// </summary>
+      public const float PickupCollected = 0.9f;
     }
   }
 }

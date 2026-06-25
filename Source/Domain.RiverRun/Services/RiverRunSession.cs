@@ -16,9 +16,13 @@ namespace SoundArcade.Domain.RiverRun.Services
     private float ScoreRemainder { get; set; }
     private int NextScoreAnnouncement { get; set; }
     public IReadOnlyList<Obstacle> Obstacles => obstacles;
+    public IReadOnlyList<Pickup> Pickups => pickups;
     private readonly List<Obstacle> obstacles = [];
+    private readonly List<Pickup> pickups = [];
+    private float NextRiverNoiseAt { get; set; }
 
     private ObstacleSpawner Spawner { get; }
+    private PickupSpawner PickupSpawner { get; }
     public Theme Theme { get; }
     private RiverRunSettings Settings { get; }
     public float ElapsedSeconds { get; private set; }
@@ -41,6 +45,7 @@ namespace SoundArcade.Domain.RiverRun.Services
       this.Theme = theme;
       this.Settings = settings;
       this.Spawner = new ObstacleSpawner(this.Theme.ColorPalette.Secondary, this.Settings, random);
+      this.PickupSpawner = new PickupSpawner(this.Theme.ColorPalette.Accent, this.Settings, random);
 
       this.Player = new Player(
         this.Theme.ColorPalette.Tertiary,
@@ -63,9 +68,12 @@ namespace SoundArcade.Domain.RiverRun.Services
     public IReadOnlyList<RunEvent> Start()
     {
       obstacles.Clear();
+      pickups.Clear();
       this.Spawner.Reset();
+      this.PickupSpawner.Reset();
       this.ElapsedSeconds = 0.0f;
       this.ScoreRemainder = 0.0f;
+      this.NextRiverNoiseAt = 0.0f;
       this.Score = 0;
       this.Player = new Player(
         this.Theme.ColorPalette.Tertiary,
@@ -165,11 +173,18 @@ namespace SoundArcade.Domain.RiverRun.Services
         }
       }
 
-      IReadOnlyList<Obstacle> spawned = this.Spawner.Update(this.Player.Position.Z);
+      IReadOnlyList<Obstacle> spawnedObstacles = this.Spawner.Update(this.Player.Position.Z);
 
-      foreach (Obstacle spawnedObstacle in spawned)
+      foreach (Obstacle spawnedObstacle in spawnedObstacles)
       {
         obstacles.Add(spawnedObstacle);
+      }
+
+      IReadOnlyList<Pickup> spawnedPickups = this.PickupSpawner.Update(this.Player.Position.Z);
+
+      foreach (Pickup spawnedPickup in spawnedPickups)
+      {
+        pickups.Add(spawnedPickup);
       }
 
       this.Player.Advance(deltaTimeSeconds);
@@ -197,6 +212,17 @@ namespace SoundArcade.Domain.RiverRun.Services
           continue;
         }
 
+        float obstacleDistanceAhead = obstacle.Position.Z - this.Player.Position.Z;
+
+        if (obstacleDistanceAhead > 0.0f
+          && obstacleDistanceAhead <= this.Settings.ApproachNoiseRadius
+          && this.ElapsedSeconds >= obstacle.NextNoiseAt)
+        {
+          float volume = ComputeApproachNoiseVolume(obstacleDistanceAhead, this.Settings.ApproachNoiseRadius);
+          events.Add(new PlaySoundEvent(RunConstants.SoundId.ObstacleNoise, obstacle.Position, volume));
+          obstacle.NextNoiseAt = this.ElapsedSeconds + this.Settings.ApproachNoiseInterval;
+        }
+
         if (obstacle.Position.Z < this.Player.Position.Z)
         {
           obstacles.RemoveAt(i);
@@ -204,11 +230,61 @@ namespace SoundArcade.Domain.RiverRun.Services
         }
       }
 
+      if (this.State == SessionState.GameOver)
+      {
+        return events;
+      }
+
+      for (int i = 0; i < pickups.Count; i++)
+      {
+        Pickup pickup = pickups[i];
+
+        bool collected = ProximityCollision.IsWithinBuffer(pickup.Position, this.Player.Position, this.Settings.CollisionRadius);
+
+        if (collected)
+        {
+          pickups.RemoveAt(i);
+          this.Score += this.Settings.PickupScoreBonus;
+          events.Add(new TextToSpeechEvent($"{RunConstants.Speech.PickupPrefix} {this.Settings.PickupScoreBonus}"));
+          events.Add(new PlaySoundEvent(RunConstants.SoundId.Reward, pickup.Position, RunConstants.Volume.PickupCollected));
+          continue;
+        }
+
+        float pickupDistanceAhead = pickup.Position.Z - this.Player.Position.Z;
+
+        if (pickupDistanceAhead > 0.0f
+          && pickupDistanceAhead <= this.Settings.ApproachNoiseRadius
+          && this.ElapsedSeconds >= pickup.NextNoiseAt)
+        {
+          float volume = ComputeApproachNoiseVolume(pickupDistanceAhead, this.Settings.ApproachNoiseRadius);
+          events.Add(new PlaySoundEvent(RunConstants.SoundId.RewardNoise, pickup.Position, volume));
+          pickup.NextNoiseAt = this.ElapsedSeconds + this.Settings.ApproachNoiseInterval;
+        }
+
+        if (pickup.Position.Z < this.Player.Position.Z)
+        {
+          pickups.RemoveAt(i);
+          continue;
+        }
+      }
+
+      if (this.ElapsedSeconds >= this.NextRiverNoiseAt)
+      {
+        this.NextRiverNoiseAt = this.ElapsedSeconds + this.Settings.RiverNoiseInterval;
+
+        Vector3 leftRiverPosition = new Vector3(RunConstants.LaneX.Left - this.Settings.RiverNoiseLaneOffset, RunConstants.GroundY, this.Player.Position.Z);
+        Vector3 rightRiverPosition = new Vector3(RunConstants.LaneX.Right + this.Settings.RiverNoiseLaneOffset, RunConstants.GroundY, this.Player.Position.Z);
+
+        events.Add(new PlaySoundEvent(RunConstants.SoundId.RiverNoise, leftRiverPosition, RunConstants.Volume.RiverAmbient));
+        events.Add(new PlaySoundEvent(RunConstants.SoundId.RiverNoise, rightRiverPosition, RunConstants.Volume.RiverAmbient));
+      }
+
       return events;
     }
 
     public void Render(IRenderer renderer)
     {
+      renderer.SetCameraTarget(this.Player.Position);
       this.RenderHud(renderer);
       float laneStartZ = this.Player.Position.Z - 2.0f;
       float laneEndZ = laneStartZ + 28.0f;
@@ -223,19 +299,25 @@ namespace SoundArcade.Domain.RiverRun.Services
       {
         obstacle.Render(renderer);
       }
+
+      foreach (Pickup pickup in pickups)
+      {
+        pickup.Render(renderer);
+      }
     }
 
     public void RenderHud(IRenderer renderer)
     {
       int lives = Math.Max(0, this.Lives);
       int score = Math.Max(0, this.Score);
+      float hudZ = this.Player.Position.Z + 6.5f;
 
       for (int i = 0; i < lives; i++)
       {
-        renderer.DrawSphere(new Vector3(-3.5f + (i * 0.45f), 5.8f, 6.5f), 0.12f, hudLivesColor);
+        renderer.DrawSphere(new Vector3(-3.5f + (i * 0.45f), 5.8f, hudZ), 0.12f, hudLivesColor);
       }
 
-      renderer.DrawText(new Vector3(1.0f, 5.6f, 6.5f), $"Score: {score}", 24, hudScoreColor);
+      renderer.DrawText(new Vector3(1.0f, 5.6f, hudZ), $"Score: {score}", 24, hudScoreColor);
     }
 
     /// <summary>
@@ -260,6 +342,37 @@ namespace SoundArcade.Domain.RiverRun.Services
     public void QueueObstacle(Vector3 position)
     {
       obstacles.Add(this.Spawner.CreateRunObstacle(position));
+    }
+
+    /// <summary>
+    /// Adds a deterministic pickup for tests or scripted scenarios.
+    /// </summary>
+    /// <param name="lane">Target lane index.</param>
+    /// <param name="z">Initial Z position.</param>
+    public void QueuePickup(float lane, float z)
+    {
+      if (lane is < RunConstants.LaneX.Left or > RunConstants.LaneX.Right)
+      {
+        throw new ArgumentOutOfRangeException(nameof(lane));
+      }
+      Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
+      pickups.Add(this.PickupSpawner.CreatePickup(position));
+    }
+
+    /// <summary>
+    /// Scales approach noise volume so it is loudest right next to the player and quietest at the edge of the approach radius.
+    /// </summary>
+    /// <param name="distanceAhead">Forward distance from the player to the object.</param>
+    /// <param name="radius">Distance at which approach noise starts being audible.</param>
+    private static float ComputeApproachNoiseVolume(float distanceAhead, float radius)
+    {
+      if (radius <= 0.0f)
+      {
+        return RunConstants.Volume.ApproachNoiseMax;
+      }
+
+      float proximity = 1.0f - Math.Clamp(distanceAhead / radius, 0.0f, 1.0f);
+      return RunConstants.Volume.ApproachNoiseMin + (proximity * (RunConstants.Volume.ApproachNoiseMax - RunConstants.Volume.ApproachNoiseMin));
     }
   }
 }

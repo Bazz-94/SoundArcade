@@ -12,6 +12,11 @@ namespace SoundArcade.Domain.RiverRun.Models
     private Color Color { get; }
 
     /// <summary>
+    /// Gets or sets the elapsed-time threshold after which this obstacle may emit another approach noise cue.
+    /// </summary>
+    public float NextNoiseAt { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of <see cref="Obstacle"/>.
     /// </summary>
     /// <param name="position">Initial world position for the obstacle.</param>

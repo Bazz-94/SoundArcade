@@ -1,0 +1,35 @@
+namespace SoundArcade.Domain.RiverRun.Models
+{
+  using System.Numerics;
+  using SoundArcade.Abstractions;
+
+  /// <summary>
+  /// Represents one active pickup in world space.
+  /// Pickups are stationary in world space; the player moves forward to collect them.
+  /// </summary>
+  public sealed class Pickup : GameObject
+  {
+    private Color Color { get; }
+
+    /// <summary>
+    /// Gets or sets the elapsed-time threshold after which this pickup may emit another approach noise cue.
+    /// </summary>
+    public float NextNoiseAt { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Pickup"/>.
+    /// </summary>
+    /// <param name="position">Initial world position for the pickup.</param>
+    /// <param name="color">Color for rendering the pickup.</param>
+    public Pickup(Vector3 position, Color color)
+      : base(position, isCollidable: true)
+    {
+      this.Color = color;
+    }
+
+    public override void Render(IRenderer renderer)
+    {
+      renderer.DrawSphere(this.Position, 0.25f, this.Color);
+    }
+  }
+}
