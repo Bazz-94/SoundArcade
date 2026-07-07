@@ -11,14 +11,16 @@ namespace SoundArcade.Domain.RiverRun.Models
     public static class LaneX
     {
       /// <summary>
-      /// Width of one lane in world units.
+      /// Width of one lane in world units. This is also the lateral distance between adjacent lanes,
+      /// so larger values spread the lanes further apart and sharpen the left/right stereo separation
+      /// of obstacles and pickups. Keep <see cref="Left"/> and <see cref="Right"/> equal to ±this value.
       /// </summary>
-      public const float LaneWidth = 1.0f;
+      public const float LaneWidth = 3.0f;
 
       /// <summary>
-      /// Left lane X coordinate.
+      /// Left lane X coordinate. Positive X renders on the screen-left under the follow camera.
       /// </summary>
-      public const float Left = -1.0f;
+      public const float Left = LaneWidth;
 
       /// <summary>
       /// Center lane X coordinate.
@@ -26,9 +28,9 @@ namespace SoundArcade.Domain.RiverRun.Models
       public const float Center = 0.0f;
 
       /// <summary>
-      /// Right lane X coordinate.
+      /// Right lane X coordinate. Negative X renders on the screen-right under the follow camera.
       /// </summary>
-      public const float Right = 1.0f;
+      public const float Right = -LaneWidth;
     }
 
     /// <summary>
@@ -95,24 +97,9 @@ namespace SoundArcade.Domain.RiverRun.Models
     public static class Volume
     {
       /// <summary>
-      /// Lane cue volume.
-      /// </summary>
-      public const float LaneCue = 0.7f;
-
-      /// <summary>
-      /// Lane change volume.
-      /// </summary>
-      public const float LaneChange = 0.75f;
-
-      /// <summary>
       /// Score milestone volume.
       /// </summary>
       public const float ScoreMilestone = 0.8f;
-
-      /// <summary>
-      /// Obstacle spawn volume.
-      /// </summary>
-      public const float ObstacleSpawn = 0.9f;
 
       /// <summary>
       /// Loudest volume for obstacle and pickup approach noise cues, used when the object is right next to the player.
@@ -122,17 +109,74 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// <summary>
       /// Quietest volume for obstacle and pickup approach noise cues, used at the edge of the approach noise radius.
       /// </summary>
-      public const float ApproachNoiseMin = 0.15f;
+      public const float ApproachNoiseMin = 0.01f;
 
       /// <summary>
       /// Volume for the ambient river noise either side of the player.
       /// </summary>
-      public const float RiverAmbient = 0.4f;
+      public const float RiverAmbient = 0.01f;
 
       /// <summary>
       /// Volume for pickup collection feedback.
       /// </summary>
       public const float PickupCollected = 0.9f;
+    }
+
+    /// <summary>
+    /// Per-asset gain multipliers applied at registration to normalize source files that were
+    /// recorded at different loudness levels. Tune these so every cue sits at a comparable level;
+    /// 1.0 leaves a file unchanged.
+    /// </summary>
+    public static class Gain
+    {
+      /// <summary>
+      /// Gain for the obstacle collision sound.
+      /// </summary>
+      public const float Collision = 1.0f;
+
+      /// <summary>
+      /// Gain for the obstacle approach noise.
+      /// </summary>
+      public const float ObstacleNoise = 1.0f;
+
+      /// <summary>
+      /// Gain for the pickup collection sound.
+      /// </summary>
+      public const float Reward = 1.0f;
+
+      /// <summary>
+      /// Gain for the pickup approach noise. Boosted because the source file is quiet.
+      /// </summary>
+      public const float RewardNoise = 4.0f;
+
+      /// <summary>
+      /// Gain for the ambient river noise.
+      /// </summary>
+      public const float RiverNoise = 1.0f;
+    }
+
+    /// <summary>
+    /// Playback pitch multipliers, where 1.0 is the asset's base pitch.
+    /// </summary>
+    public static class Pitch
+    {
+      /// <summary>
+      /// Pitch of the obstacle approach noise at the far edge of the approach radius.
+      /// </summary>
+      public const float ObstacleNoiseFar = 1.0f;
+
+      /// <summary>
+      /// Pitch of the obstacle approach noise when the obstacle is right next to the player. Higher
+      /// than <see cref="ObstacleNoiseFar"/> so a rising pitch signals an obstacle closing in.
+      /// </summary>
+      public const float ObstacleNoiseNear = 1.25f;
+
+      /// <summary>
+      /// Fraction of the approach noise radius over which the obstacle pitch ramps up. The pitch stays
+      /// at <see cref="ObstacleNoiseFar"/> until the obstacle is within this fraction of the radius,
+      /// then rises to <see cref="ObstacleNoiseNear"/> as it reaches the player. 0.25 = last quarter.
+      /// </summary>
+      public const float ObstacleNoiseRampFraction = 0.25f;
     }
   }
 }

@@ -50,12 +50,12 @@ namespace SoundArcade.Domain.RiverRun.Models
     {
       float currentX = this.Position.X;
 
-      if (currentX <= RunConstants.LaneX.Left)
+      if (currentX >= RunConstants.LaneX.Left)
       {
         return;
       }
 
-      float newX = currentX - RunConstants.LaneX.LaneWidth;
+      float newX = currentX + RunConstants.LaneX.LaneWidth;
       this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
     }
 
@@ -66,12 +66,12 @@ namespace SoundArcade.Domain.RiverRun.Models
     {
       float currentX = this.Position.X;
 
-      if (currentX >= RunConstants.LaneX.Right)
+      if (currentX <= RunConstants.LaneX.Right)
       {
         return;
       }
 
-      float newX = currentX + RunConstants.LaneX.LaneWidth;
+      float newX = currentX - RunConstants.LaneX.LaneWidth;
       this.Position = new Vector3(newX, RunConstants.GroundY, this.Position.Z);
     }
 

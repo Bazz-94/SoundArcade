@@ -17,8 +17,13 @@ namespace SoundArcade.Infrastructure.Audio
     private const float DuckingMusicVolume = 0.35f;
     private const float MinimumAudibleVolume = 0.2f;
     private const float MaximumHearDistance = 20.0f;
+    private const float PanWidth = 2.0f;
+    private const int PositionalVoiceCount = 4;
 
     private readonly Dictionary<string, Sound> sounds = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, float> soundGains = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Sound[]> positionalVoices = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> positionalVoiceCursors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Music> musicTracks = new(StringComparer.Ordinal);
     private readonly object sync = new();
     private readonly ITts? tts;
@@ -52,38 +57,49 @@ namespace SoundArcade.Infrastructure.Audio
     /// </summary>
     public void Dispose()
     {
-      if (disposed)
+      if (this.disposed)
       {
         return;
       }
 
-      if (tts is not null)
+      if (this.tts is not null)
       {
-        tts.SpeakStarted -= this.OnTtsSpeakStarted;
-        tts.SpeakCompleted -= this.OnTtsSpeakCompleted;
+        this.tts.SpeakStarted -= this.OnTtsSpeakStarted;
+        this.tts.SpeakCompleted -= this.OnTtsSpeakCompleted;
       }
 
       this.StopMusic();
 
-      foreach (KeyValuePair<string, Sound> entry in sounds)
+      foreach (KeyValuePair<string, Sound[]> entry in this.positionalVoices)
+      {
+        foreach (Sound voice in entry.Value)
+        {
+          Raylib.UnloadSoundAlias(voice);
+        }
+      }
+
+      foreach (KeyValuePair<string, Sound> entry in this.sounds)
       {
         Raylib.UnloadSound(entry.Value);
       }
 
-      foreach (KeyValuePair<string, Music> entry in musicTracks)
+      foreach (KeyValuePair<string, Music> entry in this.musicTracks)
       {
         Raylib.UnloadMusicStream(entry.Value);
       }
 
-      sounds.Clear();
-      musicTracks.Clear();
+      this.positionalVoices.Clear();
+      this.positionalVoiceCursors.Clear();
+      this.soundGains.Clear();
+      this.sounds.Clear();
+      this.musicTracks.Clear();
 
       if (Raylib.IsAudioDeviceReady())
       {
         Raylib.CloseAudioDevice();
       }
 
-      disposed = true;
+      this.disposed = true;
     }
 
     /// <summary>
@@ -91,21 +107,39 @@ namespace SoundArcade.Infrastructure.Audio
     /// </summary>
     /// <param name="soundId">Audio asset identifier.</param>
     /// <param name="assetPath">Absolute or relative file path to the asset.</param>
-    public void RegisterSound(string soundId, string assetPath)
+    /// <param name="gain">Per-asset volume multiplier applied to every playback of this sound.</param>
+    public void RegisterSound(string soundId, string assetPath, float gain = 1.0f)
     {
       this.EnsureNotDisposed();
       ValidateRegistration(soundId, assetPath);
 
       Sound sound = Raylib.LoadSound(assetPath);
 
-      lock (sync)
+      Sound[] voices = new Sound[PositionalVoiceCount];
+      for (int i = 0; i < PositionalVoiceCount; i++)
       {
-        if (sounds.TryGetValue(soundId, out Sound existingSound))
+        voices[i] = Raylib.LoadSoundAlias(sound);
+      }
+
+      lock (this.sync)
+      {
+        if (this.positionalVoices.TryGetValue(soundId, out Sound[]? existingVoices))
+        {
+          foreach (Sound existingVoice in existingVoices)
+          {
+            Raylib.UnloadSoundAlias(existingVoice);
+          }
+        }
+
+        if (this.sounds.TryGetValue(soundId, out Sound existingSound))
         {
           Raylib.UnloadSound(existingSound);
         }
 
-        sounds[soundId] = sound;
+        this.sounds[soundId] = sound;
+        this.soundGains[soundId] = Math.Max(0.0f, gain);
+        this.positionalVoices[soundId] = voices;
+        this.positionalVoiceCursors[soundId] = 0;
       }
     }
 
@@ -121,14 +155,14 @@ namespace SoundArcade.Infrastructure.Audio
 
       Music music = Raylib.LoadMusicStream(assetPath);
 
-      lock (sync)
+      lock (this.sync)
       {
-        if (musicTracks.TryGetValue(musicId, out Music existingMusic))
+        if (this.musicTracks.TryGetValue(musicId, out Music existingMusic))
         {
           Raylib.UnloadMusicStream(existingMusic);
         }
 
-        musicTracks[musicId] = music;
+        this.musicTracks[musicId] = music;
       }
     }
 
@@ -141,12 +175,12 @@ namespace SoundArcade.Infrastructure.Audio
       bool hasMusic;
       bool refreshMusicVolume;
 
-      lock (sync)
+      lock (this.sync)
       {
-        hasMusic = activeMusicId is not null;
-        music = activeMusic;
-        refreshMusicVolume = musicVolumeRefreshPending;
-        musicVolumeRefreshPending = false;
+        hasMusic = this.activeMusicId is not null;
+        music = this.activeMusic;
+        refreshMusicVolume = this.musicVolumeRefreshPending;
+        this.musicVolumeRefreshPending = false;
       }
 
       if (hasMusic)
@@ -161,36 +195,49 @@ namespace SoundArcade.Infrastructure.Audio
     }
 
     /// <inheritdoc />
-    public void PlaySound(string soundId, float volume)
+    public void PlaySound(string soundId, float volume, float pitch = 1.0f)
     {
       this.EnsureNotDisposed();
 
       Sound sound = this.GetSound(soundId);
-      float playbackVolume = Math.Clamp(volume, 0.0f, 1.0f);
+      float playbackVolume = Math.Clamp(volume * this.GetGain(soundId), 0.0f, 1.0f);
 
+      Raylib.SetSoundPitch(sound, Math.Max(0.0f, pitch));
       Raylib.SetSoundVolume(sound, playbackVolume);
       Raylib.PlaySound(sound);
     }
 
     /// <inheritdoc />
-    public void PlaySoundAt(string soundId, Vector3 position, float volume)
+    public void PlaySoundAt(string soundId, Vector3 position, float volume, float pitch = 1.0f)
     {
       this.EnsureNotDisposed();
 
-      Sound sound = this.GetSound(soundId);
       Vector3 listenerPosition;
+      Sound voice;
+      float gain;
 
-      lock (sync)
+      lock (this.sync)
       {
         listenerPosition = this.listenerPosition;
+        voice = this.NextPositionalVoice(soundId);
+        gain = this.soundGains.TryGetValue(soundId, out float storedGain) ? storedGain : 1.0f;
       }
 
-      float playbackVolume = Math.Clamp(volume * this.ComputeDistanceAttenuation(listenerPosition, position), MinimumAudibleVolume, 1.0f);
-      float pan = Math.Clamp(position.X - listenerPosition.X, -1.0f, 1.0f);
+      // The minimum-audible floor lives in ComputeDistanceAttenuation so distance alone never
+      // silences a sound in range; the requested volume is free to go down to silence so callers
+      // can tune quiet cues like the ambient river.
+      float playbackVolume = Math.Clamp(volume * gain * this.ComputeDistanceAttenuation(listenerPosition, position), 0.0f, 1.0f);
 
-      Raylib.SetSoundPan(sound, pan);
-      Raylib.SetSoundVolume(sound, playbackVolume);
-      Raylib.PlaySound(sound);
+      // Raylib's SetSoundPan uses -1.0 (left), 0.0 (center), 1.0 (right). A source on the
+      // screen-left has a greater X than the listener (positive offset), so it must map to a
+      // negative pan to be heard on the left.
+      float lateralOffset = Math.Clamp((position.X - listenerPosition.X) / PanWidth, -1.0f, 1.0f);
+      float pan = -lateralOffset;
+
+      Raylib.SetSoundPitch(voice, Math.Max(0.0f, pitch));
+      Raylib.SetSoundPan(voice, pan);
+      Raylib.SetSoundVolume(voice, playbackVolume);
+      Raylib.PlaySound(voice);
     }
 
     /// <inheritdoc />
@@ -198,12 +245,22 @@ namespace SoundArcade.Infrastructure.Audio
     {
       this.EnsureNotDisposed();
 
-      if (!this.TryGetSound(soundId, out Sound sound))
+      lock (this.sync)
       {
-        return;
-      }
+        if (this.sounds.TryGetValue(soundId, out Sound sound))
+        {
+          Raylib.StopSound(sound);
+        }
 
-      Raylib.StopSound(sound);
+        // Positional cues play on the alias voice pool, so those must be stopped too.
+        if (this.positionalVoices.TryGetValue(soundId, out Sound[]? voices))
+        {
+          foreach (Sound voice in voices)
+          {
+            Raylib.StopSound(voice);
+          }
+        }
+      }
     }
 
     /// <inheritdoc />
@@ -211,9 +268,9 @@ namespace SoundArcade.Infrastructure.Audio
     {
       this.EnsureNotDisposed();
 
-      lock (sync)
+      lock (this.sync)
       {
-        listenerPosition = position;
+        this.listenerPosition = position;
       }
     }
 
@@ -231,16 +288,16 @@ namespace SoundArcade.Infrastructure.Audio
 
       Music music = this.GetMusic(musicId);
 
-      lock (sync)
+      lock (this.sync)
       {
-        if (activeMusicId is not null)
+        if (this.activeMusicId is not null)
         {
-          Raylib.StopMusicStream(activeMusic);
+          Raylib.StopMusicStream(this.activeMusic);
         }
 
         music.Looping = loop;
-        activeMusic = music;
-        activeMusicId = musicId;
+        this.activeMusic = music;
+        this.activeMusicId = musicId;
       }
 
       Raylib.PlayMusicStream(music);
@@ -255,10 +312,10 @@ namespace SoundArcade.Infrastructure.Audio
       Music music;
       bool hasMusic;
 
-      lock (sync)
+      lock (this.sync)
       {
-        hasMusic = activeMusicId is not null;
-        music = activeMusic;
+        hasMusic = this.activeMusicId is not null;
+        music = this.activeMusic;
       }
 
       if (hasMusic)
@@ -275,10 +332,10 @@ namespace SoundArcade.Infrastructure.Audio
       Music music;
       bool hasMusic;
 
-      lock (sync)
+      lock (this.sync)
       {
-        hasMusic = activeMusicId is not null;
-        music = activeMusic;
+        hasMusic = this.activeMusicId is not null;
+        music = this.activeMusic;
       }
 
       if (hasMusic)
@@ -295,11 +352,11 @@ namespace SoundArcade.Infrastructure.Audio
       Music music;
       bool hasMusic;
 
-      lock (sync)
+      lock (this.sync)
       {
-        hasMusic = activeMusicId is not null;
-        music = activeMusic;
-        activeMusicId = null;
+        hasMusic = this.activeMusicId is not null;
+        music = this.activeMusic;
+        this.activeMusicId = null;
       }
 
       if (hasMusic)
@@ -313,9 +370,9 @@ namespace SoundArcade.Infrastructure.Audio
     {
       this.EnsureNotDisposed();
 
-      lock (sync)
+      lock (this.sync)
       {
-        musicVolume = Math.Clamp(volume, 0.0f, 1.0f);
+        this.musicVolume = Math.Clamp(volume, 0.0f, 1.0f);
       }
 
       this.ApplyCurrentMusicVolume();
@@ -348,6 +405,38 @@ namespace SoundArcade.Infrastructure.Audio
     }
 
     /// <summary>
+    /// Gets the per-asset gain multiplier registered for a sound, defaulting to 1.0 when none was set.
+    /// </summary>
+    /// <param name="soundId">Audio asset identifier.</param>
+    /// <returns>The registered gain multiplier.</returns>
+    private float GetGain(string soundId)
+    {
+      lock (this.sync)
+      {
+        return this.soundGains.TryGetValue(soundId, out float gain) ? gain : 1.0f;
+      }
+    }
+
+    /// <summary>
+    /// Returns the next positional playback voice for a sound, rotating through its alias pool so the
+    /// same sound can play from multiple positions at once (e.g. the left and right river cues).
+    /// Must be called while holding <see cref="sync"/>.
+    /// </summary>
+    /// <param name="soundId">Audio asset identifier.</param>
+    /// <returns>A sound alias to use for this playback.</returns>
+    private Sound NextPositionalVoice(string soundId)
+    {
+      if (!this.positionalVoices.TryGetValue(soundId, out Sound[]? voices))
+      {
+        throw new KeyNotFoundException($"Sound asset '{soundId}' is not registered.");
+      }
+
+      int cursor = this.positionalVoiceCursors[soundId];
+      this.positionalVoiceCursors[soundId] = (cursor + 1) % voices.Length;
+      return voices[cursor];
+    }
+
+    /// <summary>
     /// Attempts to get a registered sound effect by identifier.
     /// </summary>
     /// <param name="soundId">Audio asset identifier.</param>
@@ -355,9 +444,9 @@ namespace SoundArcade.Infrastructure.Audio
     /// <returns>True when the sound exists.</returns>
     private bool TryGetSound(string soundId, out Sound sound)
     {
-      lock (sync)
+      lock (this.sync)
       {
-        return sounds.TryGetValue(soundId, out sound);
+        return this.sounds.TryGetValue(soundId, out sound);
       }
     }
 
@@ -368,9 +457,9 @@ namespace SoundArcade.Infrastructure.Audio
     /// <returns>The loaded music stream.</returns>
     private Music GetMusic(string musicId)
     {
-      lock (sync)
+      lock (this.sync)
       {
-        if (musicTracks.TryGetValue(musicId, out Music music))
+        if (this.musicTracks.TryGetValue(musicId, out Music music))
         {
           return music;
         }
@@ -388,13 +477,13 @@ namespace SoundArcade.Infrastructure.Audio
       float volume;
       bool hasMusic;
 
-      lock (sync)
+      lock (this.sync)
       {
-        hasMusic = activeMusicId is not null;
-        music = activeMusic;
-        volume = musicVolume;
+        hasMusic = this.activeMusicId is not null;
+        music = this.activeMusic;
+        volume = this.musicVolume;
 
-        if (ttsSpeechDepth > 0)
+        if (this.ttsSpeechDepth > 0)
         {
           volume *= DuckingMusicVolume;
         }
@@ -449,10 +538,10 @@ namespace SoundArcade.Infrastructure.Audio
     /// <param name="e">Event data.</param>
     private void OnTtsSpeakStarted(object? sender, EventArgs e)
     {
-      lock (sync)
+      lock (this.sync)
       {
-        ttsSpeechDepth++;
-        musicVolumeRefreshPending = true;
+        this.ttsSpeechDepth++;
+        this.musicVolumeRefreshPending = true;
       }
     }
 
@@ -463,14 +552,14 @@ namespace SoundArcade.Infrastructure.Audio
     /// <param name="e">Event data.</param>
     private void OnTtsSpeakCompleted(object? sender, EventArgs e)
     {
-      lock (sync)
+      lock (this.sync)
       {
-        if (ttsSpeechDepth > 0)
+        if (this.ttsSpeechDepth > 0)
         {
-          ttsSpeechDepth--;
+          this.ttsSpeechDepth--;
         }
 
-        musicVolumeRefreshPending = true;
+        this.musicVolumeRefreshPending = true;
       }
     }
 
@@ -479,7 +568,7 @@ namespace SoundArcade.Infrastructure.Audio
     /// </summary>
     private void EnsureNotDisposed()
     {
-      if (disposed)
+      if (this.disposed)
       {
         throw new ObjectDisposedException(nameof(RaylibAudio));
       }

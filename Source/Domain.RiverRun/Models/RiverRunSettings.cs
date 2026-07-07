@@ -45,7 +45,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// <param name="RiverNoiseInterval">Seconds between ambient river noise cues on each side of the player.</param>
     /// <param name="RiverNoiseLaneOffset">World units beyond the outer lanes where river noise is positioned.</param>
     public RiverRunSettings(
-      int StartingLives = 1,
+      int StartingLives = 3,
       float StartingPlayerSpeed = 1.0f,
       float PlayerSpeedIncreasePerZUnit = 0.05f,
       float MaxPlayerSpeedIncrease = 3.0f,
@@ -53,17 +53,16 @@ namespace SoundArcade.Domain.RiverRun.Models
       float SpawnDistanceMax = 8.0f,
       float SpawnZ = 22.0f,
       float CollisionRadius = 0.5f,
-      float ScoringPerSecond = 18.0f,
-      int DodgeBonus = 10,
+      float ScoringPerSecond = 1.0f,
       int ScoreAnnouncementStep = 100,
       float PickupSpawnDistanceMin = 6.0f,
       float PickupSpawnDistanceMax = 14.0f,
       float PickupSpawnZ = 22.0f,
       int PickupScoreBonus = 25,
-      float ApproachNoiseRadius = 8.0f,
+      float ApproachNoiseRadius = 15.0f,
       float ApproachNoiseInterval = 0.75f,
       float RiverNoiseInterval = 2.0f,
-      float RiverNoiseLaneOffset = 2.0f)
+      float RiverNoiseLaneOffset = 4.0f)
     {
       this.StartingLives = StartingLives;
       this.StartingPlayerSpeed = StartingPlayerSpeed;
@@ -74,7 +73,6 @@ namespace SoundArcade.Domain.RiverRun.Models
       this.SpawnZ = SpawnZ;
       this.CollisionRadius = CollisionRadius;
       this.ScoringPerSecond = ScoringPerSecond;
-      this.DodgeBonus = DodgeBonus;
       this.ScoreAnnouncementStep = ScoreAnnouncementStep;
       this.PickupSpawnDistanceMin = PickupSpawnDistanceMin;
       this.PickupSpawnDistanceMax = PickupSpawnDistanceMax;

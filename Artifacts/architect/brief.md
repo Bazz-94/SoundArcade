@@ -1,7 +1,7 @@
 # Sound Arcade Project Brief
 
 ## Project Vision
-Sound Arcade is a multi-mini-game arcade collection designed **primarily for blind players** while remaining engaging for sighted players. All games must be fully playable via audio feedback and keyboard controls alone. Visuals are optional and supplementary — never load-bearing for gameplay.
+Sound Arcade is a multi-mini-game arcade collection built **for blind players** while remaining engaging for sighted players. All games are fully playable via audio feedback and keyboard controls alone. Visuals are optional and supplementary — never load-bearing for gameplay.
 
 ## Solution Structure
 ```
@@ -63,10 +63,10 @@ All interface method signatures must use **platform primitive types only** (e.g.
 Each mini-game is a self-contained module.
 
 ### Registration
-Mini-games are registered in `SoundArcade.Desktop` at wiring time. `Application` treats them uniformly via an interface.
+Mini-games are registered in `SoundArcade.Desktop` at wiring time. The Application treats them uniformly via an interface.
 
 ### Per-game projects
 Complex games live in `SoundArcade.Domain.{Game}`. Shared logic lives in `SoundArcade.Domain`.
 
 ## Decisions Deferred
-- Android platform target implementation details (MAUI vs MonoGame vs others).
+- Android platform target implementation details (MAUI vs MonoGame vs others)

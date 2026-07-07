@@ -61,8 +61,9 @@ namespace SoundArcade.Domain.RiverRun.Game
         this.EmitEvents(this.Session.HandleCommand(command));
       }
 
-      this.EmitEvents(this.Session.Update(deltaTimeSeconds));
+      IReadOnlyList<RunEvent> updateEvents = this.Session.Update(deltaTimeSeconds);
       this.UpdateAudioListenerPosition();
+      this.EmitEvents(updateEvents);
       this.Audio.Update();
     }
 
@@ -90,12 +91,17 @@ namespace SoundArcade.Domain.RiverRun.Game
         {
           if (playSoundEvent.Position.HasValue)
           {
-            this.Audio.PlaySoundAt(playSoundEvent.SoundId, playSoundEvent.Position.Value, playSoundEvent.Volume);
+            this.Audio.PlaySoundAt(playSoundEvent.SoundId, playSoundEvent.Position.Value, playSoundEvent.Volume, playSoundEvent.Pitch);
           }
           else
           {
-            this.Audio.PlaySound(playSoundEvent.SoundId, playSoundEvent.Volume);
+            this.Audio.PlaySound(playSoundEvent.SoundId, playSoundEvent.Volume, playSoundEvent.Pitch);
           }
+        }
+
+        if (gameEvent is StopSoundEvent stopSoundEvent)
+        {
+          this.Audio.StopSound(stopSoundEvent.SoundId);
         }
       }
     }

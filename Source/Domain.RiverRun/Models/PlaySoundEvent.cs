@@ -8,5 +8,6 @@ namespace SoundArcade.Domain.RiverRun.Models
   /// <param name="SoundId">Audio asset identifier.</param>
   /// <param name="Position">Optional world position for positional playback.</param>
   /// <param name="Volume">Requested playback volume.</param>
-  public sealed record PlaySoundEvent(string SoundId, Vector3? Position = null, float Volume = 1.0f) : RunEvent;
+  /// <param name="Pitch">Playback pitch multiplier, where 1.0 is the asset's base pitch.</param>
+  public sealed record PlaySoundEvent(string SoundId, Vector3? Position = null, float Volume = 1.0f, float Pitch = 1.0f) : RunEvent;
 }

@@ -4,7 +4,7 @@ description: Enforces Clean Architecture, Domain-Driven Development, and coding 
 ---
 
 ## Role
-You are the lead software architect. Your mission is to ensure the codebase adheres to **Clean Architecture** principles and **Domain-Driven Development (DDD)** patterns. You are responsible for maintaining high code quality and consistency across the project.
+You are the lead software architect. Ensure the codebase adheres to **Clean Architecture** principles and **Domain-Driven Development (DDD)** patterns. Maintain high code quality and consistency across the project.
 
 For project-specific context, vision, and architectural constraints (such as the PAL or Accessibility rules), refer to the project brief:
 `c:\source\SoundArcade\Artifacts\architect\brief.md`
@@ -23,12 +23,12 @@ For project-specific context, vision, and architectural constraints (such as the
 ## C# Standards
 - Do not use var — always explicit types for clarity.
 - Write unit tests for all domain logic. Application and infrastructure code may be untested or have integration tests only.
-- Descriptions must be provided for all methods, properties, and classes. They should be concise.
-- Rather defined constants or enums for values to provide context to what the values mean (e.g. If the starting position is 1, define a constant `StartingPosition = 1`) & never hardcode string values.
-- Don't use redundant words in class, method, or property names (eg. `RiverRunGameLoop` is redundant, just `GameLoop` since the context is already clear).
+- Provide descriptions for all methods, properties, and classes. Keep them concise.
+- Define constants or enums for values to provide context (e.g., if starting position is 1, define a constant `StartingPosition = 1`). Never hardcode string values.
+- Avoid redundant words in class, method, or property names (e.g., `RiverRunGameLoop` is redundant; use `GameLoop` since the context is clear).
 - Use this. to refer to instance members for clarity.
 - Always use block bodies for methods.
-- Stateful types should use private setters plus explicit state-transition methods (instead of directly mutating private fields). E.g.
+- Stateful types use private setters plus explicit state-transition methods instead of directly mutating private fields. Example:
 ```
 public class Player
 {
@@ -50,7 +50,7 @@ public class Player
     }
 }
 ```
-- Don't create unnecessary variables. One time use variables are unnecessary. E.g.
+- Avoid unnecessary variables. Single-use variables are unnecessary. Example:
 ```
 public void MoveLeft()
 {

@@ -62,11 +62,11 @@ namespace SoundArcade.Tests
       {
       }
 
-      public void PlaySound(string soundId, float volume)
+      public void PlaySound(string soundId, float volume, float pitch = 1.0f)
       {
       }
 
-      public void PlaySoundAt(string soundId, Vector3 position, float volume)
+      public void PlaySoundAt(string soundId, Vector3 position, float volume, float pitch = 1.0f)
       {
       }
 
@@ -103,7 +103,7 @@ namespace SoundArcade.Tests
       {
       }
 
-      public void RegisterSound(string soundId, string assetPath)
+      public void RegisterSound(string soundId, string assetPath, float gain = 1.0f)
       {
       }
     }
@@ -216,6 +216,10 @@ namespace SoundArcade.Tests
       }
 
       public void DrawText(Vector3 position, string text, int fontSize, Color color)
+      {
+      }
+
+      public void DrawScreenText(int x, int y, string text, int fontSize, Color color)
       {
       }
 

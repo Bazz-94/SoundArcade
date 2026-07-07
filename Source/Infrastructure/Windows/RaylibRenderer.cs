@@ -72,6 +72,12 @@ namespace SoundArcade.Infrastructure.Windows
     }
 
     /// <inheritdoc />
+    public void DrawScreenText(int x, int y, string text, int fontSize, Abstractions.Color color)
+    {
+      Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
+    }
+
+    /// <inheritdoc />
     public void SetCameraTarget(Vector3 focusPosition)
     {
       camera.Position = DefaultCameraPosition + new Vector3(0.0f, 0.0f, focusPosition.Z);

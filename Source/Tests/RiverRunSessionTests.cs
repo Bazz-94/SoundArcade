@@ -135,10 +135,10 @@ namespace SoundArcade.Tests
     }
 
     /// <summary>
-    /// Verifies a single collision ends the run when the default single-life setting is used.
+    /// Verifies a single collision costs one life but does not end the run while lives remain.
     /// </summary>
     [Fact]
-    public void Collision_with_default_settings_ends_run_immediately()
+    public void Collision_with_default_settings_costs_one_life_and_continues()
     {
       RiverRunSettings settings = new(
         CollisionRadius: 0.5f,
@@ -151,8 +151,8 @@ namespace SoundArcade.Tests
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
       session.Update(FrameDelta);
 
-      Assert.Equal(SessionState.GameOver, session.State);
-      Assert.Equal(0, session.Lives);
+      Assert.Equal(SessionState.Playing, session.State);
+      Assert.Equal(2, session.Lives);
     }
 
     /// <summary>
@@ -202,6 +202,34 @@ namespace SoundArcade.Tests
     }
 
     /// <summary>
+    /// Verifies the obstacle approach cue is stopped once the obstacle passes and the lane ahead clears.
+    /// </summary>
+    [Fact]
+    public void Update_stops_obstacle_noise_after_the_lane_ahead_clears()
+    {
+      RiverRunSettings settings = new(
+        StartingPlayerSpeed: 5.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        CollisionRadius: 0.5f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      session.Start();
+
+      // Place the obstacle in an adjacent lane so the player passes it without colliding.
+      session.QueueObstacle(lane: RunConstants.LaneX.Left, z: 3.0f);
+      session.Update(FrameDelta);
+
+      IReadOnlyList<RunEvent> events = session.Update(OneSecond);
+
+      Assert.DoesNotContain(session.Obstacles, obstacle => obstacle.Position.Z == 3.0f);
+      Assert.Contains(events.OfType<StopSoundEvent>(), x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+    }
+
+    /// <summary>
     /// Verifies approach noise volume increases as an obstacle gets closer to the player.
     /// </summary>
     [Fact]
@@ -228,6 +256,38 @@ namespace SoundArcade.Tests
         .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
 
       Assert.True(nearNoise.Volume > farNoise.Volume);
+    }
+
+    /// <summary>
+    /// Verifies obstacle pitch stays at base outside the ramp zone and only rises once the obstacle
+    /// is within the final fraction of the approach radius.
+    /// </summary>
+    [Fact]
+    public void Update_obstacle_approach_noise_rises_in_pitch_only_in_the_final_stretch()
+    {
+      // Radius 10 with a 0.25 ramp fraction means pitch is flat beyond 2.5 units and ramps within it.
+      RiverRunSettings settings = new(
+        StartingPlayerSpeed: 0.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession farSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      farSession.Start();
+      farSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 9.0f);
+      PlaySoundEvent farNoise = farSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      RiverRunSession nearSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      nearSession.Start();
+      nearSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 1.0f);
+      PlaySoundEvent nearNoise = nearSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      Assert.Equal(RunConstants.Pitch.ObstacleNoiseFar, farNoise.Pitch);
+      Assert.True(nearNoise.Pitch > farNoise.Pitch);
     }
   }
 }
