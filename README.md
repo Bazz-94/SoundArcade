@@ -4,25 +4,6 @@ Sound Arcade is an accessible, audio-first arcade game collection built in C# us
 
 Rather than converting visual games to audio, Sound Arcade focuses on mini-games designed from the ground up for audio-only play. Visuals are supplementary and must never be required to understand or play a game.
 
-## Current Game: RiverRun
-
-RiverRun is an audio-first endless runner where the player survives as long as possible by switching lanes and collecting points while obstacles rush toward them in a three-lane world.
-
-The player automatically runs forward through left, center, and right lanes. Moment-to-moment play is about using keyboard input to dodge obstacles and collect score items while the difficulty steadily increases.
-
-Audio is the primary interface:
-
-- Spatial audio communicates lane position and distance for obstacles and collectibles.
-- TTS announces score, pause state, game over, and significant events.
-- Lane changes, pickups, warnings, and collisions each use distinct sound effects.
-
-Controls:
-
-- Left / Right arrows or A / D: change lanes
-- Escape or P: pause
-
-The run ends when the player collides with an obstacle. Score increases by surviving longer and collecting pickups.
-
 ## Accessibility Rules
 
 Every Sound Arcade game must pass these checks:
@@ -36,17 +17,16 @@ Every Sound Arcade game must pass these checks:
 
 Sound Arcade uses Clean Architecture with lightweight DDD. A Platform Abstraction Layer decouples game and application logic from Raylib, allowing future platform implementations to be swapped in without rewriting game logic.
 
-Each mini-game is a self-contained module registered by the Desktop host. The arcade shell treats games through a shared `IGame` contract.
+Each mini-game is a self-contained module registered by the Application host. The arcade shell treats games through a shared `IGame` contract.
 
 ## Solution Layout
 
 - `Domain`: shared game contracts and domain primitives.
-- `Domain.RiverRun`: RiverRun-specific domain module.
-- `Application`: game orchestration, registry, game loop, scenes, and sessions.
+- `Domain.{mini-game}`: mini game specific domain module.
 - `Abstractions`: platform abstraction interfaces such as `IAudio`, `ITts`, `IInput`, `IRenderer`, and `IWindow`.
 - `Infrastructure`: Raylib and platform-backed implementations.
-- `Desktop`: executable host and composition root.
-- `Tests`: minimal test project for CI and architecture checks.
+- `Application`: executable host and composition root, game orchestration, registry, game loop, scenes, and sessions.
+- `Tests`: xUnit test project; Domain logic must be unit tested.
 
 ## Quick Start
 
@@ -58,19 +38,18 @@ Each mini-game is a self-contained module registered by the Desktop host. The ar
 ### Build
 
 ```bash
-dotnet build SoundArcade.slnx
-```
+# Build
+dotnet build Source/SoundArcade.slnx
 
-### Run
+# Run all tests
+dotnet test Source/SoundArcade.slnx
 
-```bash
-dotnet run --project Desktop/Desktop.csproj
-```
+# Run a single test class or test
+dotnet test Source/Tests/Tests.csproj --filter "FullyQualifiedName~RiverRunSessionTests"
+dotnet test Source/Tests/Tests.csproj --filter "FullyQualifiedName~RiverRunSessionTests.MethodName"
 
-### Test
-
-```bash
-dotnet test SoundArcade.slnx
+# Run the game (Application is the executable host / composition root)
+dotnet run --project Source/Application/Application.csproj
 ```
 
 ## Technology Stack
