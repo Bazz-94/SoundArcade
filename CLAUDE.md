@@ -66,3 +66,4 @@ The `artifacts/` directory is shared memory for the project:
 
 - `artifacts/standards.md` — project vision, architecture rules, and PAL contract.
 - `artifacts/stories/SA-XXX-*.md` — Story Artifacts: medium-sized, independently testable units of work with acceptance criteria. Check existing stories before creating new ones.
+- `artifacts/implementation-plans/SA-XXX.md` — task-level plans for implementing a story, with per-task status (created by `/create-implementation-plan`, executed by `/implement`).
