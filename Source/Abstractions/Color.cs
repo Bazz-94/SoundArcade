@@ -1,7 +1,7 @@
 ﻿namespace SoundArcade.Abstractions
 {
   using System;
-  public sealed class Color
+  public sealed record Color
   {
     public byte R { get; }
     public byte G { get; }

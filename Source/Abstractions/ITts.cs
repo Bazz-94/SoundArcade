@@ -33,5 +33,11 @@ namespace SoundArcade.Abstractions
     /// Stops all pending and active speech.
     /// </summary>
     void Stop();
+
+    /// <summary>
+    /// Sets the speech volume.
+    /// </summary>
+    /// <param name="volume">Speech volume in the range 0 to 1.</param>
+    void SetVolume(float volume);
   }
 }

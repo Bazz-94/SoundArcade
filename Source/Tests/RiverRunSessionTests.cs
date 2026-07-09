@@ -2,8 +2,11 @@ namespace SoundArcade.Tests
 {
   using System.Collections.Generic;
   using System.Linq;
+  using SoundArcade.Domain.Colors;
+  using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
-  using SoundArcade.Domain.RiverRun.Services;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Models.Events;
   using Xunit;
 
   /// <summary>
@@ -22,11 +25,11 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_increases_score_while_playing()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         ScoringPerSecond: 50.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -40,13 +43,13 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_increases_player_speed_with_distance_and_caps_it()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingPlayerSpeed: 2.0f,
         PlayerSpeedIncreasePerZUnit: 1.0f,
         MaxPlayerSpeedIncrease: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       float startingSpeed = session.Player.Speed;
@@ -67,7 +70,7 @@ namespace SoundArcade.Tests
     [Fact]
     public void Update_spawns_obstacles_as_player_advances_in_z()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingPlayerSpeed: 1.0f,
         PlayerSpeedIncreasePerZUnit: 0.0f,
         MaxPlayerSpeedIncrease: 0.0f,
@@ -76,7 +79,7 @@ namespace SoundArcade.Tests
         SpawnDistanceMax: 1.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.Update(OneSecond);
@@ -90,17 +93,17 @@ namespace SoundArcade.Tests
     [Fact]
     public void TogglePause_transitions_between_playing_and_paused()
     {
-      Session session = new Session(new RunSettings(), new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), new RiverRunSettings(), new System.Random(RandomSeed));
       session.Start();
 
       IReadOnlyList<RunEvent> pauseEvents = session.HandleCommand(RunCommand.TogglePause);
 
-      Assert.Equal(RunState.Paused, session.State);
+      Assert.Equal(SessionState.Paused, session.State);
       Assert.Contains(pauseEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Paused);
 
       IReadOnlyList<RunEvent> resumeEvents = session.HandleCommand(RunCommand.TogglePause);
 
-      Assert.Equal(RunState.Playing, session.State);
+      Assert.Equal(SessionState.Playing, session.State);
       Assert.Contains(resumeEvents.OfType<TextToSpeechEvent>(), x => x.Text == RunConstants.Speech.Resumed);
     }
 
@@ -110,27 +113,183 @@ namespace SoundArcade.Tests
     [Fact]
     public void Collision_until_no_lives_reaches_game_over()
     {
-      RunSettings settings = new(
+      RiverRunSettings settings = new(
         StartingLives: 2,
         CollisionRadius: 0.5f,
         ScoringPerSecond: 0.0f,
         ScoreAnnouncementStep: HighAnnouncementStep);
 
-      Session session = new Session(settings, new System.Random(RandomSeed));
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
 
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
       session.Update(FrameDelta);
 
-      Assert.Equal(RunState.Playing, session.State);
+      Assert.Equal(SessionState.Playing, session.State);
       Assert.Equal(1, session.Lives);
 
       session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
       IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
 
-      Assert.Equal(RunState.GameOver, session.State);
+      Assert.Equal(SessionState.GameOver, session.State);
       Assert.Equal(0, session.Lives);
       Assert.Contains(events.OfType<TextToSpeechEvent>(), x => x.Text.StartsWith(RunConstants.Speech.GameOverPrefix));
+    }
+
+    /// <summary>
+    /// Verifies a single collision costs one life but does not end the run while lives remain.
+    /// </summary>
+    [Fact]
+    public void Collision_with_default_settings_costs_one_life_and_continues()
+    {
+      RiverRunSettings settings = new(
+        CollisionRadius: 0.5f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      session.Start();
+
+      session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 0.0f);
+      session.Update(FrameDelta);
+
+      Assert.Equal(SessionState.Playing, session.State);
+      Assert.Equal(2, session.Lives);
+    }
+
+    /// <summary>
+    /// Verifies collecting a pickup awards the configured score bonus and removes it from the world.
+    /// </summary>
+    [Fact]
+    public void Update_collects_pickup_and_awards_bonus()
+    {
+      RiverRunSettings settings = new(
+        CollisionRadius: 0.5f,
+        ScoringPerSecond: 0.0f,
+        PickupScoreBonus: 25,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      session.Start();
+
+      session.QueuePickup(lane: RunConstants.LaneX.Center, z: 0.0f);
+      IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
+
+      Assert.Equal(25, session.Score);
+      Assert.DoesNotContain(session.Pickups, pickup => pickup.Position.Z == 0.0f);
+      Assert.Contains(events.OfType<PlaySoundEvent>(), x => x.SoundId == RunConstants.SoundId.Reward);
+    }
+
+    /// <summary>
+    /// Verifies an approaching obstacle emits a positional approach-noise cue.
+    /// </summary>
+    [Fact]
+    public void Update_emits_approach_noise_for_nearby_obstacle()
+    {
+      RiverRunSettings settings = new(
+        StartingPlayerSpeed: 0.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      session.Start();
+
+      session.QueueObstacle(lane: RunConstants.LaneX.Center, z: 5.0f);
+      IReadOnlyList<RunEvent> events = session.Update(FrameDelta);
+
+      Assert.Contains(events.OfType<PlaySoundEvent>(), x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+    }
+
+    /// <summary>
+    /// Verifies the obstacle approach cue is stopped once the obstacle passes and the lane ahead clears.
+    /// </summary>
+    [Fact]
+    public void Update_stops_obstacle_noise_after_the_lane_ahead_clears()
+    {
+      RiverRunSettings settings = new(
+        StartingPlayerSpeed: 5.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        CollisionRadius: 0.5f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      session.Start();
+
+      // Place the obstacle in an adjacent lane so the player passes it without colliding.
+      session.QueueObstacle(lane: RunConstants.LaneX.Left, z: 3.0f);
+      session.Update(FrameDelta);
+
+      IReadOnlyList<RunEvent> events = session.Update(OneSecond);
+
+      Assert.DoesNotContain(session.Obstacles, obstacle => obstacle.Position.Z == 3.0f);
+      Assert.Contains(events.OfType<StopSoundEvent>(), x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+    }
+
+    /// <summary>
+    /// Verifies approach noise volume increases as an obstacle gets closer to the player.
+    /// </summary>
+    [Fact]
+    public void Update_obstacle_approach_noise_grows_louder_as_distance_shrinks()
+    {
+      RiverRunSettings farSettings = new(
+        StartingPlayerSpeed: 0.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession farSession = new RiverRunSession(new Theme(), farSettings, new System.Random(RandomSeed));
+      farSession.Start();
+      farSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 9.0f);
+      PlaySoundEvent farNoise = farSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      RiverRunSession nearSession = new RiverRunSession(new Theme(), farSettings, new System.Random(RandomSeed));
+      nearSession.Start();
+      nearSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 2.0f);
+      PlaySoundEvent nearNoise = nearSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      Assert.True(nearNoise.Volume > farNoise.Volume);
+    }
+
+    /// <summary>
+    /// Verifies obstacle pitch stays at base outside the ramp zone and only rises once the obstacle
+    /// is within the final fraction of the approach radius.
+    /// </summary>
+    [Fact]
+    public void Update_obstacle_approach_noise_rises_in_pitch_only_in_the_final_stretch()
+    {
+      // Radius 10 with a 0.25 ramp fraction means pitch is flat beyond 2.5 units and ramps within it.
+      RiverRunSettings settings = new(
+        StartingPlayerSpeed: 0.0f,
+        PlayerSpeedIncreasePerZUnit: 0.0f,
+        MaxPlayerSpeedIncrease: 0.0f,
+        ApproachNoiseRadius: 10.0f,
+        ScoringPerSecond: 0.0f,
+        ScoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession farSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      farSession.Start();
+      farSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 9.0f);
+      PlaySoundEvent farNoise = farSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      RiverRunSession nearSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      nearSession.Start();
+      nearSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 1.0f);
+      PlaySoundEvent nearNoise = nearSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      Assert.Equal(RunConstants.Pitch.ObstacleNoiseFar, farNoise.Pitch);
+      Assert.True(nearNoise.Pitch > farNoise.Pitch);
     }
   }
 }

@@ -65,6 +65,13 @@ namespace SoundArcade.Infrastructure.Windows
       synth.SpeakAsyncCancelAll();
     }
 
+    /// <inheritdoc />
+    public void SetVolume(float volume)
+    {
+      int volumePercent = (int)Math.Round(Math.Clamp(volume, 0.0f, 1.0f) * 100.0f);
+      synth.Volume = volumePercent;
+    }
+
     /// <summary>
     /// Raises the <see cref="SpeakStarted"/> event.
     /// </summary>

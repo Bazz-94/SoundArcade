@@ -27,5 +27,10 @@ namespace SoundArcade.Abstractions
     /// Gets or sets the master volume in the range 0 to 1.
     /// </summary>
     public float MasterVolume { get; set; } = 1.0f;
+
+    /// <summary>
+    /// Gets or sets the text-to-speech volume in the range 0 to 1.
+    /// </summary>
+    public float TtsVolume { get; set; } = 1.0f;
   }
 }

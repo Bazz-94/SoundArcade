@@ -13,7 +13,10 @@ namespace SoundArcade.Infrastructure.Windows
   {
     private const float CameraFov = 20.0f;
 
-    private readonly Camera3D camera;
+    private static readonly Vector3 DefaultCameraPosition = new Vector3(0.0f, 18.0f, -14.0f);
+    private static readonly Vector3 DefaultCameraTarget = new Vector3(0.0f, 0.0f, 18.0f);
+
+    private Camera3D camera;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RaylibRenderer"/> class.
@@ -21,8 +24,8 @@ namespace SoundArcade.Infrastructure.Windows
     public RaylibRenderer()
     {
       camera = new Camera3D(
-        new Vector3(0.0f, 18.0f, -14.0f),
-        new Vector3(0.0f, 0.0f, 18.0f),
+        DefaultCameraPosition,
+        DefaultCameraTarget,
         new Vector3(0.0f, 1.0f, 0.0f),
         CameraFov,
         CameraProjection.Orthographic);
@@ -61,14 +64,31 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void DrawText(Vector3 position, string text, int fontSize, Abstractions.Color color)
     {
-      this.WithCamera(() =>
-      {
-        Vector2 screenPosition = Raylib.GetWorldToScreen(position, camera);
-        int textWidth = Raylib.MeasureText(text, fontSize);
-        int x = (int)screenPosition.X - (textWidth / 2);
-        int y = (int)screenPosition.Y - (fontSize / 2);
-        Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
-      });
+      Vector2 screenPosition = Raylib.GetWorldToScreen(position, camera);
+      int textWidth = Raylib.MeasureText(text, fontSize);
+      int x = (int)screenPosition.X - (textWidth / 2);
+      int y = (int)screenPosition.Y - (fontSize / 2);
+      Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
+    }
+
+    /// <inheritdoc />
+    public void DrawScreenText(int x, int y, string text, int fontSize, Abstractions.Color color)
+    {
+      Raylib.DrawText(text, x, y, fontSize, ToRaylibColor(color));
+    }
+
+    /// <inheritdoc />
+    public void SetCameraTarget(Vector3 focusPosition)
+    {
+      camera.Position = DefaultCameraPosition + new Vector3(0.0f, 0.0f, focusPosition.Z);
+      camera.Target = DefaultCameraTarget + new Vector3(0.0f, 0.0f, focusPosition.Z);
+    }
+
+    /// <inheritdoc />
+    public void ResetCamera()
+    {
+      camera.Position = DefaultCameraPosition;
+      camera.Target = DefaultCameraTarget;
     }
 
     /// <summary>

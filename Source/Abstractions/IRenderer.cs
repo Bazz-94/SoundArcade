@@ -52,5 +52,27 @@ namespace SoundArcade.Abstractions
     /// <param name="fontSize">Font size in pixels.</param>
     /// <param name="color">Text color.</param>
     void DrawText(Vector3 position, string text, int fontSize, Color color);
+
+    /// <summary>
+    /// Draws text at a fixed screen-space pixel position, independent of the camera.
+    /// Used for HUD overlays that must stay in place while the camera follows the player.
+    /// </summary>
+    /// <param name="x">Horizontal pixel position from the left edge.</param>
+    /// <param name="y">Vertical pixel position from the top edge.</param>
+    /// <param name="text">Text content.</param>
+    /// <param name="fontSize">Font size in pixels.</param>
+    /// <param name="color">Text color.</param>
+    void DrawScreenText(int x, int y, string text, int fontSize, Color color);
+
+    /// <summary>
+    /// Moves the camera to follow a world position, preserving its default viewing offset.
+    /// </summary>
+    /// <param name="focusPosition">World position the camera should follow.</param>
+    void SetCameraTarget(Vector3 focusPosition);
+
+    /// <summary>
+    /// Restores the camera to its default position and target.
+    /// </summary>
+    void ResetCamera();
   }
 }
