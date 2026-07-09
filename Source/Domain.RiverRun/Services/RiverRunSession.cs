@@ -28,8 +28,9 @@ namespace SoundArcade.Domain.RiverRun.Services
     private bool ObstacleNoiseZoneOccupied { get; set; }
     private bool PickupNoiseZoneOccupied { get; set; }
 
-    private ObstacleSpawner Spawner { get; }
-    private PickupSpawner PickupSpawner { get; }
+    private Spawner Spawner { get; }
+    private readonly Func<Vector3, Obstacle> obstacleFactory;
+    private readonly Func<Vector3, Pickup> pickupFactory;
     public Theme Theme { get; }
     private RiverRunSettings Settings { get; }
     public float ElapsedSeconds { get; private set; }
@@ -51,8 +52,17 @@ namespace SoundArcade.Domain.RiverRun.Services
     {
       this.Theme = theme;
       this.Settings = settings;
-      this.Spawner = new ObstacleSpawner(this.Theme.ColorPalette.Secondary, this.Settings, random);
-      this.PickupSpawner = new PickupSpawner(this.Theme.ColorPalette.Accent, this.Settings, random);
+      this.obstacleFactory = position => new Obstacle(position, this.Theme.ColorPalette.Secondary);
+      this.pickupFactory = position => new Pickup(position, this.Theme.ColorPalette.Accent);
+      this.Spawner = new Spawner(
+        [
+          (this.obstacleFactory, 1.0f - this.Settings.PickupSpawnChance),
+          (this.pickupFactory, this.Settings.PickupSpawnChance)
+        ],
+        this.Settings.SpawnZ,
+        this.Settings.SpawnDistanceMin,
+        this.Settings.SpawnDistanceMax,
+        random);
 
       this.Player = new Player(
         this.Theme.ColorPalette.Tertiary,
@@ -77,7 +87,6 @@ namespace SoundArcade.Domain.RiverRun.Services
       this.obstacles.Clear();
       this.pickups.Clear();
       this.Spawner.Reset();
-      this.PickupSpawner.Reset();
       this.ElapsedSeconds = 0.0f;
       this.ScoreRemainder = 0.0f;
       this.NextRiverNoiseAt = 0.0f;
@@ -182,18 +191,21 @@ namespace SoundArcade.Domain.RiverRun.Services
         }
       }
 
-      IReadOnlyList<Obstacle> spawnedObstacles = this.Spawner.Update(this.Player.Position.Z);
+      IReadOnlyList<GameObject> spawnedObjects = this.Spawner.Update(this.Player.Position.Z);
 
-      foreach (Obstacle spawnedObstacle in spawnedObstacles)
+      foreach (GameObject spawnedObject in spawnedObjects)
       {
-        this.obstacles.Add(spawnedObstacle);
-      }
-
-      IReadOnlyList<Pickup> spawnedPickups = this.PickupSpawner.Update(this.Player.Position.Z);
-
-      foreach (Pickup spawnedPickup in spawnedPickups)
-      {
-        this.pickups.Add(spawnedPickup);
+        switch (spawnedObject)
+        {
+          case Obstacle obstacle:
+            this.obstacles.Add(obstacle);
+            break;
+          case Pickup pickup:
+            this.pickups.Add(pickup);
+            break;
+          default:
+            throw new InvalidOperationException($"Unhandled spawned object type {spawnedObject.GetType().Name}.");
+        }
       }
 
       this.Player.Advance(deltaTimeSeconds);
@@ -364,16 +376,7 @@ namespace SoundArcade.Domain.RiverRun.Services
         throw new ArgumentOutOfRangeException(nameof(lane));
       }
       Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
-      this.obstacles.Add(this.Spawner.CreateRunObstacle(position));
-    }
-
-    /// <summary>
-    /// Adds a deterministic obstacle using an explicit world position.
-    /// </summary>
-    /// <param name="position">Obstacle world position.</param>
-    public void QueueObstacle(Vector3 position)
-    {
-      this.obstacles.Add(this.Spawner.CreateRunObstacle(position));
+      this.obstacles.Add(this.obstacleFactory(position));
     }
 
     /// <summary>
@@ -388,7 +391,7 @@ namespace SoundArcade.Domain.RiverRun.Services
         throw new ArgumentOutOfRangeException(nameof(lane));
       }
       Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
-      this.pickups.Add(this.PickupSpawner.CreatePickup(position));
+      this.pickups.Add(this.pickupFactory(position));
     }
 
     /// <summary>

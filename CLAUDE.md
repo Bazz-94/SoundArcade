@@ -25,7 +25,7 @@ Always build and run tests after every code change.
 
 ## Project Vision
 
-Sound Arcade is an **audio-first** arcade collection for blind and sighted players. Every game must be fully playable via keyboard and spatial audio/TTS alone; visuals are supplementary and never load-bearing. Any new mechanic must pass the Accessibility Test: audio-only playable, keyboard-only controllable, state always audible, no vision-gated mechanics.
+Sound Arcade is an **audio-first** arcade collection for blind and sighted players: fully playable via keyboard and spatial audio/TTS alone; visuals never load-bearing. Full accessibility rules live in `artifacts/standards.md`.
 
 ## Architecture
 
@@ -50,20 +50,15 @@ Infrastructure → Abstractions
 - **Domain event pattern**: gameplay sessions (e.g. `RiverRunSession`) do not call `IAudio`/`ITts` directly. Domain methods return `IReadOnlyList<RunEvent>` (`PlaySoundEvent`, `StopSoundEvent`, `TextToSpeechEvent`), which the scene layer translates into PAL calls. Keep new audio/TTS feedback in this event style.
 - **Scenes**: `SceneManager` + `IScene` drive both menus (Application) and gameplay (`RiverRunScene`).
 
-## C# Standards
+## Standards
 
-- No `var` — always explicit types.
-- Use `this.` for instance members; always use block bodies for methods.
-- Stateful types: private setters plus explicit state-transition methods (e.g. `TakeDamage(int)`), never public setters.
-- Define constants/enums instead of hardcoding values (see `RunConstants`); no magic strings.
-- XML doc comments on all classes, methods, and properties — concise.
-- Avoid redundant names (`GameLoop`, not `RiverRunGameLoop`) and single-use local variables.
-- Prefer `foreach` over `for`.
+`artifacts/standards.md` is the single source of truth for project rules, design principles, and C# coding standards. Read it before writing or reviewing any code.
 
 ## Agent Workflow & Artifacts
 
 The `artifacts/` directory is shared memory for the project:
 
-- `artifacts/standards.md` — project vision, architecture rules, and PAL contract.
-- `artifacts/stories/SA-XXX-*.md` — Story Artifacts: medium-sized, independently testable units of work with acceptance criteria. Check existing stories before creating new ones.
-- `artifacts/implementation-plans/SA-XXX.md` — task-level plans for implementing a story, with per-task status (created by `/create-implementation-plan`, executed by `/implement`).
+- `artifacts/stories/sa-XX-title.md` — stories: non-technical, independently testable units of work with acceptance criteria and dependencies. Check existing stories before creating new ones.
+- `artifacts/implementation-plans/{storyid}.md` — task-level plans for implementing a story, with per-task status.
+
+Workflow skills: `/start-planning-session` gathers context and breaks a feature into stories (`/write-stories`); `/implement` plans a story (`/create-implementation-plan`) and implements it task by task with user review.

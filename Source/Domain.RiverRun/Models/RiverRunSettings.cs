@@ -16,9 +16,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     public float ScoringPerSecond { get; private set; }
     public int DodgeBonus { get; private set; }
     public int ScoreAnnouncementStep { get; private set; }
-    public float PickupSpawnDistanceMin { get; private set; }
-    public float PickupSpawnDistanceMax { get; private set; }
-    public float PickupSpawnZ { get; private set; }
+    public float PickupSpawnChance { get; private set; }
     public int PickupScoreBonus { get; private set; }
     public float ApproachNoiseRadius { get; private set; }
     public float ApproachNoiseInterval { get; private set; }
@@ -36,9 +34,7 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// <param name="ScoringPerSecond">Base score gain per second while playing.</param>
     /// <param name="DodgeBonus">Bonus score gained when an obstacle is successfully dodged.</param>
     /// <param name="ScoreAnnouncementStep">Milestone interval for score announcements.</param>
-    /// <param name="PickupSpawnDistanceMin">Minimum distance between pickup spawns.</param>
-    /// <param name="PickupSpawnDistanceMax">Maximum distance between pickup spawns.</param>
-    /// <param name="PickupSpawnZ">Initial pickup spawn Z position.</param>
+    /// <param name="PickupSpawnChance">Probability (0..1) that a spawn slot produces a pickup instead of an obstacle.</param>
     /// <param name="PickupScoreBonus">Score awarded when a pickup is collected.</param>
     /// <param name="ApproachNoiseRadius">Forward distance within which obstacles and pickups emit approach noise.</param>
     /// <param name="ApproachNoiseInterval">Minimum seconds between approach-noise cues for the same object.</param>
@@ -55,9 +51,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       float CollisionRadius = 0.5f,
       float ScoringPerSecond = 1.0f,
       int ScoreAnnouncementStep = 100,
-      float PickupSpawnDistanceMin = 6.0f,
-      float PickupSpawnDistanceMax = 14.0f,
-      float PickupSpawnZ = 22.0f,
+      float PickupSpawnChance = 0.35f,
       int PickupScoreBonus = 25,
       float ApproachNoiseRadius = 15.0f,
       float ApproachNoiseInterval = 0.75f,
@@ -74,9 +68,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       this.CollisionRadius = CollisionRadius;
       this.ScoringPerSecond = ScoringPerSecond;
       this.ScoreAnnouncementStep = ScoreAnnouncementStep;
-      this.PickupSpawnDistanceMin = PickupSpawnDistanceMin;
-      this.PickupSpawnDistanceMax = PickupSpawnDistanceMax;
-      this.PickupSpawnZ = PickupSpawnZ;
+      this.PickupSpawnChance = PickupSpawnChance;
       this.PickupScoreBonus = PickupScoreBonus;
       this.ApproachNoiseRadius = ApproachNoiseRadius;
       this.ApproachNoiseInterval = ApproachNoiseInterval;
