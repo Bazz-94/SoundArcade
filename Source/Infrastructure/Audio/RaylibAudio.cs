@@ -15,9 +15,6 @@ namespace SoundArcade.Infrastructure.Audio
     private const float DefaultMasterVolume = 1.0f;
     private const float DefaultMusicVolume = 1.0f;
     private const float DuckingMusicVolume = 0.35f;
-    private const float MinimumAudibleVolume = 0.2f;
-    private const float MaximumHearDistance = 20.0f;
-    private const float PanWidth = 2.0f;
     private const int PositionalVoiceCount = 4;
 
     private readonly Dictionary<string, Sound> sounds = new(StringComparer.Ordinal);
@@ -113,8 +110,38 @@ namespace SoundArcade.Infrastructure.Audio
       this.EnsureNotDisposed();
       ValidateRegistration(soundId, assetPath);
 
-      Sound sound = Raylib.LoadSound(assetPath);
+      this.StoreSound(soundId, Raylib.LoadSound(assetPath), gain);
+    }
 
+    /// <inheritdoc />
+    public void RegisterGeneratedSound(string soundId, SoundProfile profile)
+    {
+      this.EnsureNotDisposed();
+
+      if (string.IsNullOrWhiteSpace(soundId))
+      {
+        throw new ArgumentException("Asset identifier cannot be empty.", nameof(soundId));
+      }
+
+      byte[] wavBytes = WaveSynthesizer.SynthesizeWav(profile);
+      Wave wave = Raylib.LoadWaveFromMemory(".wav", wavBytes);
+      // LoadSoundFromWave copies the sample data into the sound's audio buffer, so the
+      // intermediate wave can be released immediately.
+      Sound sound = Raylib.LoadSoundFromWave(wave);
+      Raylib.UnloadWave(wave);
+
+      this.StoreSound(soundId, sound, profile.Gain);
+    }
+
+    /// <summary>
+    /// Stores a loaded sound and its positional voice pool under an identifier, releasing any
+    /// previously registered sound with the same identifier.
+    /// </summary>
+    /// <param name="soundId">Audio asset identifier.</param>
+    /// <param name="sound">Loaded sound to store.</param>
+    /// <param name="gain">Per-asset volume multiplier applied to every playback of this sound.</param>
+    private void StoreSound(string soundId, Sound sound, float gain)
+    {
       Sound[] voices = new Sound[PositionalVoiceCount];
       for (int i = 0; i < PositionalVoiceCount; i++)
       {
@@ -223,16 +250,8 @@ namespace SoundArcade.Infrastructure.Audio
         gain = this.soundGains.TryGetValue(soundId, out float storedGain) ? storedGain : 1.0f;
       }
 
-      // The minimum-audible floor lives in ComputeDistanceAttenuation so distance alone never
-      // silences a sound in range; the requested volume is free to go down to silence so callers
-      // can tune quiet cues like the ambient river.
-      float playbackVolume = Math.Clamp(volume * gain * this.ComputeDistanceAttenuation(listenerPosition, position), 0.0f, 1.0f);
-
-      // Raylib's SetSoundPan uses -1.0 (left), 0.0 (center), 1.0 (right). A source on the
-      // screen-left has a greater X than the listener (positive offset), so it must map to a
-      // negative pan to be heard on the left.
-      float lateralOffset = Math.Clamp((position.X - listenerPosition.X) / PanWidth, -1.0f, 1.0f);
-      float pan = -lateralOffset;
+      float playbackVolume = SpatialAudioMath.ComputePlaybackVolume(volume, gain, listenerPosition, position);
+      float pan = SpatialAudioMath.ComputePan(listenerPosition, position);
 
       Raylib.SetSoundPitch(voice, Math.Max(0.0f, pitch));
       Raylib.SetSoundPan(voice, pan);
@@ -493,19 +512,6 @@ namespace SoundArcade.Infrastructure.Audio
       {
         Raylib.SetMusicVolume(music, volume);
       }
-    }
-
-    /// <summary>
-    /// Calculates volume attenuation for positional playback.
-    /// </summary>
-    /// <param name="listener">Listener position.</param>
-    /// <param name="position">Sound source position.</param>
-    /// <returns>A clamped attenuation factor.</returns>
-    private float ComputeDistanceAttenuation(Vector3 listener, Vector3 position)
-    {
-      float distance = Vector3.Distance(listener, position);
-      float attenuation = 1.0f - (distance / MaximumHearDistance);
-      return Math.Clamp(attenuation, MinimumAudibleVolume, 1.0f);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Services
+namespace SoundArcade.Domain.RiverRun.Game
 {
   using System;
   using System.Collections.Generic;
@@ -6,6 +6,10 @@ namespace SoundArcade.Domain.RiverRun.Services
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Models.Events;
+  using SoundArcade.Domain.RiverRun.Models.GameObjects;
+  using SoundArcade.Domain.RiverRun.Services;
   using SoundArcade.Domain.Services;
 
   /// <summary>

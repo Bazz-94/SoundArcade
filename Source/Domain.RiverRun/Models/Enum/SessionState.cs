@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.Enum
 {
   /// <summary>
   /// High-level state for a RiverRun gameplay session.

@@ -1,8 +1,8 @@
-namespace SoundArcade.Domain.RiverRun.Game
+namespace SoundArcade.Domain.RiverRun.Services
 {
   using System.Collections.Generic;
   using SoundArcade.Abstractions;
-  using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
 
   /// <summary>
   /// Translates logical input actions into RiverRun player commands.
@@ -28,22 +28,22 @@ namespace SoundArcade.Domain.RiverRun.Game
     {
       List<RunCommand> commands = new List<RunCommand>();
 
-      if (input.InputPressed(Input.Left))
+      if (this.input.InputPressed(Input.Left))
       {
         commands.Add(RunCommand.MoveLeft);
       }
 
-      if (input.InputPressed(Input.Right))
+      if (this.input.InputPressed(Input.Right))
       {
         commands.Add(RunCommand.MoveRight);
       }
 
-      if (input.InputPressed(Input.Back))
+      if (this.input.InputPressed(Input.Back))
       {
         commands.Add(RunCommand.TogglePause);
       }
 
-      if (input.InputPressed(Input.Enter))
+      if (this.input.InputPressed(Input.Enter))
       {
         commands.Add(RunCommand.Restart);
       }

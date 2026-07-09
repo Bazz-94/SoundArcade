@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.GameObjects
 {
   using System.Numerics;
   using SoundArcade.Abstractions;

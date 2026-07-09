@@ -4,6 +4,8 @@ namespace SoundArcade.Domain.RiverRun.Game
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Models.Events;
   using SoundArcade.Domain.RiverRun.Services;
 
   /// <summary>

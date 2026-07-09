@@ -1,9 +1,11 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.GameObjects
 {
   using System;
   using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Models;
+  using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
 
   /// <summary>
   /// Player actor in the RiverRun world.

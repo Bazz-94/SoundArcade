@@ -7,6 +7,7 @@ namespace SoundArcade.Tests
   using SoundArcade.Application.Scenes;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Services;
+  using SoundArcade.Tests.Fakes;
   using Xunit;
 
   /// <summary>
@@ -20,7 +21,7 @@ namespace SoundArcade.Tests
     [Fact]
     public void Selecting_tts_volume_cycles_and_applies_speech_volume()
     {
-      FakeAudio audio = new FakeAudio();
+      MockAudio audio = new MockAudio();
       FakeSettingsStore settingsStore = new FakeSettingsStore(new AppSettings
       {
         MasterVolume = 0.4f,
@@ -52,60 +53,6 @@ namespace SoundArcade.Tests
       Assert.Equal("60 text to speech volume", tts.LastSpokenText);
       Assert.Equal(1.0f, audio.MasterVolume, precision: 3);
       Assert.Equal(0.6f, settingsStore.LastSavedSettings!.TtsVolume, precision: 3);
-    }
-
-    private sealed class FakeAudio : IAudio
-    {
-      public float MasterVolume { get; private set; } = 1.0f;
-
-      public void Update()
-      {
-      }
-
-      public void PlaySound(string soundId, float volume, float pitch = 1.0f)
-      {
-      }
-
-      public void PlaySoundAt(string soundId, Vector3 position, float volume, float pitch = 1.0f)
-      {
-      }
-
-      public void StopSound(string soundId)
-      {
-      }
-
-      public void SetListenerPosition(Vector3 position)
-      {
-      }
-
-      public void SetMasterVolume(float volume)
-      {
-        this.MasterVolume = volume;
-      }
-
-      public void PlayMusic(string musicId, bool loop)
-      {
-      }
-
-      public void PauseMusic()
-      {
-      }
-
-      public void ResumeMusic()
-      {
-      }
-
-      public void StopMusic()
-      {
-      }
-
-      public void SetMusicVolume(float volume)
-      {
-      }
-
-      public void RegisterSound(string soundId, string assetPath, float gain = 1.0f)
-      {
-      }
     }
 
     private sealed class FakeSettingsStore : ISettingsStore

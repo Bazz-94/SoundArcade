@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.Events
 {
   /// <summary>
   /// Event for speaking a text message through the TTS engine.

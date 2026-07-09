@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.Enum
 {
   /// <summary>
   /// Player commands accepted by the RiverRun session.

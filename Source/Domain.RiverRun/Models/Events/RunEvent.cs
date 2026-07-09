@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.Events
 {
   /// <summary>
   /// Represents a domain event emitted by the RiverRun session.

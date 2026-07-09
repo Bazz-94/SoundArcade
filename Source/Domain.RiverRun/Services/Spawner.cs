@@ -4,6 +4,7 @@ namespace SoundArcade.Domain.RiverRun.Services
   using System.Collections.Generic;
   using System.Numerics;
   using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.GameObjects;
 
   /// <summary>
   /// Spawns RiverRun world objects based on player forward progress.

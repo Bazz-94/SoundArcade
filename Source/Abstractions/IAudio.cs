@@ -85,5 +85,12 @@ namespace SoundArcade.Abstractions
     /// files that were recorded louder or quieter than the others. Defaults to 1.0 (no change).
     /// </param>
     void RegisterSound(string soundId, string assetPath, float gain = 1.0f);
+
+    /// <summary>
+    /// Registers a procedurally generated sound with the audio system for later playback.
+    /// </summary>
+    /// <param name="soundId">Audio asset identifier.</param>
+    /// <param name="profile">Profile describing the waveform, frequency, and duration to synthesize.</param>
+    void RegisterGeneratedSound(string soundId, SoundProfile profile);
   }
 }

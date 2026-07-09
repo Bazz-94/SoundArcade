@@ -1,4 +1,4 @@
-namespace SoundArcade.Domain.RiverRun.Models
+namespace SoundArcade.Domain.RiverRun.Models.Events
 {
   /// <summary>
   /// Event for stopping any currently playing instances of an audio asset, used to silence

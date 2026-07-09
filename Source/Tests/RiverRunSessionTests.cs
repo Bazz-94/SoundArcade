@@ -3,8 +3,10 @@ namespace SoundArcade.Tests
   using System.Collections.Generic;
   using System.Linq;
   using SoundArcade.Domain.Colors;
+  using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
-  using SoundArcade.Domain.RiverRun.Services;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Models.Events;
   using Xunit;
 
   /// <summary>

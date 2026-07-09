@@ -7,6 +7,8 @@ namespace SoundArcade.Domain.RiverRun.Scene
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.RiverRun.Game;
   using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Services;
   using SoundArcade.Domain.Services;
 
   /// <summary>
@@ -62,10 +64,10 @@ namespace SoundArcade.Domain.RiverRun.Scene
         ]);
 
       string assetBasePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
-      this.Audio.RegisterSound(RunConstants.SoundId.Collision, Path.Combine(assetBasePath, "Obstacle.mp3"), RunConstants.Gain.Collision);
-      this.Audio.RegisterSound(RunConstants.SoundId.ObstacleNoise, Path.Combine(assetBasePath, "ObstacleNoise.mp3"), RunConstants.Gain.ObstacleNoise);
-      this.Audio.RegisterSound(RunConstants.SoundId.Reward, Path.Combine(assetBasePath, "Reward.mp3"), RunConstants.Gain.Reward);
-      this.Audio.RegisterSound(RunConstants.SoundId.RewardNoise, Path.Combine(assetBasePath, "RewardNoise.mp3"), RunConstants.Gain.RewardNoise);
+      this.Audio.RegisterGeneratedSound(RunConstants.SoundId.Collision, RunConstants.SoundProfiles.Collision);
+      this.Audio.RegisterGeneratedSound(RunConstants.SoundId.ObstacleNoise, RunConstants.SoundProfiles.ObstacleNoise);
+      this.Audio.RegisterGeneratedSound(RunConstants.SoundId.Reward, RunConstants.SoundProfiles.Reward);
+      this.Audio.RegisterGeneratedSound(RunConstants.SoundId.RewardNoise, RunConstants.SoundProfiles.RewardNoise);
       this.Audio.RegisterSound(RunConstants.SoundId.RiverNoise, Path.Combine(assetBasePath, "RiverNoise.mp3"), RunConstants.Gain.RiverNoise);
     }
 

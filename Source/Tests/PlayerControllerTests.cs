@@ -3,8 +3,8 @@ namespace SoundArcade.Tests
   using System;
   using System.Collections.Generic;
   using SoundArcade.Abstractions;
-  using SoundArcade.Domain.RiverRun.Game;
-  using SoundArcade.Domain.RiverRun.Models;
+  using SoundArcade.Domain.RiverRun.Models.Enum;
+  using SoundArcade.Domain.RiverRun.Services;
   using Xunit;
 
   /// <summary>
@@ -67,7 +67,7 @@ namespace SoundArcade.Tests
 
       public bool InputPressed(Input input)
       {
-        bool isPressed = pressed.Contains(input);
+        bool isPressed = this.pressed.Contains(input);
 
         if (isPressed)
         {
@@ -79,12 +79,12 @@ namespace SoundArcade.Tests
 
       public bool InputDown(Input input)
       {
-        return pressed.Contains(input);
+        return this.pressed.Contains(input);
       }
 
       public IReadOnlyDictionary<Input, string> GetMappings()
       {
-        return mappings;
+        return this.mappings;
       }
 
       public bool TrySetMapping(Input input, string keyName)
@@ -94,18 +94,18 @@ namespace SoundArcade.Tests
           return false;
         }
 
-        mappings[input] = keyName;
+        this.mappings[input] = keyName;
         return true;
       }
 
       public void ResetMappingsToDefault()
       {
-        mappings[Input.Up] = "Up";
-        mappings[Input.Down] = "Down";
-        mappings[Input.Left] = "Left";
-        mappings[Input.Right] = "Right";
-        mappings[Input.Enter] = "Enter";
-        mappings[Input.Back] = "Escape";
+        this.mappings[Input.Up] = "Up";
+        this.mappings[Input.Down] = "Down";
+        this.mappings[Input.Left] = "Left";
+        this.mappings[Input.Right] = "Right";
+        this.mappings[Input.Enter] = "Enter";
+        this.mappings[Input.Back] = "Escape";
       }
 
       public void LoadMappings()
@@ -118,7 +118,7 @@ namespace SoundArcade.Tests
 
       public void SetPressed(Input input)
       {
-        pressed.Add(input);
+        this.pressed.Add(input);
       }
     }
   }

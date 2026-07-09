@@ -1,5 +1,7 @@
 namespace SoundArcade.Domain.RiverRun.Models
 {
+  using SoundArcade.Abstractions;
+
   /// <summary>
   /// Centralized constants used by the RiverRun domain model.
   /// </summary>
@@ -145,14 +147,43 @@ namespace SoundArcade.Domain.RiverRun.Models
       public const float Reward = 1.0f;
 
       /// <summary>
-      /// Gain for the pickup approach noise. Boosted because the source file is quiet.
+      /// Gain for the pickup approach noise. Generated at full level, so no boost is needed.
       /// </summary>
-      public const float RewardNoise = 4.0f;
+      public const float RewardNoise = 1.0f;
 
       /// <summary>
       /// Gain for the ambient river noise.
       /// </summary>
-      public const float RiverNoise = 1.0f;
+      public const float RiverNoise = 0.5f;
+    }
+
+    /// <summary>
+    /// Profiles for procedurally generated sounds. Obstacle cues are synthesized at runtime
+    /// instead of loaded from audio files; tune tone character here.
+    /// </summary>
+    public static class SoundProfiles
+    {
+      /// <summary>
+      /// Obstacle approach noise: a short buzzy square tone. The session's volume and pitch
+      /// ramps are applied on top of this base tone at playback time.
+      /// </summary>
+      public static readonly SoundProfile ObstacleNoise = new SoundProfile(Waveform.Square, 220.0f, 0.15f, Gain.ObstacleNoise);
+
+      /// <summary>
+      /// Obstacle collision impact: a longer, low raspy sawtooth tone.
+      /// </summary>
+      public static readonly SoundProfile Collision = new SoundProfile(Waveform.Sawtooth, 110.0f, 0.3f, Gain.Collision);
+
+      /// <summary>
+      /// Pickup approach noise: a short soft sine tone, brighter than the obstacle buzz so the
+      /// two cues are distinguishable by timbre alone.
+      /// </summary>
+      public static readonly SoundProfile RewardNoise = new SoundProfile(Waveform.Sine, 660.0f, 0.15f, Gain.RewardNoise);
+
+      /// <summary>
+      /// Pickup collection feedback: a longer high sine chime.
+      /// </summary>
+      public static readonly SoundProfile Reward = new SoundProfile(Waveform.Sine, 880.0f, 0.3f, Gain.Reward);
     }
 
     /// <summary>
