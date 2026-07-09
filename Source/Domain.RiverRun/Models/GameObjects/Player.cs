@@ -13,11 +13,17 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
   /// </summary>
   public sealed class Player : GameObject, IPlayer
   {
+    private const float RenderRadius = 0.35f;
+
     /// <summary>
     /// Gets the current forward movement speed in world units per second.
     /// </summary>
     public float Speed { get; private set; }
-    public Color color { get; }
+
+    /// <summary>
+    /// Gets the color used to render the player.
+    /// </summary>
+    private Color Color { get; }
 
     private readonly float speedIncreasePerZUnit;
     private readonly float maxSpeed;
@@ -25,6 +31,7 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
     /// <summary>
     /// Initializes a new instance of <see cref="Player"/>.
     /// </summary>
+    /// <param name="color">Color used to render the player.</param>
     /// <param name="position">Initial player world position.</param>
     /// <param name="speed">Initial forward movement speed.</param>
     /// <param name="speedIncreasePerZUnit">Speed gain applied per world unit traveled on Z.</param>
@@ -39,10 +46,10 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
       bool collidable = true)
       : base(position, collidable)
     {
-      this.color = color;
+      this.Color = color;
       this.Speed = speed;
       this.speedIncreasePerZUnit = speedIncreasePerZUnit;
-      maxSpeed = speed + maxSpeedIncrease;
+      this.maxSpeed = speed + maxSpeedIncrease;
     }
 
     /// <summary>
@@ -86,7 +93,7 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
       float distanceTravelled = this.Speed * deltaTimeSeconds;
       this.Position = new Vector3(this.Position.X, this.Position.Y, this.Position.Z + distanceTravelled);
 
-      this.Speed = MathF.Min(maxSpeed, this.Speed + (distanceTravelled * speedIncreasePerZUnit));
+      this.Speed = MathF.Min(this.maxSpeed, this.Speed + (distanceTravelled * this.speedIncreasePerZUnit));
     }
 
     /// <summary>
@@ -110,9 +117,10 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
       }
     }
 
+    /// <inheritdoc />
     public override void Render(IRenderer renderer)
     {
-      renderer.DrawSphere(this.Position, 0.35f, this.color);
+      renderer.DrawSphere(this.Position, RenderRadius, this.Color);
     }
   }
 }

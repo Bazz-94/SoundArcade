@@ -10,28 +10,51 @@ namespace SoundArcade.Domain.RiverRun.Models
   /// </summary>
   public abstract class GameObject
   {
-    private Vector3 _position;
+    private Vector3 position;
 
     /// <summary>
-    /// Gets or sets the world position. Setting the position triggers validation.
+    /// Gets the world position. Derived types update it through their own state-transition methods;
+    /// setting the position triggers validation.
     /// </summary>
     public Vector3 Position
     {
       get
       {
-        return _position;
+        return this.position;
       }
-      set
+      protected set
       {
         this.ValidatePosition(value);
-        _position = value;
+        this.position = value;
       }
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the object participates in collisions.
+    /// Gets a value indicating whether the object participates in collisions.
     /// </summary>
-    public bool IsCollidable { get; set; }
+    public bool IsCollidable { get; }
+
+    /// <summary>
+    /// Gets the elapsed-time threshold after which this object may emit another approach noise cue.
+    /// </summary>
+    public float NextNoiseAt { get; private set; }
+
+    /// <summary>
+    /// Schedules the next approach noise cue if the current one is due.
+    /// </summary>
+    /// <param name="elapsedSeconds">Total elapsed session time in seconds.</param>
+    /// <param name="interval">Minimum seconds between cues for this object.</param>
+    /// <returns>True when a cue is due and the next one was scheduled; otherwise false.</returns>
+    public bool TryScheduleNoise(float elapsedSeconds, float interval)
+    {
+      if (elapsedSeconds < this.NextNoiseAt)
+      {
+        return false;
+      }
+
+      this.NextNoiseAt = elapsedSeconds + interval;
+      return true;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="GameObject"/>.
@@ -61,7 +84,7 @@ namespace SoundArcade.Domain.RiverRun.Models
           // Valid lane positions.
           break;
         default:
-          throw new ArgumentOutOfRangeException(nameof(position), $"Position.X must on one of the game's lanes.");
+          throw new ArgumentOutOfRangeException(nameof(position), $"Position.X must be on one of the game's lanes.");
       }
 
       if (position.Y != RunConstants.GroundY)
@@ -70,6 +93,10 @@ namespace SoundArcade.Domain.RiverRun.Models
       }
     }
 
+    /// <summary>
+    /// Renders the object using primitive shapes.
+    /// </summary>
+    /// <param name="renderer">Renderer abstraction to draw with.</param>
     public abstract void Render(IRenderer renderer);
   }
 }

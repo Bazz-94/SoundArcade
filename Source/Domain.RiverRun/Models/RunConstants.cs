@@ -17,7 +17,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// so larger values spread the lanes further apart and sharpen the left/right stereo separation
       /// of obstacles and pickups. Keep <see cref="Left"/> and <see cref="Right"/> equal to ±this value.
       /// </summary>
-      public const float LaneWidth = 6.0f;
+      public const float LaneWidth = 3.0f;
 
       /// <summary>
       /// Left lane X coordinate. Positive X renders on the screen-left under the follow camera.
@@ -78,6 +78,11 @@ namespace SoundArcade.Domain.RiverRun.Models
       public const string ScorePrefix = "Score";
 
       /// <summary>
+      /// Spoken prefix used when announcing an obstacle collision.
+      /// </summary>
+      public const string HitPrefix = "Hit.";
+
+      /// <summary>
       /// Spoken suffix used when announcing remaining lives after a collision.
       /// </summary>
       public const string LivesLeftSuffix = "lives left";
@@ -98,11 +103,6 @@ namespace SoundArcade.Domain.RiverRun.Models
     /// </summary>
     public static class Volume
     {
-      /// <summary>
-      /// Score milestone volume.
-      /// </summary>
-      public const float ScoreMilestone = 0.8f;
-
       /// <summary>
       /// Loudest volume for obstacle and pickup approach noise cues, used when the object is right next to the player.
       /// </summary>
@@ -200,7 +200,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// Pitch of the obstacle approach noise when the obstacle is right next to the player. Higher
       /// than <see cref="ObstacleNoiseFar"/> so a rising pitch signals an obstacle closing in.
       /// </summary>
-      public const float ObstacleNoiseNear = 1.25f;
+      public const float ObstacleNoiseNear = 1.5f;
 
       /// <summary>
       /// Fraction of the approach noise radius over which the obstacle pitch ramps up. The pitch stays

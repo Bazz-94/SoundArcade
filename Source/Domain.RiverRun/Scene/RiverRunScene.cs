@@ -20,10 +20,20 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
     private Game Game { get; }
     private Menu Menu { get; }
+
+    /// <summary>
+    /// Gets the audio abstraction used for sound registration and playback.
+    /// </summary>
     public IAudio Audio { get; }
+
     private IInput Input { get; }
     private IRenderer Renderer { get; }
+
+    /// <summary>
+    /// Gets the color theme applied to the scene.
+    /// </summary>
     public Theme Theme { get; }
+
     private SceneManager SceneManager { get; }
 
     /// <summary>
@@ -49,7 +59,6 @@ namespace SoundArcade.Domain.RiverRun.Scene
       this.Renderer = renderer;
       this.Theme = theme;
       this.SceneManager = sceneManager;
-      this.Audio = audio;
 
       this.Menu = new Menu(
         input,

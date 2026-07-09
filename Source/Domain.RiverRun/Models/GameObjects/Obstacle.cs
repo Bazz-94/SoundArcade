@@ -9,12 +9,9 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
   /// </summary>
   public sealed class Obstacle : GameObject
   {
-    private Color Color { get; }
+    private const float RenderSize = 0.6f;
 
-    /// <summary>
-    /// Gets or sets the elapsed-time threshold after which this obstacle may emit another approach noise cue.
-    /// </summary>
-    public float NextNoiseAt { get; set; }
+    private Color Color { get; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Obstacle"/>.
@@ -27,9 +24,10 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
       this.Color = color;
     }
 
+    /// <inheritdoc />
     public override void Render(IRenderer renderer)
     {
-      renderer.DrawBox(this.Position, new Vector3(0.6f, 0.6f, 0.6f), this.Color);
+      renderer.DrawBox(this.Position, new Vector3(RenderSize, RenderSize, RenderSize), this.Color);
     }
   }
 }

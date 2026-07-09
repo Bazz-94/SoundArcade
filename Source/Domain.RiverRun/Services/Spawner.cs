@@ -74,7 +74,7 @@ namespace SoundArcade.Domain.RiverRun.Services
       {
         // Choose lane X from the three lane constants.
         float laneX;
-        int laneIndex = random.Next(0, 3); // 0,1,2
+        int laneIndex = this.random.Next(0, 3); // 0,1,2
         switch (laneIndex)
         {
           case 0:
@@ -89,7 +89,7 @@ namespace SoundArcade.Domain.RiverRun.Services
         }
 
         // Determine Z position using the rolling NextSpawnZ and a random spacing.
-        float spacing = this.spawnDistanceMin + (float)random.NextDouble() * (this.spawnDistanceMax - this.spawnDistanceMin);
+        float spacing = this.spawnDistanceMin + ((float)this.random.NextDouble() * (this.spawnDistanceMax - this.spawnDistanceMin));
         float nextZ = this.NextSpawnZ + spacing;
         this.NextSpawnZ = nextZ;
 

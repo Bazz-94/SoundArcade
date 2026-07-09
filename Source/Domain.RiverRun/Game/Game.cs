@@ -16,16 +16,22 @@ namespace SoundArcade.Domain.RiverRun.Game
     private PlayerController PlayerController { get; }
     private ITts Tts { get; }
     private IAudio Audio { get; }
-    public RiverRunSession Session { get; set; }
+
+    /// <summary>
+    /// Gets the domain session that contains gameplay state and rules.
+    /// </summary>
+    public RiverRunSession Session { get; }
+
     private IRenderer Renderer { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Game"/> class.
     /// </summary>
-    /// <param name="playerController">Player controller that maps input to domain commands.</param>
+    /// <param name="renderer">Renderer abstraction for drawing the world.</param>
     /// <param name="tts">Text-to-speech abstraction for spoken feedback.</param>
     /// <param name="audio">Audio abstraction for non-speech cues.</param>
-    /// <param name="session">Domain session that contains gameplay state and rules.</param>
+    /// <param name="theme">Color theme applied to session visuals.</param>
+    /// <param name="playerController">Player controller that maps input to domain commands.</param>
     public Game(IRenderer renderer, ITts tts, IAudio audio, Theme theme, PlayerController playerController)
     {
       this.PlayerController = playerController;
@@ -33,12 +39,6 @@ namespace SoundArcade.Domain.RiverRun.Game
       this.Audio = audio;
       this.Session = new RiverRunSession(theme, new RiverRunSettings());
       this.Renderer = renderer;
-
-      //laneColor = theme.Primary;
-      //playerColor = theme.Tertiary;
-      //obstacleColor = theme.Secondary;
-      //hudLivesColor = theme.Accent;
-      //hudScoreColor = theme.Accent;
     }
 
     /// <summary>
@@ -116,6 +116,9 @@ namespace SoundArcade.Domain.RiverRun.Game
       this.Audio.SetListenerPosition(this.Session.Player.Position);
     }
 
+    /// <summary>
+    /// Renders the current session state.
+    /// </summary>
     public void Render()
     {
       this.Session.Render(this.Renderer);
