@@ -19,7 +19,7 @@ namespace SoundArcade.Infrastructure.Audio
     /// Attenuation floor so distance alone never silences a sound in range; the requested
     /// volume is free to go down to silence so callers can tune quiet cues like the ambient river.
     /// </summary>
-    public const float MinimumAudibleVolume = 0.2f;
+    public const float MinimumAudibleVolume = 0.05f;
 
     /// <summary>
     /// Lateral distance, in world units, at which a source is panned fully to one ear.

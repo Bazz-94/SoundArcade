@@ -17,7 +17,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// so larger values spread the lanes further apart and sharpen the left/right stereo separation
       /// of obstacles and pickups. Keep <see cref="Left"/> and <see cref="Right"/> equal to ±this value.
       /// </summary>
-      public const float LaneWidth = 3.0f;
+      public const float LaneWidth = 6.0f;
 
       /// <summary>
       /// Left lane X coordinate. Positive X renders on the screen-left under the follow camera.
@@ -116,7 +116,7 @@ namespace SoundArcade.Domain.RiverRun.Models
       /// <summary>
       /// Volume for the ambient river noise either side of the player.
       /// </summary>
-      public const float RiverAmbient = 0.01f;
+      public const float RiverAmbient = 0.005f;
 
       /// <summary>
       /// Volume for pickup collection feedback.

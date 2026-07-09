@@ -22,8 +22,8 @@ namespace SoundArcade.Tests
     [Theory]
     [InlineData(0.0f, 1.0f)] // At the listener: full volume.
     [InlineData(10.0f, 0.5f)] // Half the hear distance: half volume.
-    [InlineData(20.0f, 0.2f)] // At the hear distance: clamped to the floor.
-    [InlineData(50.0f, 0.2f)] // Beyond the hear distance: still the floor, never silent.
+    [InlineData(20.0f, 0.05f)] // At the hear distance: clamped to the floor.
+    [InlineData(50.0f, 0.05f)] // Beyond the hear distance: still the floor, never silent.
     public void ComputeAttenuation_FallsLinearlyAndClampsToFloor(float distance, float expectedAttenuation)
     {
       float attenuation = SpatialAudioMath.ComputeAttenuation(Vector3.Zero, new Vector3(0.0f, 0.0f, distance));
@@ -60,8 +60,8 @@ namespace SoundArcade.Tests
     [InlineData(0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.9f, 0.0f)]
     // Object 1 unit screen-right, gain 2, volume 0.5: effective 0.95, half pan right.
     [InlineData(0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 2.0f, 0.5f, 0.475f, 0.95f)]
-    // Object 30 units ahead: attenuation floor 0.2, centered in both ears.
-    [InlineData(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 1.0f, 1.0f, 0.2f, 0.2f)]
+    // Object 30 units ahead: attenuation floor 0.05, centered in both ears.
+    [InlineData(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 1.0f, 1.0f, 0.05f, 0.05f)]
     // Player offset from origin, object 1 unit to the player's screen-left: pan follows relative offset.
     [InlineData(3.0f, 0.0f, 10.0f, 4.0f, 0.0f, 10.0f, 1.0f, 1.0f, 0.95f, 0.475f)]
     // Requested volume zero stays silent regardless of position and gain.
