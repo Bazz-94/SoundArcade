@@ -16,8 +16,6 @@ namespace SoundArcade.Domain.RiverRun.Scene
   /// </summary>
   public sealed class RiverRunScene : IScene
   {
-    private const float PauseMenuZOffset = 2.5f;
-
     private Game Game { get; }
     private Menu Menu { get; }
 
@@ -121,7 +119,6 @@ namespace SoundArcade.Domain.RiverRun.Scene
 
       if (this.Game.Session.State == SessionState.Paused)
       {
-        this.Menu.MenuZ = this.Game.Session.Player.Position.Z + PauseMenuZOffset;
         this.Menu.Render();
       }
     }

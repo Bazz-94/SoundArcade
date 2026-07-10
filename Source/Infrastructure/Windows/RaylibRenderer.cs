@@ -78,6 +78,31 @@ namespace SoundArcade.Infrastructure.Windows
     }
 
     /// <inheritdoc />
+    public void DrawScreenTextCentered(int x, int y, string text, int fontSize, Abstractions.Color color)
+    {
+      int textWidth = Raylib.MeasureText(text, fontSize);
+      Raylib.DrawText(text, x - (textWidth / 2), y - (fontSize / 2), fontSize, ToRaylibColor(color));
+    }
+
+    /// <inheritdoc />
+    public void DrawScreenBox(int x, int y, int width, int height, Abstractions.Color color)
+    {
+      Raylib.DrawRectangle(x - (width / 2), y - (height / 2), width, height, ToRaylibColor(color));
+    }
+
+    /// <inheritdoc />
+    public int GetScreenWidth()
+    {
+      return Raylib.GetScreenWidth();
+    }
+
+    /// <inheritdoc />
+    public int GetScreenHeight()
+    {
+      return Raylib.GetScreenHeight();
+    }
+
+    /// <inheritdoc />
     public void SetCameraTarget(Vector3 focusPosition)
     {
       camera.Position = DefaultCameraPosition + new Vector3(0.0f, 0.0f, focusPosition.Z);

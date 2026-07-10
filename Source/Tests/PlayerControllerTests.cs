@@ -1,10 +1,10 @@
 namespace SoundArcade.Tests
 {
-  using System;
   using System.Collections.Generic;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.RiverRun.Models.Enum;
   using SoundArcade.Domain.RiverRun.Services;
+  using SoundArcade.Tests.Mock;
   using Xunit;
 
   /// <summary>
@@ -18,13 +18,13 @@ namespace SoundArcade.Tests
     [Fact]
     public void ReadCommands_returns_commands_for_pressed_inputs()
     {
-      FakeInput input = new FakeInput();
+      MockInput input = new MockInput();
       PlayerController controller = new PlayerController(input);
 
-      input.SetPressed(Input.Left);
-      input.SetPressed(Input.Right);
-      input.SetPressed(Input.Back);
-      input.SetPressed(Input.Enter);
+      input.Press(Input.Left);
+      input.Press(Input.Right);
+      input.Press(Input.Back);
+      input.Press(Input.Enter);
 
       IReadOnlyList<RunCommand> commands = controller.ReadCommands();
 
@@ -42,84 +42,12 @@ namespace SoundArcade.Tests
     [Fact]
     public void ReadCommands_returns_empty_when_no_inputs_pressed()
     {
-      FakeInput input = new FakeInput();
+      MockInput input = new MockInput();
       PlayerController controller = new PlayerController(input);
 
       IReadOnlyList<RunCommand> commands = controller.ReadCommands();
 
       Assert.Empty(commands);
-    }
-
-    private sealed class FakeInput : IInput
-    {
-      private readonly HashSet<Input> pressed = new HashSet<Input>();
-      private readonly Dictionary<Input, string> mappings = new Dictionary<Input, string>
-      {
-        [Input.Up] = "Up",
-        [Input.Down] = "Down",
-        [Input.Left] = "Left",
-        [Input.Right] = "Right",
-        [Input.Enter] = "Enter",
-        [Input.Back] = "Escape"
-      };
-
-      public event EventHandler<InputPressedEventArgs>? Pressed;
-
-      public bool InputPressed(Input input)
-      {
-        bool isPressed = this.pressed.Contains(input);
-
-        if (isPressed)
-        {
-          this.Pressed?.Invoke(this, new InputPressedEventArgs(input));
-        }
-
-        return isPressed;
-      }
-
-      public bool InputDown(Input input)
-      {
-        return this.pressed.Contains(input);
-      }
-
-      public IReadOnlyDictionary<Input, string> GetMappings()
-      {
-        return this.mappings;
-      }
-
-      public bool TrySetMapping(Input input, string keyName)
-      {
-        if (string.IsNullOrWhiteSpace(keyName))
-        {
-          return false;
-        }
-
-        this.mappings[input] = keyName;
-        return true;
-      }
-
-      public void ResetMappingsToDefault()
-      {
-        this.mappings[Input.Up] = "Up";
-        this.mappings[Input.Down] = "Down";
-        this.mappings[Input.Left] = "Left";
-        this.mappings[Input.Right] = "Right";
-        this.mappings[Input.Enter] = "Enter";
-        this.mappings[Input.Back] = "Escape";
-      }
-
-      public void LoadMappings()
-      {
-      }
-
-      public void SaveMappings()
-      {
-      }
-
-      public void SetPressed(Input input)
-      {
-        this.pressed.Add(input);
-      }
     }
   }
 }

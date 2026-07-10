@@ -1,18 +1,20 @@
 namespace SoundArcade.Domain.Models
 {
   using System;
-  using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
 
   /// <summary>
   /// Menu item component.
   /// </summary>
-  public sealed class MenuItem : UIComponent
+  public class MenuItem : UIComponent
   {
     public Action OnPressed { get; private set; }
     public Color TextColor { get; set; }
-    public Vector3 Size { get; set; }
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
     public int FontSize { get; set; }
 
     /// <summary>
@@ -29,12 +31,17 @@ namespace SoundArcade.Domain.Models
       this.FontSize = theme.FontSize;
     }
 
-    public void Render(IRenderer renderer, bool isSelected)
+    /// <summary>
+    /// Renders the item box and label.
+    /// </summary>
+    /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="isSelected">Whether the item is currently selected.</param>
+    public virtual void Render(IRenderer renderer, bool isSelected)
     {
       Color itemColor = isSelected ? this.TextColor : this.Color;
       Color textColor = isSelected ? this.Color : this.TextColor;
-      renderer.DrawBox(this.Position, this.Size, itemColor);
-      renderer.DrawText(this.Position, this.DisplayText, this.FontSize, textColor);
+      renderer.DrawScreenBox(this.X, this.Y, this.Width, this.Height, itemColor);
+      renderer.DrawScreenTextCentered(this.X, this.Y, this.DisplayText, this.FontSize, textColor);
     }
   }
 }

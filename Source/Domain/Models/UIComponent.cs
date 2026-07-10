@@ -1,6 +1,5 @@
 namespace SoundArcade.Domain.Models
 {
-  using System.Numerics;
   using SoundArcade.Abstractions;
 
   /// <summary>
@@ -29,8 +28,6 @@ namespace SoundArcade.Domain.Models
     /// Gets the display text for this component.
     /// </summary>
     public string DisplayText { get; }
-
-    public Vector3 Position { get; set; } = new Vector3();
 
     public Color Color { get; set; }
   }

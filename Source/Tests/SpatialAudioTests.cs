@@ -3,7 +3,7 @@ namespace SoundArcade.Tests
   using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Infrastructure.Audio;
-  using SoundArcade.Tests.Fakes;
+  using SoundArcade.Tests.Mock;
   using Xunit;
 
   /// <summary>

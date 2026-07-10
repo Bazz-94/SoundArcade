@@ -2,7 +2,6 @@ namespace SoundArcade.Domain.Models
 {
   using System;
   using System.Collections.Generic;
-  using System.Numerics;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
 
@@ -11,15 +10,19 @@ namespace SoundArcade.Domain.Models
   /// </summary>
   public class Menu : UIComponent
   {
-    public float MenuZ { get; set; } = 2.5f;
-    public float DefaultMenuStartY { get; set; } = 8.0f;
-    public float DefaultMenuItemSpacing { get; set; } = 1f;
+    public int MenuStartY { get; set; } = 350;
+    public int MenuTitleOffsetY { get; set; } = 80;
+    public int MenuItemSpacing { get; set; } = 60;
+    public int MenuItemWidth { get; set; } = 280;
+    public int MenuItemHeight { get; set; } = 44;
     public int MenuItemFontSize { get; set; } = 22;
-    public Vector3 MenuItemSize { get; set; } = new Vector3(4f, 0.28f, 1f);
     private string MenuTitle { get; }
     public List<MenuItem> Items { get; }
     private int SelectedIndex { get; set; }
-    private MenuItem SelectedItem => this.Items[this.SelectedIndex];
+    /// <summary>
+    /// Gets the currently selected item.
+    /// </summary>
+    protected MenuItem SelectedItem => this.Items[this.SelectedIndex];
     private Theme Theme { get; }
     public IInput Input { get; }
     public ITts Tts { get; }
@@ -74,7 +77,13 @@ namespace SoundArcade.Domain.Models
       this.SelectedIndex = WrapIndex(this.SelectedIndex + 1, this.Items.Count);
     }
 
-    private static int WrapIndex(int index, int length)
+    /// <summary>
+    /// Wraps an index into the range [0, length).
+    /// </summary>
+    /// <param name="index">Index to wrap.</param>
+    /// <param name="length">Collection length.</param>
+    /// <returns>Wrapped index.</returns>
+    protected static int WrapIndex(int index, int length)
     {
       if (length <= 0)
       {
@@ -91,26 +100,34 @@ namespace SoundArcade.Domain.Models
       return wrapped;
     }
 
-    public void Render()
+    /// <summary>
+    /// Renders the menu title and items.
+    /// </summary>
+    public virtual void Render()
     {
+      int centerX = this.Renderer.GetScreenWidth() / 2;
 
-      this.Renderer.DrawText(new Vector3(0.0f, this.DefaultMenuStartY + 2f, this.MenuZ), this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
+      this.Renderer.DrawScreenTextCentered(centerX, this.MenuStartY - this.MenuTitleOffsetY, this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
 
       int itemIndex = 0;
       foreach (MenuItem item in this.Items)
       {
-        float y = this.DefaultMenuStartY - (itemIndex * this.DefaultMenuItemSpacing);
-        item.Position = new Vector3(0.0f, y, this.MenuZ);
+        item.X = centerX;
+        item.Y = this.MenuStartY + (itemIndex * this.MenuItemSpacing);
         item.Color = this.Theme.ColorPalette.Primary;
         item.TextColor = this.Theme.ColorPalette.Accent;
-        item.Size = new Vector3(3f, 0.65f, 0.28f);
+        item.Width = this.MenuItemWidth;
+        item.Height = this.MenuItemHeight;
         item.Render(this.Renderer, itemIndex == this.SelectedIndex);
 
         itemIndex++;
       }
     }
 
-    public void Update()
+    /// <summary>
+    /// Handles navigation and item presses for the current frame.
+    /// </summary>
+    public virtual void Update()
     {
       bool selectionChanged = false;
 
@@ -134,8 +151,17 @@ namespace SoundArcade.Domain.Models
 
       if (this.Input.InputPressed(Abstractions.Input.Enter))
       {
-        this.SelectedItem.OnPressed();
+        this.OnItemPressed(this.SelectedItem);
       }
+    }
+
+    /// <summary>
+    /// Handles a press on the given item; default invokes the item's pressed action.
+    /// </summary>
+    /// <param name="item">Item that was pressed.</param>
+    protected virtual void OnItemPressed(MenuItem item)
+    {
+      item.OnPressed();
     }
   }
 }
