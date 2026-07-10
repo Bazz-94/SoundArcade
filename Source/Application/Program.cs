@@ -1,24 +1,24 @@
 namespace SoundArcade.Application
 {
-  using System;
   using Microsoft.Extensions.DependencyInjection;
   using SoundArcade.Application.DependencyInjection;
 
+  /// <summary>
+  /// Executable entry point that wires the composition root and starts the shell.
+  /// </summary>
   internal class Program
   {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-    private static void Main(string[] args)
+    /// <summary>
+    /// Builds the service provider and runs the arcade shell.
+    /// </summary>
+    private static void Main()
     {
       ServiceCollection services = new ServiceCollection();
       services.AddSoundArcade();
       services.AddRiverRun();
 
       using ServiceProvider serviceProvider = services.BuildServiceProvider();
-      GameRegistry registry = serviceProvider.GetRequiredService<GameRegistry>();
-      ArcadeShell shell = serviceProvider.GetRequiredService<ArcadeShell>();
-
-      Console.WriteLine($"Registered {registry.Games.Count} game(s).");
-      shell.Run();
+      serviceProvider.GetRequiredService<ArcadeShell>().Run();
     }
   }
 }

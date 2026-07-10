@@ -19,11 +19,10 @@ namespace SoundArcade.Tests
     public void Selecting_tts_volume_cycles_and_applies_speech_volume()
     {
       MockAudio audio = new MockAudio();
-      MockSettingsStore settingsStore = new MockSettingsStore(new AppSettings
-      {
-        MasterVolume = 0.4f,
-        TtsVolume = 0.4f
-      });
+      AppSettings appSettings = new AppSettings();
+      appSettings.SetMasterVolume(0.4f);
+      appSettings.SetTtsVolume(0.4f);
+      MockSettingsStore settingsStore = new MockSettingsStore(appSettings);
       MockInput input = new MockInput();
       MockTts tts = new MockTts();
       MockRenderer renderer = new MockRenderer();
@@ -63,11 +62,10 @@ namespace SoundArcade.Tests
     public void Left_and_right_arrows_cycle_selected_volume_control()
     {
       MockAudio audio = new MockAudio();
-      MockSettingsStore settingsStore = new MockSettingsStore(new AppSettings
-      {
-        MasterVolume = 0.4f,
-        TtsVolume = 0.4f
-      });
+      AppSettings appSettings = new AppSettings();
+      appSettings.SetMasterVolume(0.4f);
+      appSettings.SetTtsVolume(0.4f);
+      MockSettingsStore settingsStore = new MockSettingsStore(appSettings);
       MockInput input = new MockInput();
       SettingsMenuScene scene = new SettingsMenuScene(
         audio: audio,

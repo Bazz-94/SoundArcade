@@ -1,4 +1,4 @@
-﻿namespace SoundArcade.Application.Scenes
+namespace SoundArcade.Application.Scenes
 {
   using System;
   using SoundArcade.Abstractions;
@@ -7,18 +7,33 @@
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.Services;
 
-  public class SettingsMenuScene : IScene
+  /// <summary>
+  /// Menu for adjusting and persisting application settings.
+  /// </summary>
+  public sealed class SettingsMenuScene : MenuScene
   {
     private static readonly float[] VolumeLevels = [0.2f, 0.4f, 0.6f, 0.8f, 1.0f];
 
-    private IInput Input { get; }
     private AppSettings AppSettings { get; }
     private ISettingsStore SettingsStore { get; }
-    public ITts Tts { get; }
+    private IInput SceneInput { get; }
+    private ITts Tts { get; }
     private IAudio Audio { get; }
-    private SceneManager SceneManager { get; }
-    private Menu Menu { get; }
 
+    /// <inheritdoc />
+    protected override Menu Menu { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SettingsMenuScene"/> class.
+    /// </summary>
+    /// <param name="audio">Audio abstraction.</param>
+    /// <param name="appSettings">Application settings.</param>
+    /// <param name="settingsStore">Settings persistence.</param>
+    /// <param name="input">Input abstraction.</param>
+    /// <param name="tts">Text-to-speech abstraction.</param>
+    /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="theme">Theme for colors.</param>
+    /// <param name="sceneManager">Scene manager for transitions.</param>
     public SettingsMenuScene(
       IAudio audio,
       AppSettings appSettings,
@@ -28,13 +43,13 @@
       IRenderer renderer,
       Theme theme,
       SceneManager sceneManager)
+      : base(input, sceneManager)
     {
       this.AppSettings = appSettings;
       this.SettingsStore = settingsStore;
-      this.Input = input;
+      this.SceneInput = input;
       this.Tts = tts;
       this.Audio = audio;
-      this.SceneManager = sceneManager;
 
       this.Menu = new SettingsMenu(
         input,
@@ -42,73 +57,58 @@
         renderer,
         id: (int)MenuType.Settings,
         controls: [
-          new ControlItem(theme, (int)SettingsMenuItem.MasterVolume, "Game Volume", VolumeLevels, appSettings.MasterVolume, this.ApplyMasterVolume),
-          new ControlItem(theme, (int)SettingsMenuItem.TtsVolume, "Text to Speech Volume", VolumeLevels, appSettings.TtsVolume, this.ApplyTtsVolume)
+          new ControlItem(theme, (int)SettingsMenuItem.MasterVolume, MenuText.MasterVolumeLabel, VolumeLevels, appSettings.MasterVolume, this.ApplyMasterVolume),
+          new ControlItem(theme, (int)SettingsMenuItem.TtsVolume, MenuText.TtsVolumeLabel, VolumeLevels, appSettings.TtsVolume, this.ApplyTtsVolume)
         ],
-        backItem: new MenuItem(theme, (int)SettingsMenuItem.Back, "Back", this.OnBackSelected),
+        backItem: new MenuItem(theme, (int)SettingsMenuItem.Back, MenuText.BackLabel, this.OnBackSelected),
         theme: theme,
-        menuTitle: "Settings Menu");
+        menuTitle: MenuText.SettingsMenuTitle);
     }
 
-    public void OnBackSelected()
+    /// <summary>
+    /// Returns to the main menu.
+    /// </summary>
+    public override void OnBackSelected()
     {
       this.SceneManager.ChangeScene(SceneType.MainMenu);
     }
 
-    private void PersistSettings()
+    /// <summary>
+    /// Persists the settings when the scene is left.
+    /// </summary>
+    public override void OnExit()
     {
       this.SettingsStore.Save(this.AppSettings);
-      this.Input.SaveMappings();
+      this.SceneInput.SaveMappings();
     }
 
     private void ApplyMasterVolume(float volume)
     {
-      this.AppSettings.MasterVolume = volume;
+      this.AppSettings.SetMasterVolume(volume);
       this.Audio.SetMasterVolume(volume);
 
       this.Tts.Stop();
-      this.Tts.SpeakAsync($"{(int)MathF.Round(volume * 100.0f)} game volume");
+      this.Tts.SpeakAsync(string.Format(MenuText.MasterVolumeAnnouncementFormat, VolumePercent(volume)));
     }
 
     private void ApplyTtsVolume(float volume)
     {
-      this.AppSettings.TtsVolume = volume;
+      this.AppSettings.SetTtsVolume(volume);
       this.Tts.Stop();
       this.Tts.SetVolume(volume);
 
-      this.Tts.SpeakAsync($"{(int)MathF.Round(volume * 100.0f)} text to speech volume");
+      this.Tts.SpeakAsync(string.Format(MenuText.TtsVolumeAnnouncementFormat, VolumePercent(volume)));
     }
 
-    public void OnEnter()
+    private static int VolumePercent(float volume)
     {
-      this.Menu.SelectFirstItem();
-    }
-
-    public void OnExit()
-    {
-      this.PersistSettings();
-    }
-
-    public void Update(float deltaTime)
-    {
-      this.Menu.Update();
-
-      if (this.Input.InputPressed(Abstractions.Input.Back))
-      {
-        this.OnBackSelected();
-      }
-    }
-
-    public void Render()
-    {
-      this.Menu.Render();
+      return (int)MathF.Round(volume * 100.0f);
     }
 
     private enum SettingsMenuItem
     {
       MasterVolume,
       TtsVolume,
-      ResetDefaults,
       Back
     }
   }

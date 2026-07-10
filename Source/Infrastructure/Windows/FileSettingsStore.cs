@@ -28,17 +28,20 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public AppSettings Load()
     {
+      AppSettings settings = new AppSettings();
+
       if (!File.Exists(settingsPath))
       {
-        return new AppSettings();
+        return settings;
       }
 
       string json = File.ReadAllText(settingsPath);
-      AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json);
+      SettingsDocument? document = JsonSerializer.Deserialize<SettingsDocument>(json);
 
-      if (settings is null)
+      if (document is not null)
       {
-        return new AppSettings();
+        settings.SetMasterVolume(document.MasterVolume);
+        settings.SetTtsVolume(document.TtsVolume);
       }
 
       return settings;
@@ -55,8 +58,29 @@ namespace SoundArcade.Infrastructure.Windows
       }
 
       Directory.CreateDirectory(settingsDirectoryPath);
-      string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+      SettingsDocument document = new SettingsDocument
+      {
+        MasterVolume = settings.MasterVolume,
+        TtsVolume = settings.TtsVolume
+      };
+      string json = JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
       File.WriteAllText(settingsPath, json);
+    }
+
+    /// <summary>
+    /// Serialization shape for the settings file.
+    /// </summary>
+    private sealed record SettingsDocument
+    {
+      /// <summary>
+      /// Gets or sets the master volume.
+      /// </summary>
+      public float MasterVolume { get; set; } = 1.0f;
+
+      /// <summary>
+      /// Gets or sets the text-to-speech volume.
+      /// </summary>
+      public float TtsVolume { get; set; } = 1.0f;
     }
   }
 }

@@ -13,13 +13,31 @@ namespace SoundArcade.Application
   /// </summary>
   public sealed class SceneFactory : ISceneFactory
   {
+    /// <summary>Input abstraction.</summary>
     private IInput Input { get; }
+
+    /// <summary>Text-to-speech abstraction.</summary>
     private ITts Tts { get; }
+
+    /// <summary>Renderer abstraction.</summary>
     private IRenderer Renderer { get; }
+
+    /// <summary>Audio abstraction.</summary>
     private IAudio Audio { get; }
+
+    /// <summary>Settings persistence.</summary>
     private ISettingsStore SettingsStore { get; }
+
+    /// <summary>Application settings.</summary>
     private AppSettings AppSettings { get; }
+
+    /// <summary>Theme for colors.</summary>
     private Theme Theme { get; }
+
+    /// <summary>Registry of games for the selection menu.</summary>
+    private GameRegistry GameRegistry { get; }
+
+    /// <summary>Scene manager for transitions.</summary>
     private SceneManager SceneManager { get; }
 
     /// <summary>
@@ -33,6 +51,7 @@ namespace SoundArcade.Application
       ISettingsStore settingsStore,
       AppSettings appSettings,
       Theme theme,
+      GameRegistry gameRegistry,
       SceneManager sceneManager)
     {
       this.Input = input;
@@ -42,6 +61,7 @@ namespace SoundArcade.Application
       this.SettingsStore = settingsStore;
       this.AppSettings = appSettings;
       this.Theme = theme;
+      this.GameRegistry = gameRegistry;
       this.SceneManager = sceneManager;
     }
 
@@ -75,6 +95,7 @@ namespace SoundArcade.Application
         tts: this.Tts,
         renderer: this.Renderer,
         theme: this.Theme,
+        gameRegistry: this.GameRegistry,
         sceneManager: this.SceneManager);
     }
 

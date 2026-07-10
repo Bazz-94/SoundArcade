@@ -18,6 +18,10 @@ namespace SoundArcade.Infrastructure.Windows
     {
       Raylib.InitWindow(width, height, title);
       Raylib.SetTargetFPS(TargetFramesPerSecond);
+
+      // Raylib's default exit key is Escape, which would close the app before
+      // scenes can handle Back input; exit is driven by SceneType.Exit instead.
+      Raylib.SetExitKey(KeyboardKey.Null);
     }
 
     /// <inheritdoc />

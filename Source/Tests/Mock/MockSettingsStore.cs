@@ -23,11 +23,9 @@ namespace SoundArcade.Tests.Mock
 
     public void Save(AppSettings settings)
     {
-      this.LastSavedSettings = new AppSettings
-      {
-        MasterVolume = settings.MasterVolume,
-        TtsVolume = settings.TtsVolume
-      };
+      AppSettings snapshot = new AppSettings();
+      snapshot.CopyFrom(settings);
+      this.LastSavedSettings = snapshot;
     }
   }
 }

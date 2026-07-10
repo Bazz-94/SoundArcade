@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
     <File Path="Directory.Packages.props" />
   </Folder>
   <Project Path="Abstractions/Abstractions.csproj" Id="ba00d4f0-d3a8-4c71-ae17-45b785ba4fa2" />
