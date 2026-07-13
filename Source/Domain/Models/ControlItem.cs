@@ -6,7 +6,8 @@ namespace SoundArcade.Domain.Models
   using SoundArcade.Domain.Colors;
 
   /// <summary>
-  /// Menu item with a value that cycles through a fixed set of levels; renders the value beside the label.
+  /// Menu item holding one value from a fixed set of levels; the owning menu drives cycling
+  /// via <see cref="SetValue"/>. Renders the value beside the label.
   /// </summary>
   public sealed class ControlItem : MenuItem
   {
@@ -34,7 +35,7 @@ namespace SoundArcade.Domain.Models
     /// <param name="id">Stable item identifier.</param>
     /// <param name="displayText">Display text announced to users.</param>
     /// <param name="values">Values to cycle through.</param>
-    /// <param name="initialValue">Starting value.</param>
+    /// <param name="initialValue">Starting value; snapped to the nearest list value.</param>
     /// <param name="onValueChanged">Callback invoked with the new value after each cycle.</param>
     public ControlItem(
       Theme theme,
@@ -51,7 +52,7 @@ namespace SoundArcade.Domain.Models
       }
 
       this.Values = values;
-      this.Value = initialValue;
+      this.Value = NearestValue(values, initialValue);
       this.OnValueChanged = onValueChanged;
       this.ValueColor = theme.ColorPalette.Accent;
     }
@@ -62,8 +63,51 @@ namespace SoundArcade.Domain.Models
     /// <param name="value">New value.</param>
     public void SetValue(float value)
     {
+      if (!Contains(this.Values, value))
+      {
+        throw new ArgumentException("ControlItem value must be one of its values.", nameof(value));
+      }
+
       this.Value = value;
       this.OnValueChanged(value);
+    }
+
+    /// <summary>
+    /// Returns true when the value is present in the list.
+    /// </summary>
+    /// <param name="values">Values to search.</param>
+    /// <param name="value">Value to find.</param>
+    private static bool Contains(IReadOnlyList<float> values, float value)
+    {
+      foreach (float candidate in values)
+      {
+        if (candidate == value)
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    /// <summary>
+    /// Returns the list value closest to the requested value.
+    /// </summary>
+    /// <param name="values">Values to search.</param>
+    /// <param name="value">Requested value.</param>
+    private static float NearestValue(IReadOnlyList<float> values, float value)
+    {
+      float nearest = values[0];
+
+      foreach (float candidate in values)
+      {
+        if (MathF.Abs(candidate - value) < MathF.Abs(nearest - value))
+        {
+          nearest = candidate;
+        }
+      }
+
+      return nearest;
     }
 
     /// <summary>

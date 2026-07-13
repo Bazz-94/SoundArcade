@@ -10,49 +10,80 @@ namespace SoundArcade.Domain.Models
   /// </summary>
   public class Menu : UIComponent
   {
-    public int MenuStartY { get; set; } = 350;
-    public int MenuTitleOffsetY { get; set; } = 80;
-    public int MenuItemSpacing { get; set; } = 60;
-    public int MenuItemWidth { get; set; } = 280;
-    public int MenuItemHeight { get; set; } = 44;
-    public int MenuItemFontSize { get; set; } = 22;
+    private const int StartY = 350;
+    private const int TitleOffsetY = 80;
+    private const int ItemSpacing = 60;
+    private const int ItemWidth = 280;
+    private const int ItemHeight = 44;
+    private const int TitleFontSizeOffset = 4;
+
     private string MenuTitle { get; }
-    public List<MenuItem> Items { get; }
+
+    /// <summary>
+    /// Gets the menu items in display order.
+    /// </summary>
+    public IReadOnlyList<MenuItem> Items { get; }
+
     private int SelectedIndex { get; set; }
+
     /// <summary>
     /// Gets the currently selected item.
     /// </summary>
     protected MenuItem SelectedItem => this.Items[this.SelectedIndex];
+
     private Theme Theme { get; }
-    public IInput Input { get; }
-    public ITts Tts { get; }
-    public IRenderer Renderer { get; }
+
+    /// <summary>
+    /// Gets the input abstraction.
+    /// </summary>
+    protected IInput Input { get; }
+
+    /// <summary>
+    /// Gets the text-to-speech abstraction.
+    /// </summary>
+    protected ITts Tts { get; }
+
+    /// <summary>
+    /// Gets the renderer abstraction.
+    /// </summary>
+    protected IRenderer Renderer { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Menu"/> class.
     /// </summary>
-    /// <param name="id">Stable menu identifier.</param>
-    /// <param name="items">Menu items.</param>
-    /// <param name="menuTitle">Title of the menu.</param>
     /// <param name="input">Input abstraction.</param>
     /// <param name="tts">Text-to-speech abstraction.</param>
+    /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="id">Stable menu identifier.</param>
+    /// <param name="items">Menu items.</param>
+    /// <param name="theme">Theme for colors.</param>
+    /// <param name="menuTitle">Title of the menu.</param>
     public Menu(IInput input, ITts tts, IRenderer renderer, int id, IEnumerable<MenuItem> items, Theme theme, string menuTitle)
       : base(theme.ColorPalette.Tertiary, id, menuTitle)
     {
-      this.Theme = theme;
-      this.Items = [.. items];
+      ArgumentNullException.ThrowIfNull(input);
+      ArgumentNullException.ThrowIfNull(tts);
+      ArgumentNullException.ThrowIfNull(renderer);
+      ArgumentNullException.ThrowIfNull(items);
 
-      if (this.Items.Count == 0)
+      List<MenuItem> itemList = [.. items];
+
+      if (itemList.Count == 0)
       {
         throw new ArgumentException("Menu must contain at least one item.", nameof(items));
       }
 
+      this.Items = itemList;
+      this.Theme = theme;
       this.Input = input;
       this.Tts = tts;
       this.Renderer = renderer;
       this.MenuTitle = menuTitle;
     }
 
+    /// <summary>
+    /// Resets the selection to the first item and announces the menu title and item.
+    /// </summary>
     public void SelectFirstItem()
     {
       this.SelectedIndex = 0;
@@ -78,18 +109,13 @@ namespace SoundArcade.Domain.Models
     }
 
     /// <summary>
-    /// Wraps an index into the range [0, length).
+    /// Wraps an index into the range [0, length). Length must be positive.
     /// </summary>
     /// <param name="index">Index to wrap.</param>
     /// <param name="length">Collection length.</param>
     /// <returns>Wrapped index.</returns>
     protected static int WrapIndex(int index, int length)
     {
-      if (length <= 0)
-      {
-        return 0;
-      }
-
       int wrapped = index % length;
 
       if (wrapped < 0)
@@ -107,17 +133,12 @@ namespace SoundArcade.Domain.Models
     {
       int centerX = this.Renderer.GetScreenWidth() / 2;
 
-      this.Renderer.DrawScreenTextCentered(centerX, this.MenuStartY - this.MenuTitleOffsetY, this.MenuTitle, this.MenuItemFontSize + 4, this.Color);
+      this.Renderer.DrawScreenTextCentered(centerX, StartY - TitleOffsetY, this.MenuTitle, this.Theme.FontSize + TitleFontSizeOffset, this.Color);
 
       int itemIndex = 0;
       foreach (MenuItem item in this.Items)
       {
-        item.X = centerX;
-        item.Y = this.MenuStartY + (itemIndex * this.MenuItemSpacing);
-        item.Color = this.Theme.ColorPalette.Primary;
-        item.TextColor = this.Theme.ColorPalette.Accent;
-        item.Width = this.MenuItemWidth;
-        item.Height = this.MenuItemHeight;
+        item.SetLayout(centerX, StartY + (itemIndex * ItemSpacing), ItemWidth, ItemHeight);
         item.Render(this.Renderer, itemIndex == this.SelectedIndex);
 
         itemIndex++;

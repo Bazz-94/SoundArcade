@@ -10,6 +10,7 @@ namespace SoundArcade.Domain.Models
     /// <summary>
     /// Initializes a new instance of the <see cref="UIComponent"/> class.
     /// </summary>
+    /// <param name="color">Base component color.</param>
     /// <param name="id">Stable component identifier.</param>
     /// <param name="displayText">Display text announced to users.</param>
     protected UIComponent(Color color, int id, string displayText)
@@ -29,6 +30,9 @@ namespace SoundArcade.Domain.Models
     /// </summary>
     public string DisplayText { get; }
 
-    public Color Color { get; set; }
+    /// <summary>
+    /// Gets the base component color.
+    /// </summary>
+    public Color Color { get; }
   }
 }
