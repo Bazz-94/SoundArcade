@@ -65,6 +65,38 @@ namespace SoundArcade.Abstractions
     void DrawScreenText(int x, int y, string text, int fontSize, Color color);
 
     /// <summary>
+    /// Draws text centered on a fixed screen-space pixel position, independent of the camera.
+    /// </summary>
+    /// <param name="x">Horizontal pixel position of the text center.</param>
+    /// <param name="y">Vertical pixel position of the text center.</param>
+    /// <param name="text">Text content.</param>
+    /// <param name="fontSize">Font size in pixels.</param>
+    /// <param name="color">Text color.</param>
+    void DrawScreenTextCentered(int x, int y, string text, int fontSize, Color color);
+
+    /// <summary>
+    /// Draws a rectangle at a fixed screen-space pixel position, independent of the camera.
+    /// </summary>
+    /// <param name="x">Horizontal pixel position of the rectangle center.</param>
+    /// <param name="y">Vertical pixel position of the rectangle center.</param>
+    /// <param name="width">Rectangle width in pixels.</param>
+    /// <param name="height">Rectangle height in pixels.</param>
+    /// <param name="color">Rectangle color.</param>
+    void DrawScreenBox(int x, int y, int width, int height, Color color);
+
+    /// <summary>
+    /// Returns the current screen width in pixels.
+    /// </summary>
+    /// <returns>Screen width in pixels.</returns>
+    int GetScreenWidth();
+
+    /// <summary>
+    /// Returns the current screen height in pixels.
+    /// </summary>
+    /// <returns>Screen height in pixels.</returns>
+    int GetScreenHeight();
+
+    /// <summary>
     /// Moves the camera to follow a world position, preserving its default viewing offset.
     /// </summary>
     /// <param name="focusPosition">World position the camera should follow.</param>

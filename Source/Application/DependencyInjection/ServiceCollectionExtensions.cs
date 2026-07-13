@@ -6,9 +6,6 @@ namespace SoundArcade.Application.DependencyInjection
   using SoundArcade.Domain;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.RiverRun;
-  using SoundArcade.Domain.RiverRun.Game;
-  using SoundArcade.Domain.RiverRun.Models;
-  using SoundArcade.Domain.RiverRun.Services;
   using SoundArcade.Domain.Services;
   using SoundArcade.Infrastructure.Audio;
   using SoundArcade.Infrastructure.Windows;
@@ -25,7 +22,6 @@ namespace SoundArcade.Application.DependencyInjection
     /// <returns>The configured service collection.</returns>
     public static IServiceCollection AddSoundArcade(this IServiceCollection services)
     {
-      services.AddSingleton<IGame, RiverRunGame>();
       services.AddSingleton<IInput, RaylibInput>();
       services.AddSingleton<IWindow, RaylibWindow>();
       services.AddSingleton<IRenderer, RaylibRenderer>();
@@ -33,20 +29,24 @@ namespace SoundArcade.Application.DependencyInjection
       services.AddSingleton<ITts, TextToSpeech>();
       services.AddSingleton<RaylibAudio>(serviceProvider => new RaylibAudio(serviceProvider.GetRequiredService<ITts>()));
       services.AddSingleton<IAudio>(serviceProvider => serviceProvider.GetRequiredService<RaylibAudio>());
+      services.AddSingleton<AppSettings>();
       services.AddSingleton<ArcadeShell>();
       services.AddSingleton<GameRegistry>();
       services.AddSingleton<SceneManager>();
+      services.AddSingleton<ISceneFactory, SceneFactory>();
       services.AddSingleton<Theme>();
 
       return services;
     }
 
+    /// <summary>
+    /// Registers the RiverRun mini-game module.
+    /// </summary>
+    /// <param name="services">Service collection to configure.</param>
+    /// <returns>The configured service collection.</returns>
     public static IServiceCollection AddRiverRun(this IServiceCollection services)
     {
-      services.AddSingleton<RiverRunSettings>();
-      services.AddSingleton<RiverRunSession>();
-      services.AddSingleton<PlayerController>();
-      services.AddSingleton<Game>();
+      services.AddSingleton<IGame, RiverRunGame>();
       return services;
     }
   }

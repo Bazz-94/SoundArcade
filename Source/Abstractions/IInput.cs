@@ -46,12 +46,15 @@ namespace SoundArcade.Abstractions
   public interface IInput
   {
     /// <summary>
-    /// Raised when a logical input is pressed this frame.
+    /// Raised when a logical input is pressed this frame. Implementations raise this from
+    /// <see cref="InputPressed"/> polls, so the event only fires for inputs a caller polled,
+    /// and polling the same input twice in one frame raises it twice.
     /// </summary>
     event EventHandler<InputPressedEventArgs>? Pressed;
 
     /// <summary>
     /// Returns true when an input transitions to pressed this frame.
+    /// A true result also raises <see cref="Pressed"/> as a side effect.
     /// </summary>
     /// <param name="input">Logical input action to query.</param>
     /// <returns>True when the input was pressed this frame.</returns>

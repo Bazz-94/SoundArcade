@@ -32,10 +32,12 @@ Sound Arcade is an **audio-first** arcade collection for blind and sighted playe
 Clean Architecture with lightweight DDD. Dependencies point inward toward Domain; game logic never references Raylib directly.
 
 ```
-Application    → Domain.{Game} → Domain
+Application    → Domain.{Game} → Domain → Abstractions
 Application    → Abstractions
 Infrastructure → Abstractions
 ```
+
+Every layer may depend on `Abstractions` (Domain references it directly, so `Domain.{Game}` gets it transitively); only Infrastructure implements it. Game logic talks to the platform exclusively through PAL interfaces.
 
 - **`Source/Domain`** — shared contracts and primitives: `IGame`, `GameIdentity`, scene/menu models, `SceneManager`.
 - **`Source/Domain.RiverRun`** — the RiverRun mini-game module. Each mini-game gets its own `Domain.{Game}` project.
@@ -47,12 +49,15 @@ Infrastructure → Abstractions
 ### Key patterns
 
 - **Mini-game registration**: each game implements `IGame` and registers via a DI extension (e.g. `services.AddRiverRun()` in `ServiceCollectionExtensions`); `GameRegistry` catalogs them and the shell drives them through scenes.
-- **Domain event pattern**: gameplay sessions (e.g. `RiverRunSession`) do not call `IAudio`/`ITts` directly. Domain methods return `IReadOnlyList<RunEvent>` (`PlaySoundEvent`, `StopSoundEvent`, `TextToSpeechEvent`), which the scene layer translates into PAL calls. Keep new audio/TTS feedback in this event style.
-- **Scenes**: `SceneManager` + `IScene` drive both menus (Application) and gameplay (`RiverRunScene`).
+- **Domain event pattern**: gameplay sessions (e.g. `RiverRunSession`) do not call `IAudio`/`ITts` directly. Domain methods return `IReadOnlyList<RunEvent>` (`PlaySoundEvent`, `StopSoundEvent`, `TextToSpeechEvent`), which the game coordinator (`Domain.RiverRun/Game/Game.cs`) translates into PAL calls. Keep new audio/TTS feedback in this event style — the session stays pure and unit-testable by asserting on returned events.
+- **Scenes**: `SceneManager` + `IScene` drive both menus (Application) and gameplay (`RiverRunScene`). Gameplay scenes register their sounds (generated via `SoundProfile` or loaded from `Assets/`) with `IAudio` at construction.
+- **Tuning vs constants**: per-game tuning lives in a settings record with defaulted constructor parameters (`RiverRunSettings`); fixed values (lane X positions, sound ids, spoken strings, volumes, pitches) live in a `RunConstants`-style static class. Tests construct settings with named arguments and a seeded `Random` for determinism.
 
 ## Standards
 
 `artifacts/standards.md` is the single source of truth for project rules, design principles, and C# coding standards. Read it before writing or reviewing any code.
+
+Additional conventions visible in the codebase but not in standards.md: `ImplicitUsings` is disabled (add explicit `using` directives, placed inside the namespace block), nullable reference types are enabled, and files use 2-space indentation.
 
 ## Agent Workflow & Artifacts
 

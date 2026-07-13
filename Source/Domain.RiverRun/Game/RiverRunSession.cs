@@ -21,11 +21,24 @@ namespace SoundArcade.Domain.RiverRun.Game
     private const int HudMarginY = 20;
     private const int HudFontSize = 24;
     private const int HudLineHeight = 30;
+    private const float LaneRenderDistanceBehind = 2.0f;
+    private const float LaneRenderLength = 28.0f;
+    private const string HudScoreLabel = "Score:";
+    private const string HudLivesLabel = "Lives:";
 
     private float ScoreRemainder { get; set; }
     private int NextScoreAnnouncement { get; set; }
+
+    /// <summary>
+    /// Gets the active obstacles in the world.
+    /// </summary>
     public IReadOnlyList<Obstacle> Obstacles => this.obstacles;
+
+    /// <summary>
+    /// Gets the active pickups in the world.
+    /// </summary>
     public IReadOnlyList<Pickup> Pickups => this.pickups;
+
     private readonly List<Obstacle> obstacles = [];
     private readonly List<Pickup> pickups = [];
     private float NextRiverNoiseAt { get; set; }
@@ -35,12 +48,37 @@ namespace SoundArcade.Domain.RiverRun.Game
     private Spawner Spawner { get; }
     private readonly Func<Vector3, Obstacle> obstacleFactory;
     private readonly Func<Vector3, Pickup> pickupFactory;
+
+    /// <summary>
+    /// Gets the color theme applied to session visuals.
+    /// </summary>
     public Theme Theme { get; }
+
     private RiverRunSettings Settings { get; }
+
+    /// <summary>
+    /// Gets the total playing time elapsed this run, in seconds.
+    /// </summary>
     public float ElapsedSeconds { get; private set; }
+
+    /// <summary>
+    /// Gets the remaining lives.
+    /// </summary>
     public int Lives { get; private set; }
+
+    /// <summary>
+    /// Gets the current score.
+    /// </summary>
     public int Score { get; private set; }
+
+    /// <summary>
+    /// Gets the player actor.
+    /// </summary>
     public Player Player { get; private set; }
+
+    /// <summary>
+    /// Gets the current run state.
+    /// </summary>
     public SessionState State { get; private set; }
 
     private readonly Color laneColor;
@@ -50,6 +88,7 @@ namespace SoundArcade.Domain.RiverRun.Game
     /// <summary>
     /// Initializes a new instance of the <see cref="RiverRunSession"/> class.
     /// </summary>
+    /// <param name="theme">Color theme applied to session visuals.</param>
     /// <param name="settings">Gameplay tuning settings.</param>
     /// <param name="random">Optional random source used by spawning services.</param>
     public RiverRunSession(Theme theme, RiverRunSettings settings, Random? random = null)
@@ -186,13 +225,7 @@ namespace SoundArcade.Domain.RiverRun.Game
         int earned = (int)this.ScoreRemainder;
         this.Score += earned;
         this.ScoreRemainder -= earned;
-
-        while (this.Score >= this.NextScoreAnnouncement)
-        {
-          events.Add(new TextToSpeechEvent(
-            $"{RunConstants.Speech.ScorePrefix} {this.NextScoreAnnouncement}"));
-          this.NextScoreAnnouncement += this.Settings.ScoreAnnouncementStep;
-        }
+        this.AnnounceScoreMilestones(events);
       }
 
       IReadOnlyList<GameObject> spawnedObjects = this.Spawner.Update(this.Player.Position.Z);
@@ -225,8 +258,9 @@ namespace SoundArcade.Domain.RiverRun.Game
         if (collides)
         {
           this.obstacles.RemoveAt(i);
+          i--;
           this.Lives--;
-          events.Add(new TextToSpeechEvent($"Hit. {this.Lives} {RunConstants.Speech.LivesLeftSuffix}"));
+          events.Add(new TextToSpeechEvent($"{RunConstants.Speech.HitPrefix} {this.Lives} {RunConstants.Speech.LivesLeftSuffix}"));
           events.Add(new PlaySoundEvent(RunConstants.SoundId.Collision, null));
 
           if (this.Lives <= 0)
@@ -239,25 +273,24 @@ namespace SoundArcade.Domain.RiverRun.Game
           continue;
         }
 
-        float obstacleDistanceAhead = obstacle.Position.Z - this.Player.Position.Z;
+        float obstacleDistance = Vector3.Distance(obstacle.Position, this.Player.Position);
 
-        if (obstacleDistanceAhead > 0.0f && obstacleDistanceAhead <= this.Settings.ApproachNoiseRadius)
+        if (obstacle.Position.Z > this.Player.Position.Z && obstacleDistance <= this.Settings.ApproachNoiseRadius)
         {
           obstacleZoneOccupied = true;
 
-          if (this.ElapsedSeconds >= obstacle.NextNoiseAt)
+          if (obstacle.TryScheduleNoise(this.ElapsedSeconds, this.Settings.ApproachNoiseInterval))
           {
-            float volume = ComputeApproachNoiseVolume(obstacleDistanceAhead, this.Settings.ApproachNoiseRadius);
-            float pitch = ComputeApproachNoisePitch(obstacleDistanceAhead, this.Settings.ApproachNoiseRadius);
+            float volume = ComputeApproachNoiseVolume(obstacleDistance, this.Settings.ApproachNoiseRadius);
+            float pitch = ComputeApproachNoisePitch(obstacleDistance, this.Settings.ApproachNoiseRadius);
             events.Add(new PlaySoundEvent(RunConstants.SoundId.ObstacleNoise, obstacle.Position, volume, pitch));
-            obstacle.NextNoiseAt = this.ElapsedSeconds + this.Settings.ApproachNoiseInterval;
           }
         }
 
         if (obstacle.Position.Z < this.Player.Position.Z)
         {
           this.obstacles.RemoveAt(i);
-          continue;
+          i--;
         }
       }
 
@@ -286,30 +319,31 @@ namespace SoundArcade.Domain.RiverRun.Game
         if (collected)
         {
           this.pickups.RemoveAt(i);
+          i--;
           this.Score += this.Settings.PickupScoreBonus;
           events.Add(new TextToSpeechEvent($"{RunConstants.Speech.PickupPrefix} {this.Settings.PickupScoreBonus}"));
           events.Add(new PlaySoundEvent(RunConstants.SoundId.Reward, pickup.Position, RunConstants.Volume.PickupCollected));
+          this.AnnounceScoreMilestones(events);
           continue;
         }
 
-        float pickupDistanceAhead = pickup.Position.Z - this.Player.Position.Z;
+        float pickupDistance = Vector3.Distance(pickup.Position, this.Player.Position);
 
-        if (pickupDistanceAhead > 0.0f && pickupDistanceAhead <= this.Settings.ApproachNoiseRadius)
+        if (pickup.Position.Z > this.Player.Position.Z && pickupDistance <= this.Settings.ApproachNoiseRadius)
         {
           pickupZoneOccupied = true;
 
-          if (this.ElapsedSeconds >= pickup.NextNoiseAt)
+          if (pickup.TryScheduleNoise(this.ElapsedSeconds, this.Settings.ApproachNoiseInterval))
           {
-            float volume = ComputeApproachNoiseVolume(pickupDistanceAhead, this.Settings.ApproachNoiseRadius);
+            float volume = ComputeApproachNoiseVolume(pickupDistance, this.Settings.ApproachNoiseRadius);
             events.Add(new PlaySoundEvent(RunConstants.SoundId.RewardNoise, pickup.Position, volume));
-            pickup.NextNoiseAt = this.ElapsedSeconds + this.Settings.ApproachNoiseInterval;
           }
         }
 
         if (pickup.Position.Z < this.Player.Position.Z)
         {
           this.pickups.RemoveAt(i);
-          continue;
+          i--;
         }
       }
 
@@ -335,12 +369,16 @@ namespace SoundArcade.Domain.RiverRun.Game
       return events;
     }
 
+    /// <summary>
+    /// Renders the world, actors, and HUD.
+    /// </summary>
+    /// <param name="renderer">Renderer abstraction to draw with.</param>
     public void Render(IRenderer renderer)
     {
       renderer.SetCameraTarget(this.Player.Position);
       this.RenderHud(renderer);
-      float laneStartZ = this.Player.Position.Z - 2.0f;
-      float laneEndZ = laneStartZ + 28.0f;
+      float laneStartZ = this.Player.Position.Z - LaneRenderDistanceBehind;
+      float laneEndZ = laneStartZ + LaneRenderLength;
 
       renderer.DrawLine(new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Left, RunConstants.GroundY, laneEndZ), this.laneColor);
       renderer.DrawLine(new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneStartZ), new Vector3(RunConstants.LaneX.Center, RunConstants.GroundY, laneEndZ), this.laneColor);
@@ -359,13 +397,17 @@ namespace SoundArcade.Domain.RiverRun.Game
       }
     }
 
+    /// <summary>
+    /// Renders the score and lives HUD text.
+    /// </summary>
+    /// <param name="renderer">Renderer abstraction to draw with.</param>
     public void RenderHud(IRenderer renderer)
     {
       int lives = Math.Max(0, this.Lives);
       int score = Math.Max(0, this.Score);
 
-      renderer.DrawScreenText(HudMarginX, HudMarginY, $"Score: {score}", HudFontSize, this.hudScoreColor);
-      renderer.DrawScreenText(HudMarginX, HudMarginY + HudLineHeight, $"Lives: {lives}", HudFontSize, this.hudLivesColor);
+      renderer.DrawScreenText(HudMarginX, HudMarginY, $"{HudScoreLabel} {score}", HudFontSize, this.hudScoreColor);
+      renderer.DrawScreenText(HudMarginX, HudMarginY + HudLineHeight, $"{HudLivesLabel} {lives}", HudFontSize, this.hudLivesColor);
     }
 
     /// <summary>
@@ -375,12 +417,7 @@ namespace SoundArcade.Domain.RiverRun.Game
     /// <param name="z">Initial Z position.</param>
     public void QueueObstacle(float lane, float z)
     {
-      if (lane is < RunConstants.LaneX.Right or > RunConstants.LaneX.Left)
-      {
-        throw new ArgumentOutOfRangeException(nameof(lane));
-      }
-      Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
-      this.obstacles.Add(this.obstacleFactory(position));
+      this.obstacles.Add(this.obstacleFactory(new Vector3(lane, RunConstants.GroundY, z)));
     }
 
     /// <summary>
@@ -390,27 +427,36 @@ namespace SoundArcade.Domain.RiverRun.Game
     /// <param name="z">Initial Z position.</param>
     public void QueuePickup(float lane, float z)
     {
-      if (lane is < RunConstants.LaneX.Right or > RunConstants.LaneX.Left)
+      this.pickups.Add(this.pickupFactory(new Vector3(lane, RunConstants.GroundY, z)));
+    }
+
+    /// <summary>
+    /// Emits a TTS announcement for every score milestone crossed since the last announcement.
+    /// </summary>
+    /// <param name="events">Event list to append announcements to.</param>
+    private void AnnounceScoreMilestones(List<RunEvent> events)
+    {
+      while (this.Score >= this.NextScoreAnnouncement)
       {
-        throw new ArgumentOutOfRangeException(nameof(lane));
+        events.Add(new TextToSpeechEvent(
+          $"{RunConstants.Speech.ScorePrefix} {this.NextScoreAnnouncement}"));
+        this.NextScoreAnnouncement += this.Settings.ScoreAnnouncementStep;
       }
-      Vector3 position = new Vector3(lane, RunConstants.GroundY, z);
-      this.pickups.Add(this.pickupFactory(position));
     }
 
     /// <summary>
     /// Scales approach noise volume so it is loudest right next to the player and quietest at the edge of the approach radius.
     /// </summary>
-    /// <param name="distanceAhead">Forward distance from the player to the object.</param>
+    /// <param name="distance">Straight-line distance from the player to the object.</param>
     /// <param name="radius">Distance at which approach noise starts being audible.</param>
-    private static float ComputeApproachNoiseVolume(float distanceAhead, float radius)
+    private static float ComputeApproachNoiseVolume(float distance, float radius)
     {
       if (radius <= 0.0f)
       {
         return RunConstants.Volume.ApproachNoiseMax;
       }
 
-      float proximity = 1.0f - Math.Clamp(distanceAhead / radius, 0.0f, 1.0f);
+      float proximity = 1.0f - Math.Clamp(distance / radius, 0.0f, 1.0f);
       return RunConstants.Volume.ApproachNoiseMin + (proximity * (RunConstants.Volume.ApproachNoiseMax - RunConstants.Volume.ApproachNoiseMin));
     }
 
@@ -418,9 +464,9 @@ namespace SoundArcade.Domain.RiverRun.Game
     /// Scales approach noise pitch so it rises only over the final stretch of the approach radius,
     /// giving a last-moment distance cue on top of the volume ramp.
     /// </summary>
-    /// <param name="distanceAhead">Forward distance from the player to the object.</param>
+    /// <param name="distance">Straight-line distance from the player to the object.</param>
     /// <param name="radius">Distance at which approach noise starts being audible.</param>
-    private static float ComputeApproachNoisePitch(float distanceAhead, float radius)
+    private static float ComputeApproachNoisePitch(float distance, float radius)
     {
       float rampRadius = radius * RunConstants.Pitch.ObstacleNoiseRampFraction;
 
@@ -429,7 +475,7 @@ namespace SoundArcade.Domain.RiverRun.Game
         return RunConstants.Pitch.ObstacleNoiseNear;
       }
 
-      float proximity = 1.0f - Math.Clamp(distanceAhead / rampRadius, 0.0f, 1.0f);
+      float proximity = 1.0f - Math.Clamp(distance / rampRadius, 0.0f, 1.0f);
       return RunConstants.Pitch.ObstacleNoiseFar + (proximity * (RunConstants.Pitch.ObstacleNoiseNear - RunConstants.Pitch.ObstacleNoiseFar));
     }
   }

@@ -6,66 +6,53 @@ namespace SoundArcade.Application.Scenes
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.Services;
 
-  public sealed class MainMenuScene : IScene
+  /// <summary>
+  /// Top-level menu offering play, settings, and exit.
+  /// </summary>
+  public sealed class MainMenuScene : MenuScene
   {
-    private Menu Menu { get; set; }
-    public IInput Input { get; }
-    private SceneManager SceneManager { get; }
+    /// <inheritdoc />
+    protected override Menu Menu { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainMenuScene"/> class.
+    /// </summary>
+    /// <param name="input">Input abstraction.</param>
+    /// <param name="tts">Text-to-speech abstraction.</param>
+    /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="theme">Theme for colors.</param>
+    /// <param name="sceneManager">Scene manager for transitions.</param>
     public MainMenuScene(
       IInput input,
       ITts tts,
       IRenderer renderer,
       Theme theme,
       SceneManager sceneManager)
+      : base(input, sceneManager)
     {
-      this.SceneManager = sceneManager;
       this.Menu = new Menu(
-      input,
-      tts,
-      renderer,
-      (int)MenuType.Main,
-      [
-        new MenuItem(theme, (int)MainMenuItem.Play, "Play", () => this.SceneManager.ChangeScene(SceneType.GameSelectionMenu)),
-        new MenuItem(theme, (int)MainMenuItem.Settings, "Settings", () => this.SceneManager.ChangeScene(SceneType.SettingsMenu)),
-        new MenuItem(theme, (int)MainMenuItem.Exit, "Exit", () => this.SceneManager.ChangeScene(SceneType.Exit))
-      ],
-      theme,
-      "Sound Arcade"
-      );
-      this.Input = input;
+        input,
+        tts,
+        renderer,
+        (int)MenuType.Main,
+        [
+          new MenuItem(theme, (int)MainMenuItem.Play, MenuText.PlayLabel, () => this.SceneManager.ChangeScene(SceneType.GameSelectionMenu)),
+          new MenuItem(theme, (int)MainMenuItem.Settings, MenuText.SettingsLabel, () => this.SceneManager.ChangeScene(SceneType.SettingsMenu)),
+          new MenuItem(theme, (int)MainMenuItem.Exit, MenuText.ExitLabel, () => this.SceneManager.ChangeScene(SceneType.Exit))
+        ],
+        theme,
+        MenuText.MainMenuTitle);
     }
 
-    public void OnBackSelected()
+    /// <summary>
+    /// Exits the application.
+    /// </summary>
+    public override void OnBackSelected()
     {
       this.SceneManager.ChangeScene(SceneType.Exit);
     }
 
-    public void OnExit()
-    {
-    }
-
-    public void Update(float deltaTime)
-    {
-      this.Menu.Update();
-
-      if (this.Input.InputPressed(Abstractions.Input.Back))
-      {
-        this.OnBackSelected();
-      }
-    }
-
-    public void Render()
-    {
-      this.Menu.Render();
-    }
-
-    public void OnEnter()
-    {
-      this.Menu.SelectFirstItem();
-    }
-
-    public enum MainMenuItem
+    private enum MainMenuItem
     {
       Play,
       Settings,

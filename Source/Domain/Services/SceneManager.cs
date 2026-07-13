@@ -10,10 +10,30 @@ namespace SoundArcade.Domain.Services
   {
     private IScene? ActiveScene { get; set; }
 
+    private ISceneFactory? sceneFactory;
+
     /// <summary>
     /// Gets or sets the factory used to build scenes requested by <see cref="SceneType"/>.
+    /// Property-injected after construction to break the dependency cycle with the factory;
+    /// may only be set once.
     /// </summary>
-    public ISceneFactory? SceneFactory { get; set; }
+    public ISceneFactory? SceneFactory
+    {
+      get
+      {
+        return this.sceneFactory;
+      }
+
+      set
+      {
+        if (this.sceneFactory is not null)
+        {
+          throw new InvalidOperationException("SceneManager.SceneFactory may only be set once.");
+        }
+
+        this.sceneFactory = value;
+      }
+    }
 
     /// <summary>
     /// Raised when <see cref="SceneType.Exit"/> is requested instead of a scene transition.

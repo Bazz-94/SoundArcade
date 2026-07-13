@@ -1,6 +1,5 @@
 namespace SoundArcade.Infrastructure.Windows
 {
-  using System;
   using System.IO;
   using System.Text.Json;
   using SoundArcade.Abstractions;
@@ -10,7 +9,6 @@ namespace SoundArcade.Infrastructure.Windows
   /// </summary>
   public sealed class FileSettingsStore : ISettingsStore
   {
-    private const string SettingsDirectoryName = "SoundArcade";
     private const string SettingsFileName = "settings.json";
 
     private readonly string settingsPath;
@@ -20,25 +18,34 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public FileSettingsStore()
     {
-      string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-      string settingsDirectoryPath = Path.Combine(appDataPath, SettingsDirectoryName);
-      settingsPath = Path.Combine(settingsDirectoryPath, SettingsFileName);
+      this.settingsPath = SettingsPaths.GetPath(SettingsFileName);
     }
 
     /// <inheritdoc />
     public AppSettings Load()
     {
-      if (!File.Exists(settingsPath))
+      AppSettings settings = new AppSettings();
+
+      if (!File.Exists(this.settingsPath))
       {
-        return new AppSettings();
+        return settings;
       }
 
-      string json = File.ReadAllText(settingsPath);
-      AppSettings? settings = JsonSerializer.Deserialize<AppSettings>(json);
-
-      if (settings is null)
+      SettingsDocument? document;
+      try
       {
-        return new AppSettings();
+        document = JsonSerializer.Deserialize<SettingsDocument>(File.ReadAllText(this.settingsPath));
+      }
+      catch (JsonException)
+      {
+        // A corrupt or hand-edited settings file must not prevent startup; defaults stay active.
+        return settings;
+      }
+
+      if (document is not null)
+      {
+        settings.SetMasterVolume(document.MasterVolume);
+        settings.SetTtsVolume(document.TtsVolume);
       }
 
       return settings;
@@ -47,7 +54,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void Save(AppSettings settings)
     {
-      string? settingsDirectoryPath = Path.GetDirectoryName(settingsPath);
+      string? settingsDirectoryPath = Path.GetDirectoryName(this.settingsPath);
 
       if (settingsDirectoryPath is null)
       {
@@ -55,8 +62,28 @@ namespace SoundArcade.Infrastructure.Windows
       }
 
       Directory.CreateDirectory(settingsDirectoryPath);
-      string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-      File.WriteAllText(settingsPath, json);
+      SettingsDocument document = new SettingsDocument
+      {
+        MasterVolume = settings.MasterVolume,
+        TtsVolume = settings.TtsVolume
+      };
+      File.WriteAllText(this.settingsPath, JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    /// <summary>
+    /// Serialization shape for the settings file.
+    /// </summary>
+    private sealed record SettingsDocument
+    {
+      /// <summary>
+      /// Gets or sets the master volume.
+      /// </summary>
+      public float MasterVolume { get; set; } = 1.0f;
+
+      /// <summary>
+      /// Gets or sets the text-to-speech volume.
+      /// </summary>
+      public float TtsVolume { get; set; } = 1.0f;
     }
   }
 }

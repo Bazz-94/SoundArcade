@@ -1,6 +1,5 @@
 namespace SoundArcade.Application
 {
-  using System;
   using SoundArcade.Abstractions;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Models;
@@ -14,19 +13,18 @@ namespace SoundArcade.Application
     private const int WindowWidth = 1280;
     private const int WindowHeight = 720;
     private const string WindowTitle = "Sound Arcade";
-    private const float MinimumVolume = 0.0f;
-    private const float MaximumVolume = 1.0f;
     private bool shouldExit;
 
-    private IWindow Window { get; set; }
-    private IRenderer Renderer { get; set; }
-    private IInput Input { get; set; }
-    private ITts Tts { get; set; }
-    private IAudio Audio { get; set; }
-    private SceneManager SceneManager { get; set; }
-    public Theme Theme { get; }
-    private AppSettings AppSettings { get; set; }
-    private ISettingsStore SettingsStore { get; set; }
+    private IWindow Window { get; }
+    private IRenderer Renderer { get; }
+    private IInput Input { get; }
+    private ITts Tts { get; }
+    private IAudio Audio { get; }
+    private SceneManager SceneManager { get; }
+    private ISceneFactory SceneFactory { get; }
+    private Theme Theme { get; }
+    private AppSettings AppSettings { get; }
+    private ISettingsStore SettingsStore { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ArcadeShell"/> class.
@@ -37,7 +35,10 @@ namespace SoundArcade.Application
     /// <param name="tts">Text-to-speech abstraction.</param>
     /// <param name="audio">Audio abstraction.</param>
     /// <param name="settingsStore">Settings store abstraction.</param>
+    /// <param name="appSettings">Application settings.</param>
     /// <param name="sceneManager">Scene manager abstraction.</param>
+    /// <param name="sceneFactory">Factory that builds scenes.</param>
+    /// <param name="theme">Theme for colors.</param>
     public ArcadeShell(
       IWindow window,
       IRenderer renderer,
@@ -45,7 +46,9 @@ namespace SoundArcade.Application
       ITts tts,
       IAudio audio,
       ISettingsStore settingsStore,
+      AppSettings appSettings,
       SceneManager sceneManager,
+      ISceneFactory sceneFactory,
       Theme theme)
     {
       this.Window = window;
@@ -54,9 +57,10 @@ namespace SoundArcade.Application
       this.Tts = tts;
       this.Audio = audio;
       this.SettingsStore = settingsStore;
+      this.AppSettings = appSettings;
       this.SceneManager = sceneManager;
+      this.SceneFactory = sceneFactory;
       this.Theme = theme;
-      this.AppSettings = new AppSettings();
       this.SceneManager.ExitRequested += this.Exit;
     }
 
@@ -67,18 +71,10 @@ namespace SoundArcade.Application
     {
       this.Window.Initialize(WindowWidth, WindowHeight, WindowTitle);
       this.LoadSettings();
-      this.SceneManager.SceneFactory = new SceneFactory(
-        input: this.Input,
-        tts: this.Tts,
-        renderer: this.Renderer,
-        audio: this.Audio,
-        settingsStore: this.SettingsStore,
-        appSettings: this.AppSettings,
-        theme: this.Theme,
-        sceneManager: this.SceneManager);
+      this.SceneManager.SceneFactory = this.SceneFactory;
       this.SceneManager.ChangeScene(SceneType.MainMenu);
 
-      while (!this.Window.ShouldClose && !shouldExit)
+      while (!this.Window.ShouldClose && !this.shouldExit)
       {
         float deltaTime = this.Window.GetDeltaTime();
         this.SceneManager.Update(deltaTime);
@@ -94,14 +90,12 @@ namespace SoundArcade.Application
 
     private void Exit()
     {
-      shouldExit = true;
+      this.shouldExit = true;
     }
 
     private void LoadSettings()
     {
-      this.AppSettings = this.SettingsStore.Load();
-      this.AppSettings.MasterVolume = Math.Clamp(this.AppSettings.MasterVolume, MinimumVolume, MaximumVolume);
-      this.AppSettings.TtsVolume = Math.Clamp(this.AppSettings.TtsVolume, MinimumVolume, MaximumVolume);
+      this.AppSettings.CopyFrom(this.SettingsStore.Load());
       this.Audio.SetMasterVolume(this.AppSettings.MasterVolume);
       this.Tts.SetVolume(this.AppSettings.TtsVolume);
       this.Input.LoadMappings();

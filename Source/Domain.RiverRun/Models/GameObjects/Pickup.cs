@@ -9,12 +9,9 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
   /// </summary>
   public sealed class Pickup : GameObject
   {
-    private Color Color { get; }
+    private const float RenderRadius = 0.25f;
 
-    /// <summary>
-    /// Gets or sets the elapsed-time threshold after which this pickup may emit another approach noise cue.
-    /// </summary>
-    public float NextNoiseAt { get; set; }
+    private Color Color { get; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Pickup"/>.
@@ -27,9 +24,10 @@ namespace SoundArcade.Domain.RiverRun.Models.GameObjects
       this.Color = color;
     }
 
+    /// <inheritdoc />
     public override void Render(IRenderer renderer)
     {
-      renderer.DrawSphere(this.Position, 0.25f, this.Color);
+      renderer.DrawSphere(this.Position, RenderRadius, this.Color);
     }
   }
 }

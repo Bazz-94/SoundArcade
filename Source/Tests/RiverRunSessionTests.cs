@@ -26,8 +26,8 @@ namespace SoundArcade.Tests
     public void Update_increases_score_while_playing()
     {
       RiverRunSettings settings = new(
-        ScoringPerSecond: 50.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        scoringPerSecond: 50.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -44,10 +44,10 @@ namespace SoundArcade.Tests
     public void Update_increases_player_speed_with_distance_and_caps_it()
     {
       RiverRunSettings settings = new(
-        StartingPlayerSpeed: 2.0f,
-        PlayerSpeedIncreasePerZUnit: 1.0f,
-        MaxPlayerSpeedIncrease: 1.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 2.0f,
+        playerSpeedIncreasePerZUnit: 1.0f,
+        maxPlayerSpeedIncrease: 1.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -71,13 +71,13 @@ namespace SoundArcade.Tests
     public void Update_spawns_obstacles_as_player_advances_in_z()
     {
       RiverRunSettings settings = new(
-        StartingPlayerSpeed: 1.0f,
-        PlayerSpeedIncreasePerZUnit: 0.0f,
-        MaxPlayerSpeedIncrease: 0.0f,
-        SpawnZ: 1.0f,
-        SpawnDistanceMin: 1.0f,
-        SpawnDistanceMax: 1.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 1.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        spawnZ: 1.0f,
+        spawnDistanceMin: 1.0f,
+        spawnDistanceMax: 1.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -114,10 +114,10 @@ namespace SoundArcade.Tests
     public void Collision_until_no_lives_reaches_game_over()
     {
       RiverRunSettings settings = new(
-        StartingLives: 2,
-        CollisionRadius: 0.5f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingLives: 2,
+        collisionRadius: 0.5f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -143,9 +143,9 @@ namespace SoundArcade.Tests
     public void Collision_with_default_settings_costs_one_life_and_continues()
     {
       RiverRunSettings settings = new(
-        CollisionRadius: 0.5f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        collisionRadius: 0.5f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -164,10 +164,10 @@ namespace SoundArcade.Tests
     public void Update_collects_pickup_and_awards_bonus()
     {
       RiverRunSettings settings = new(
-        CollisionRadius: 0.5f,
-        ScoringPerSecond: 0.0f,
-        PickupScoreBonus: 25,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        collisionRadius: 0.5f,
+        scoringPerSecond: 0.0f,
+        pickupScoreBonus: 25,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -187,12 +187,12 @@ namespace SoundArcade.Tests
     public void Update_emits_approach_noise_for_nearby_obstacle()
     {
       RiverRunSettings settings = new(
-        StartingPlayerSpeed: 0.0f,
-        PlayerSpeedIncreasePerZUnit: 0.0f,
-        MaxPlayerSpeedIncrease: 0.0f,
-        ApproachNoiseRadius: 10.0f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 0.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        approachNoiseRadius: 10.0f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -210,13 +210,13 @@ namespace SoundArcade.Tests
     public void Update_stops_obstacle_noise_after_the_lane_ahead_clears()
     {
       RiverRunSettings settings = new(
-        StartingPlayerSpeed: 5.0f,
-        PlayerSpeedIncreasePerZUnit: 0.0f,
-        MaxPlayerSpeedIncrease: 0.0f,
-        ApproachNoiseRadius: 10.0f,
-        CollisionRadius: 0.5f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 5.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        approachNoiseRadius: 10.0f,
+        collisionRadius: 0.5f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession session = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       session.Start();
@@ -238,12 +238,12 @@ namespace SoundArcade.Tests
     public void Update_obstacle_approach_noise_grows_louder_as_distance_shrinks()
     {
       RiverRunSettings farSettings = new(
-        StartingPlayerSpeed: 0.0f,
-        PlayerSpeedIncreasePerZUnit: 0.0f,
-        MaxPlayerSpeedIncrease: 0.0f,
-        ApproachNoiseRadius: 10.0f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 0.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        approachNoiseRadius: 10.0f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession farSession = new RiverRunSession(new Theme(), farSettings, new System.Random(RandomSeed));
       farSession.Start();
@@ -261,6 +261,36 @@ namespace SoundArcade.Tests
     }
 
     /// <summary>
+    /// Verifies approach noise volume uses straight-line distance, so an obstacle in an adjacent
+    /// lane is quieter than one in the player's lane at the same forward distance.
+    /// </summary>
+    [Fact]
+    public void Update_obstacle_approach_noise_uses_straight_line_distance()
+    {
+      RiverRunSettings settings = new(
+        startingPlayerSpeed: 0.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        approachNoiseRadius: 10.0f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
+
+      RiverRunSession sameLaneSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      sameLaneSession.Start();
+      sameLaneSession.QueueObstacle(lane: RunConstants.LaneX.Center, z: 5.0f);
+      PlaySoundEvent sameLaneNoise = sameLaneSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      RiverRunSession adjacentLaneSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
+      adjacentLaneSession.Start();
+      adjacentLaneSession.QueueObstacle(lane: RunConstants.LaneX.Left, z: 5.0f);
+      PlaySoundEvent adjacentLaneNoise = adjacentLaneSession.Update(FrameDelta).OfType<PlaySoundEvent>()
+        .Single(x => x.SoundId == RunConstants.SoundId.ObstacleNoise);
+
+      Assert.True(adjacentLaneNoise.Volume < sameLaneNoise.Volume);
+    }
+
+    /// <summary>
     /// Verifies obstacle pitch stays at base outside the ramp zone and only rises once the obstacle
     /// is within the final fraction of the approach radius.
     /// </summary>
@@ -269,12 +299,12 @@ namespace SoundArcade.Tests
     {
       // Radius 10 with a 0.25 ramp fraction means pitch is flat beyond 2.5 units and ramps within it.
       RiverRunSettings settings = new(
-        StartingPlayerSpeed: 0.0f,
-        PlayerSpeedIncreasePerZUnit: 0.0f,
-        MaxPlayerSpeedIncrease: 0.0f,
-        ApproachNoiseRadius: 10.0f,
-        ScoringPerSecond: 0.0f,
-        ScoreAnnouncementStep: HighAnnouncementStep);
+        startingPlayerSpeed: 0.0f,
+        playerSpeedIncreasePerZUnit: 0.0f,
+        maxPlayerSpeedIncrease: 0.0f,
+        approachNoiseRadius: 10.0f,
+        scoringPerSecond: 0.0f,
+        scoreAnnouncementStep: HighAnnouncementStep);
 
       RiverRunSession farSession = new RiverRunSession(new Theme(), settings, new System.Random(RandomSeed));
       farSession.Start();

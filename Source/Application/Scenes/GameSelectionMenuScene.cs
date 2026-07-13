@@ -1,73 +1,64 @@
 namespace SoundArcade.Application.Scenes
 {
+  using System.Collections.Generic;
   using SoundArcade.Abstractions;
+  using SoundArcade.Domain;
   using SoundArcade.Domain.Colors;
   using SoundArcade.Domain.Enums;
   using SoundArcade.Domain.Models;
   using SoundArcade.Domain.Services;
 
-  public sealed class GameSelectionMenuScene : IScene
+  /// <summary>
+  /// Menu listing every registered mini-game plus a back item.
+  /// </summary>
+  public sealed class GameSelectionMenuScene : MenuScene
   {
-    private Menu Menu { get; set; }
-    public IInput Input { get; }
-    private SceneManager SceneManager { get; }
+    /// <inheritdoc />
+    protected override Menu Menu { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameSelectionMenuScene"/> class.
+    /// </summary>
+    /// <param name="input">Input abstraction.</param>
+    /// <param name="tts">Text-to-speech abstraction.</param>
+    /// <param name="renderer">Renderer abstraction.</param>
+    /// <param name="theme">Theme for colors.</param>
+    /// <param name="gameRegistry">Registry of games to present.</param>
+    /// <param name="sceneManager">Scene manager for transitions.</param>
     public GameSelectionMenuScene(
       IInput input,
       ITts tts,
       IRenderer renderer,
       Theme theme,
+      GameRegistry gameRegistry,
       SceneManager sceneManager)
+      : base(input, sceneManager)
     {
-      this.SceneManager = sceneManager;
+      List<MenuItem> items = [];
+
+      foreach (IGame game in gameRegistry.Games)
+      {
+        items.Add(new MenuItem(theme, items.Count, game.Identity.DisplayName, () => this.SceneManager.ChangeScene(SceneType.Run)));
+      }
+
+      items.Add(new MenuItem(theme, items.Count, MenuText.BackLabel, this.OnBackSelected));
+
       this.Menu = new Menu(
-      input,
-      tts,
-      renderer,
-      (int)MenuType.GameSelection,
-      [
-        new MenuItem(theme, (int)GameSelectionMenuItem.RiverRun, "RiverRun", () => this.SceneManager.ChangeScene(SceneType.Run)),
-        new MenuItem(theme, (int)GameSelectionMenuItem.Back, "Back", this.OnBackSelected)
-      ],
-      theme,
-      "Select a Game"
-      );
-      this.Input = input;
+        input,
+        tts,
+        renderer,
+        (int)MenuType.GameSelection,
+        items,
+        theme,
+        MenuText.GameSelectionTitle);
     }
 
-    public void OnBackSelected()
+    /// <summary>
+    /// Returns to the main menu.
+    /// </summary>
+    public override void OnBackSelected()
     {
       this.SceneManager.ChangeScene(SceneType.MainMenu);
-    }
-
-    public void OnExit()
-    {
-    }
-
-    public void Update(float deltaTime)
-    {
-      this.Menu.Update();
-
-      if (this.Input.InputPressed(Abstractions.Input.Back))
-      {
-        this.OnBackSelected();
-      }
-    }
-
-    public void Render()
-    {
-      this.Menu.Render();
-    }
-
-    public void OnEnter()
-    {
-      this.Menu.SelectFirstItem();
-    }
-
-    public enum GameSelectionMenuItem
-    {
-      RiverRun,
-      Back
     }
   }
 }
