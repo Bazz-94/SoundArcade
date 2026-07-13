@@ -10,7 +10,8 @@ description: Performs a review of a part of the codebase and outputs a report wi
 4. Document findings in the `artifacts/review-{area}.md` file.
   - Check box to mark completed items.
   - Number the finding for easy reference.
-  - Provide suggested fixes or improvements for each finding. Starting from A if there multiple options.
+  - Provide suggested fixes or improvements for each finding. Starting from A if there multiple options. Use checkbox to mark suggestion as implemented.
+  - Strike out the text of any findings if the user decides to ignore the finding.
 5. Ask if whether you should continue with implementing the review fixes.
 6. Strike out the text of any findings if the user decides to ignore the finding.
 
@@ -22,7 +23,7 @@ Scope: a description of the codebase area being reviewed (e.g., `Source/Applicat
 
 ## {section}
 
-- [x] 1. **Title**: `File.cs:line` - Short description of the issue. 
-  A. The first options to fix the issue.
-  B. The second option to fix the issue (if applicable).
+1. [x] **Title**: `File.cs:line` - Short description of the issue. 
+    - a. [ ] The first options to fix the issue.
+    - b. [x] The second option to fix the issue (if applicable).
 ```

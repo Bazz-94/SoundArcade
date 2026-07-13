@@ -12,7 +12,6 @@ namespace SoundArcade.Infrastructure.Windows
   /// </summary>
   public sealed class RaylibInput : IInput
   {
-    private const string SettingsDirectoryName = "SoundArcade";
     private const string SettingsFileName = "input-mappings.json";
 
     private static readonly IReadOnlyDictionary<Input, KeyboardKey> DefaultMappings =
@@ -34,10 +33,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public RaylibInput()
     {
-      string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-      string settingsDirectoryPath = Path.Combine(appDataPath, SettingsDirectoryName);
-      settingsPath = Path.Combine(settingsDirectoryPath, SettingsFileName);
-
+      this.settingsPath = SettingsPaths.GetPath(SettingsFileName);
       this.ResetMappingsToDefault();
       this.LoadMappings();
     }
@@ -48,8 +44,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public bool InputPressed(Input input)
     {
-      KeyboardKey key = this.GetMappedKey(input);
-      bool wasPressed = Raylib.IsKeyPressed(key);
+      bool wasPressed = Raylib.IsKeyPressed(this.GetMappedKey(input));
 
       if (wasPressed)
       {
@@ -62,8 +57,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public bool InputDown(Input input)
     {
-      KeyboardKey key = this.GetMappedKey(input);
-      return Raylib.IsKeyDown(key);
+      return Raylib.IsKeyDown(this.GetMappedKey(input));
     }
 
     /// <inheritdoc />
@@ -71,7 +65,7 @@ namespace SoundArcade.Infrastructure.Windows
     {
       Dictionary<Input, string> snapshot = new Dictionary<Input, string>();
 
-      foreach (KeyValuePair<Input, KeyboardKey> mapping in mappings)
+      foreach (KeyValuePair<Input, KeyboardKey> mapping in this.mappings)
       {
         snapshot[mapping.Key] = mapping.Value.ToString();
       }
@@ -89,36 +83,44 @@ namespace SoundArcade.Infrastructure.Windows
 
       bool parsed = Enum.TryParse(keyName, true, out KeyboardKey parsedKey);
 
-      if (!parsed)
+      if (!parsed || !Enum.IsDefined(parsedKey) || parsedKey == KeyboardKey.Null)
       {
         return false;
       }
 
-      mappings[input] = parsedKey;
+      this.mappings[input] = parsedKey;
       return true;
     }
 
     /// <inheritdoc />
     public void ResetMappingsToDefault()
     {
-      mappings.Clear();
+      this.mappings.Clear();
 
       foreach (KeyValuePair<Input, KeyboardKey> mapping in DefaultMappings)
       {
-        mappings[mapping.Key] = mapping.Value;
+        this.mappings[mapping.Key] = mapping.Value;
       }
     }
 
     /// <inheritdoc />
     public void LoadMappings()
     {
-      if (!File.Exists(settingsPath))
+      if (!File.Exists(this.settingsPath))
       {
         return;
       }
 
-      string json = File.ReadAllText(settingsPath);
-      InputMappingsFile? persistedMappings = JsonSerializer.Deserialize<InputMappingsFile>(json);
+      InputMappingsFile? persistedMappings;
+      try
+      {
+        persistedMappings = JsonSerializer.Deserialize<InputMappingsFile>(File.ReadAllText(this.settingsPath));
+      }
+      catch (JsonException)
+      {
+        // A corrupt or hand-edited mappings file must not prevent startup; defaults stay active.
+        return;
+      }
 
       if (persistedMappings?.Mappings is null)
       {
@@ -132,7 +134,7 @@ namespace SoundArcade.Infrastructure.Windows
 
         if (parsedInput && parsedKey)
         {
-          mappings[input] = key;
+          this.mappings[input] = key;
         }
       }
     }
@@ -140,7 +142,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void SaveMappings()
     {
-      string? settingsDirectoryPath = Path.GetDirectoryName(settingsPath);
+      string? settingsDirectoryPath = Path.GetDirectoryName(this.settingsPath);
 
       if (settingsDirectoryPath is null)
       {
@@ -151,7 +153,7 @@ namespace SoundArcade.Infrastructure.Windows
 
       Dictionary<string, string> serializableMappings = new Dictionary<string, string>();
 
-      foreach (KeyValuePair<Input, KeyboardKey> mapping in mappings)
+      foreach (KeyValuePair<Input, KeyboardKey> mapping in this.mappings)
       {
         serializableMappings[mapping.Key.ToString()] = mapping.Value.ToString();
       }
@@ -161,13 +163,17 @@ namespace SoundArcade.Infrastructure.Windows
         Mappings = serializableMappings
       };
 
-      string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
-      File.WriteAllText(settingsPath, json);
+      File.WriteAllText(this.settingsPath, JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }));
     }
 
+    /// <summary>
+    /// Gets the physical key mapped to a logical input.
+    /// </summary>
+    /// <param name="input">Logical input action.</param>
+    /// <returns>The mapped keyboard key.</returns>
     private KeyboardKey GetMappedKey(Input input)
     {
-      if (mappings.TryGetValue(input, out KeyboardKey key))
+      if (this.mappings.TryGetValue(input, out KeyboardKey key))
       {
         return key;
       }
@@ -180,8 +186,14 @@ namespace SoundArcade.Infrastructure.Windows
       throw new ArgumentOutOfRangeException(nameof(input));
     }
 
+    /// <summary>
+    /// Serialization shape for the persisted key mappings file.
+    /// </summary>
     private sealed class InputMappingsFile
     {
+      /// <summary>
+      /// Gets or sets the persisted action-to-key mappings.
+      /// </summary>
       public Dictionary<string, string> Mappings { get; set; } = new Dictionary<string, string>();
     }
   }

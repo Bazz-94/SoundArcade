@@ -13,6 +13,11 @@ namespace SoundArcade.Infrastructure.Windows
   {
     private const float CameraFov = 20.0f;
 
+    /// <summary>
+    /// World-space radius of the sphere used to visualize a point.
+    /// </summary>
+    private const float PointRadius = 0.07f;
+
     private static readonly Vector3 DefaultCameraPosition = new Vector3(0.0f, 18.0f, -14.0f);
     private static readonly Vector3 DefaultCameraTarget = new Vector3(0.0f, 0.0f, 18.0f);
 
@@ -23,7 +28,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public RaylibRenderer()
     {
-      camera = new Camera3D(
+      this.camera = new Camera3D(
         DefaultCameraPosition,
         DefaultCameraTarget,
         new Vector3(0.0f, 1.0f, 0.0f),
@@ -58,13 +63,13 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void DrawPoint(Vector3 position, Abstractions.Color color)
     {
-      this.WithCamera(() => Raylib.DrawSphere(position, 0.07f, ToRaylibColor(color)));
+      this.WithCamera(() => Raylib.DrawSphere(position, PointRadius, ToRaylibColor(color)));
     }
 
     /// <inheritdoc />
     public void DrawText(Vector3 position, string text, int fontSize, Abstractions.Color color)
     {
-      Vector2 screenPosition = Raylib.GetWorldToScreen(position, camera);
+      Vector2 screenPosition = Raylib.GetWorldToScreen(position, this.camera);
       int textWidth = Raylib.MeasureText(text, fontSize);
       int x = (int)screenPosition.X - (textWidth / 2);
       int y = (int)screenPosition.Y - (fontSize / 2);
@@ -105,15 +110,15 @@ namespace SoundArcade.Infrastructure.Windows
     /// <inheritdoc />
     public void SetCameraTarget(Vector3 focusPosition)
     {
-      camera.Position = DefaultCameraPosition + new Vector3(0.0f, 0.0f, focusPosition.Z);
-      camera.Target = DefaultCameraTarget + new Vector3(0.0f, 0.0f, focusPosition.Z);
+      this.camera.Position = DefaultCameraPosition + new Vector3(0.0f, 0.0f, focusPosition.Z);
+      this.camera.Target = DefaultCameraTarget + new Vector3(0.0f, 0.0f, focusPosition.Z);
     }
 
     /// <inheritdoc />
     public void ResetCamera()
     {
-      camera.Position = DefaultCameraPosition;
-      camera.Target = DefaultCameraTarget;
+      this.camera.Position = DefaultCameraPosition;
+      this.camera.Target = DefaultCameraTarget;
     }
 
     /// <summary>
@@ -122,7 +127,7 @@ namespace SoundArcade.Infrastructure.Windows
     /// <param name="drawAction">Draw operation.</param>
     private void WithCamera(Action drawAction)
     {
-      Raylib.BeginMode3D(camera);
+      Raylib.BeginMode3D(this.camera);
       drawAction();
       Raylib.EndMode3D();
     }

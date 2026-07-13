@@ -12,10 +12,14 @@ namespace SoundArcade.Infrastructure.Audio
   /// </summary>
   public sealed class RaylibAudio : IAudio, IDisposable
   {
-    private const float DefaultMasterVolume = 1.0f;
     private const float DefaultMusicVolume = 1.0f;
     private const float DuckingMusicVolume = 0.35f;
     private const int PositionalVoiceCount = 4;
+
+    /// <summary>
+    /// Stereo pan value for centered playback (Raylib pan range is -1.0 to 1.0, 0.0 center).
+    /// </summary>
+    private const float CenterPan = 0.0f;
 
     private readonly Dictionary<string, Sound> sounds = new(StringComparer.Ordinal);
     private readonly Dictionary<string, float> soundGains = new(StringComparer.Ordinal);
@@ -24,6 +28,8 @@ namespace SoundArcade.Infrastructure.Audio
     private readonly Dictionary<string, Music> musicTracks = new(StringComparer.Ordinal);
     private readonly object sync = new();
     private readonly ITts? tts;
+
+    private readonly bool ownsAudioDevice;
 
     private Vector3 listenerPosition = Vector3.Zero;
     private string? activeMusicId;
@@ -40,7 +46,7 @@ namespace SoundArcade.Infrastructure.Audio
     public RaylibAudio(ITts? tts = null)
     {
       this.tts = tts;
-      this.EnsureAudioDevice();
+      this.ownsAudioDevice = this.EnsureAudioDevice();
 
       if (this.tts is not null)
       {
@@ -67,31 +73,34 @@ namespace SoundArcade.Infrastructure.Audio
 
       this.StopMusic();
 
-      foreach (KeyValuePair<string, Sound[]> entry in this.positionalVoices)
+      lock (this.sync)
       {
-        foreach (Sound voice in entry.Value)
+        foreach (KeyValuePair<string, Sound[]> entry in this.positionalVoices)
         {
-          Raylib.UnloadSoundAlias(voice);
+          foreach (Sound voice in entry.Value)
+          {
+            Raylib.UnloadSoundAlias(voice);
+          }
         }
+
+        foreach (KeyValuePair<string, Sound> entry in this.sounds)
+        {
+          Raylib.UnloadSound(entry.Value);
+        }
+
+        foreach (KeyValuePair<string, Music> entry in this.musicTracks)
+        {
+          Raylib.UnloadMusicStream(entry.Value);
+        }
+
+        this.positionalVoices.Clear();
+        this.positionalVoiceCursors.Clear();
+        this.soundGains.Clear();
+        this.sounds.Clear();
+        this.musicTracks.Clear();
       }
 
-      foreach (KeyValuePair<string, Sound> entry in this.sounds)
-      {
-        Raylib.UnloadSound(entry.Value);
-      }
-
-      foreach (KeyValuePair<string, Music> entry in this.musicTracks)
-      {
-        Raylib.UnloadMusicStream(entry.Value);
-      }
-
-      this.positionalVoices.Clear();
-      this.positionalVoiceCursors.Clear();
-      this.soundGains.Clear();
-      this.sounds.Clear();
-      this.musicTracks.Clear();
-
-      if (Raylib.IsAudioDeviceReady())
+      if (this.ownsAudioDevice && Raylib.IsAudioDeviceReady())
       {
         Raylib.CloseAudioDevice();
       }
@@ -99,12 +108,7 @@ namespace SoundArcade.Infrastructure.Audio
       this.disposed = true;
     }
 
-    /// <summary>
-    /// Registers a sound effect asset under a stable identifier.
-    /// </summary>
-    /// <param name="soundId">Audio asset identifier.</param>
-    /// <param name="assetPath">Absolute or relative file path to the asset.</param>
-    /// <param name="gain">Per-asset volume multiplier applied to every playback of this sound.</param>
+    /// <inheritdoc />
     public void RegisterSound(string soundId, string assetPath, float gain = 1.0f)
     {
       this.EnsureNotDisposed();
@@ -170,11 +174,7 @@ namespace SoundArcade.Infrastructure.Audio
       }
     }
 
-    /// <summary>
-    /// Registers a music asset under a stable identifier.
-    /// </summary>
-    /// <param name="musicId">Music asset identifier.</param>
-    /// <param name="assetPath">Absolute or relative file path to the asset.</param>
+    /// <inheritdoc />
     public void RegisterMusic(string musicId, string assetPath)
     {
       this.EnsureNotDisposed();
@@ -226,12 +226,19 @@ namespace SoundArcade.Infrastructure.Audio
     {
       this.EnsureNotDisposed();
 
-      Sound sound = this.GetSound(soundId);
-      float playbackVolume = Math.Clamp(volume * this.GetGain(soundId), 0.0f, 1.0f);
+      Sound voice;
+      float gain;
 
-      Raylib.SetSoundPitch(sound, Math.Max(0.0f, pitch));
-      Raylib.SetSoundVolume(sound, playbackVolume);
-      Raylib.PlaySound(sound);
+      lock (this.sync)
+      {
+        voice = this.NextPositionalVoice(soundId);
+        gain = this.soundGains.TryGetValue(soundId, out float storedGain) ? storedGain : 1.0f;
+      }
+
+      Raylib.SetSoundPitch(voice, Math.Max(0.0f, pitch));
+      Raylib.SetSoundPan(voice, CenterPan);
+      Raylib.SetSoundVolume(voice, Math.Clamp(volume * gain, 0.0f, 1.0f));
+      Raylib.PlaySound(voice);
     }
 
     /// <inheritdoc />
@@ -400,40 +407,16 @@ namespace SoundArcade.Infrastructure.Audio
     /// <summary>
     /// Ensures the Raylib audio device is ready.
     /// </summary>
-    private void EnsureAudioDevice()
+    /// <returns>True when this instance initialized the device and therefore owns its lifetime.</returns>
+    private bool EnsureAudioDevice()
     {
-      if (!Raylib.IsAudioDeviceReady())
+      if (Raylib.IsAudioDeviceReady())
       {
-        Raylib.InitAudioDevice();
-      }
-    }
-
-    /// <summary>
-    /// Gets a registered sound effect by identifier.
-    /// </summary>
-    /// <param name="soundId">Audio asset identifier.</param>
-    /// <returns>The loaded sound effect.</returns>
-    private Sound GetSound(string soundId)
-    {
-      if (this.TryGetSound(soundId, out Sound sound))
-      {
-        return sound;
+        return false;
       }
 
-      throw new KeyNotFoundException($"Sound asset '{soundId}' is not registered.");
-    }
-
-    /// <summary>
-    /// Gets the per-asset gain multiplier registered for a sound, defaulting to 1.0 when none was set.
-    /// </summary>
-    /// <param name="soundId">Audio asset identifier.</param>
-    /// <returns>The registered gain multiplier.</returns>
-    private float GetGain(string soundId)
-    {
-      lock (this.sync)
-      {
-        return this.soundGains.TryGetValue(soundId, out float gain) ? gain : 1.0f;
-      }
+      Raylib.InitAudioDevice();
+      return true;
     }
 
     /// <summary>
@@ -453,20 +436,6 @@ namespace SoundArcade.Infrastructure.Audio
       int cursor = this.positionalVoiceCursors[soundId];
       this.positionalVoiceCursors[soundId] = (cursor + 1) % voices.Length;
       return voices[cursor];
-    }
-
-    /// <summary>
-    /// Attempts to get a registered sound effect by identifier.
-    /// </summary>
-    /// <param name="soundId">Audio asset identifier.</param>
-    /// <param name="sound">Loaded sound effect when found.</param>
-    /// <returns>True when the sound exists.</returns>
-    private bool TryGetSound(string soundId, out Sound sound)
-    {
-      lock (this.sync)
-      {
-        return this.sounds.TryGetValue(soundId, out sound);
-      }
     }
 
     /// <summary>

@@ -24,8 +24,8 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public TextToSpeech()
     {
-      synth.SpeakStarted += this.OnSpeakStarted;
-      synth.SpeakCompleted += this.OnSpeakCompleted;
+      this.synth.SpeakStarted += this.OnSpeakStarted;
+      this.synth.SpeakCompleted += this.OnSpeakCompleted;
     }
 
     /// <summary>
@@ -33,43 +33,34 @@ namespace SoundArcade.Infrastructure.Windows
     /// </summary>
     public void Dispose()
     {
-      synth.SpeakStarted -= this.OnSpeakStarted;
-      synth.SpeakCompleted -= this.OnSpeakCompleted;
+      this.synth.SpeakStarted -= this.OnSpeakStarted;
+      this.synth.SpeakCompleted -= this.OnSpeakCompleted;
       this.Stop();
-      synth.Dispose();
+      this.synth.Dispose();
     }
 
-    /// <summary>
-    /// Speaks text synchronously.
-    /// </summary>
-    /// <param name="text">Text to speak.</param>
+    /// <inheritdoc />
     public void Speak(string text)
     {
-      synth.Speak(text);
+      this.synth.Speak(text);
     }
 
-    /// <summary>
-    /// Speaks text asynchronously.
-    /// </summary>
-    /// <param name="text">Text to speak.</param>
+    /// <inheritdoc />
     public void SpeakAsync(string text)
     {
-      synth.SpeakAsync(text);
+      this.synth.SpeakAsync(text);
     }
 
-    /// <summary>
-    /// Stops all queued and active speech.
-    /// </summary>
+    /// <inheritdoc />
     public void Stop()
     {
-      synth.SpeakAsyncCancelAll();
+      this.synth.SpeakAsyncCancelAll();
     }
 
     /// <inheritdoc />
     public void SetVolume(float volume)
     {
-      int volumePercent = (int)Math.Round(Math.Clamp(volume, 0.0f, 1.0f) * 100.0f);
-      synth.Volume = volumePercent;
+      this.synth.Volume = (int)Math.Round(Math.Clamp(volume, 0.0f, 1.0f) * 100.0f);
     }
 
     /// <summary>
