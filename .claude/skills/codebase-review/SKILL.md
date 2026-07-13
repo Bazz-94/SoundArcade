@@ -7,7 +7,7 @@ description: Performs a review of a part of the codebase and outputs a report wi
 1. Identify the scope of the codebase to review.
 2. Read the artifacts/standards.md file to understand the coding standards and best practices.
 3. Analyze the code for potential issues, improvements, or deviations from best practices.
-4. Document findings in the `artifacts/review-{area}.md` file.
+4. Document findings in the `artifacts/reviews/review-{area}.md` file.
   - Check box to mark completed items.
   - Number the finding for easy reference.
   - Provide suggested fixes or improvements for each finding. Starting from A if there multiple options. Use checkbox to mark suggestion as implemented.
