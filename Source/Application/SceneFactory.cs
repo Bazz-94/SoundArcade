@@ -28,6 +28,9 @@ namespace SoundArcade.Application
     /// <summary>Settings persistence.</summary>
     private ISettingsStore SettingsStore { get; }
 
+    /// <summary>Scoreboard persistence.</summary>
+    private IScoreboardStore ScoreboardStore { get; }
+
     /// <summary>Application settings.</summary>
     private AppSettings AppSettings { get; }
 
@@ -49,6 +52,7 @@ namespace SoundArcade.Application
       IRenderer renderer,
       IAudio audio,
       ISettingsStore settingsStore,
+      IScoreboardStore scoreboardStore,
       AppSettings appSettings,
       Theme theme,
       GameRegistry gameRegistry,
@@ -59,6 +63,7 @@ namespace SoundArcade.Application
       this.Renderer = renderer;
       this.Audio = audio;
       this.SettingsStore = settingsStore;
+      this.ScoreboardStore = scoreboardStore;
       this.AppSettings = appSettings;
       this.Theme = theme;
       this.GameRegistry = gameRegistry;
@@ -120,7 +125,8 @@ namespace SoundArcade.Application
         input: this.Input,
         renderer: this.Renderer,
         theme: this.Theme,
-        sceneManager: this.SceneManager);
+        sceneManager: this.SceneManager,
+        scoreboardStore: this.ScoreboardStore);
     }
   }
 }

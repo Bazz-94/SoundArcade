@@ -84,10 +84,16 @@ namespace SoundArcade.Domain.Models
     /// <summary>
     /// Resets the selection to the first item and announces the menu title and item.
     /// </summary>
-    public void SelectFirstItem()
+    /// <param name="interruptSpeech">When false, queues the announcement after any active speech instead of cutting it off.</param>
+    public void SelectFirstItem(bool interruptSpeech = true)
     {
       this.SelectedIndex = 0;
-      this.Tts.Stop();
+
+      if (interruptSpeech)
+      {
+        this.Tts.Stop();
+      }
+
       this.Tts.SpeakAsync(this.DisplayText);
       this.Tts.SpeakAsync(this.SelectedItem.DisplayText);
     }

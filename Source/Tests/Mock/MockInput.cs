@@ -11,6 +11,7 @@ namespace SoundArcade.Tests.Mock
   public sealed class MockInput : IInput
   {
     private readonly HashSet<Input> pressed = new HashSet<Input>();
+    private readonly Queue<char> typedCharacters = new Queue<char>();
     private readonly Dictionary<Input, string> mappings = new Dictionary<Input, string>
     {
       [Input.Up] = "Up",
@@ -18,7 +19,8 @@ namespace SoundArcade.Tests.Mock
       [Input.Left] = "Left",
       [Input.Right] = "Right",
       [Input.Enter] = "Enter",
-      [Input.Back] = "Escape"
+      [Input.Back] = "Escape",
+      [Input.Backspace] = "Backspace"
     };
 
     public event EventHandler<InputPressedEventArgs>? Pressed;
@@ -38,6 +40,18 @@ namespace SoundArcade.Tests.Mock
     public bool InputDown(Input input)
     {
       return this.pressed.Contains(input);
+    }
+
+    public IReadOnlyList<char> ReadTypedCharacters()
+    {
+      List<char> drained = new List<char>();
+
+      while (this.typedCharacters.Count > 0)
+      {
+        drained.Add(this.typedCharacters.Dequeue());
+      }
+
+      return drained;
     }
 
     public IReadOnlyDictionary<Input, string> GetMappings()
@@ -64,6 +78,7 @@ namespace SoundArcade.Tests.Mock
       this.mappings[Input.Right] = "Right";
       this.mappings[Input.Enter] = "Enter";
       this.mappings[Input.Back] = "Escape";
+      this.mappings[Input.Backspace] = "Backspace";
     }
 
     public void LoadMappings()
@@ -81,6 +96,18 @@ namespace SoundArcade.Tests.Mock
     public void Press(Input input)
     {
       this.pressed.Add(input);
+    }
+
+    /// <summary>
+    /// Queues characters returned by the next <see cref="ReadTypedCharacters"/> call.
+    /// </summary>
+    /// <param name="characters">Characters to type, in order.</param>
+    public void Type(string characters)
+    {
+      foreach (char character in characters)
+      {
+        this.typedCharacters.Enqueue(character);
+      }
     }
   }
 }

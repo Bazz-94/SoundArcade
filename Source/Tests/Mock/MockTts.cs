@@ -1,6 +1,7 @@
 namespace SoundArcade.Tests.Mock
 {
   using System;
+  using System.Collections.Generic;
   using SoundArcade.Abstractions;
 
   /// <summary>
@@ -34,14 +35,21 @@ namespace SoundArcade.Tests.Mock
 
     public string? LastSpokenText { get; private set; }
 
+    /// <summary>
+    /// Gets every spoken text in order.
+    /// </summary>
+    public List<string> SpokenTexts { get; } = new List<string>();
+
     public void Speak(string text)
     {
       this.LastSpokenText = text;
+      this.SpokenTexts.Add(text);
     }
 
     public void SpeakAsync(string text)
     {
       this.LastSpokenText = text;
+      this.SpokenTexts.Add(text);
     }
 
     public void Stop()

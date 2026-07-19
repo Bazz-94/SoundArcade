@@ -22,7 +22,8 @@ namespace SoundArcade.Infrastructure.Windows
         [Input.Left] = KeyboardKey.Left,
         [Input.Right] = KeyboardKey.Right,
         [Input.Enter] = KeyboardKey.Enter,
-        [Input.Back] = KeyboardKey.Escape
+        [Input.Back] = KeyboardKey.Escape,
+        [Input.Backspace] = KeyboardKey.Backspace
       };
 
     private readonly Dictionary<Input, KeyboardKey> mappings = new Dictionary<Input, KeyboardKey>();
@@ -58,6 +59,19 @@ namespace SoundArcade.Infrastructure.Windows
     public bool InputDown(Input input)
     {
       return Raylib.IsKeyDown(this.GetMappedKey(input));
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<char> ReadTypedCharacters()
+    {
+      List<char> typedCharacters = new List<char>();
+
+      for (int codepoint = Raylib.GetCharPressed(); codepoint > 0; codepoint = Raylib.GetCharPressed())
+      {
+        typedCharacters.Add((char)codepoint);
+      }
+
+      return typedCharacters;
     }
 
     /// <inheritdoc />

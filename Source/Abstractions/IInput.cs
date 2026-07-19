@@ -36,7 +36,12 @@ namespace SoundArcade.Abstractions
     /// <summary>
     /// Back / cancel (Escape key or B button).
     /// </summary>
-    Back
+    Back,
+
+    /// <summary>
+    /// Delete the last typed character during text entry (Backspace key).
+    /// </summary>
+    Backspace
   }
 
   /// <summary>
@@ -66,6 +71,13 @@ namespace SoundArcade.Abstractions
     /// <param name="input">Logical input action to query.</param>
     /// <returns>True when the input is currently down.</returns>
     bool InputDown(Input input);
+
+    /// <summary>
+    /// Drains and returns the characters typed since the previous call, in typed order.
+    /// Each character is returned exactly once; call at most once per frame.
+    /// </summary>
+    /// <returns>Characters typed this frame, empty when none.</returns>
+    IReadOnlyList<char> ReadTypedCharacters();
 
     /// <summary>
     /// Gets a read-only snapshot of current action-to-key mappings.

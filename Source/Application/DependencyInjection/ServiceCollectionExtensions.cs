@@ -26,6 +26,7 @@ namespace SoundArcade.Application.DependencyInjection
       services.AddSingleton<IWindow, RaylibWindow>();
       services.AddSingleton<IRenderer, RaylibRenderer>();
       services.AddSingleton<ISettingsStore, FileSettingsStore>();
+      services.AddSingleton<IScoreboardStore>(new FileScoreboardStore());
       services.AddSingleton<ITts, TextToSpeech>();
       services.AddSingleton<RaylibAudio>(serviceProvider => new RaylibAudio(serviceProvider.GetRequiredService<ITts>()));
       services.AddSingleton<IAudio>(serviceProvider => serviceProvider.GetRequiredService<RaylibAudio>());
